@@ -37,7 +37,7 @@ export default function Footer() {
             </div>
             <div className="flex items-center text-sm text-gray-400">
               <Mail size={16} className="mr-2" />
-              <span>{dictionary.contact?.emailAddress || "gamestime@pattycar.com"}</span>
+              <span>{dictionary.contact?.emailAddress || "pattycar@pattycar.com"}</span>
             </div>
           </div>
 
@@ -49,7 +49,7 @@ export default function Footer() {
                 <li key={link.key}>
                   <Link
                     href={`/${lang}${link.href}`}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -66,7 +66,7 @@ export default function Footer() {
                 <li key={link.key}>
                   <Link
                     href={`/${lang}${link.href}`}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -83,7 +83,7 @@ export default function Footer() {
             </p>
             <Link
               href={`/${lang}/contact`}
-              className="inline-block text-sm px-4 py-2 border border-red-700 text-red-700 hover:bg-red-700 hover:text-white transition-colors"
+              className="inline-block text-sm px-4 py-2 border border-red-700 text-red-700 hover:bg-red-700 hover:text-gray-300 transition-colors"
             >
               {dictionary.contact?.submitButton || "Send Message"}
             </Link>

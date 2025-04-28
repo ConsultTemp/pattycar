@@ -139,7 +139,9 @@
     "passengersFieldLabel": "Numero totale dei passeggeri",
     "submitBookingButton": "Invia prenotazione",
     "luggageLabel": "Numero di bagagli",
-    "flightTrainLabel": "Volo/treno di provenienza"
+    "flightTrainLabel": "Volo/treno di provenienza",
+    "minlabel": "Min",
+    "privacyPolicyLabel": "Accetto il trattamento dei miei dati personali secondo la"
   },
   "footer": {
     "rights": "Tutti i diritti riservati",
@@ -148,6 +150,11 @@
         "key": "privacy",
         "href": "/privacy",
         "label": "Privacy"
+      },
+      {
+        "key": "cancellation",
+        "href": "/cancellation",
+        "label": "Politica di cancellazione"
       }
     ]
   },
@@ -349,7 +356,7 @@
     "phoneTitle": "Numero di telefono",
     "phoneNumber": "+39 366 400 7807",
     "emailTitle": "E-mail",
-    "emailAddress": "gamestime@pattycar.com",
+    "emailAddress": "pattycar@pattycar.com",
     "formTitle": "Compila il form",
     "nameLabel": "Nome e cognome*",
     "namePlaceholder": "Inserisci nome e cognome",
@@ -530,5 +537,28 @@
         "content": "L'utente, accedendo e utilizzando il sito web www.pattycar.com, dichiara di aver letto, compreso e accettato senza riserve tutte le disposizioni della Privacy Policy, Cookie Policy e dei Termini di Servizio, nonché qualsiasi altra documentazione legale correlata."
       }
     }
+  },
+  "cancellation": {
+    "title": "Politica di Cancellazione",
+    "subtitle": "Termini e condizioni per la cancellazione delle prenotazioni",
+    "sections": [
+      {
+        "content": "Le cancellazioni effettuate entro il 31 ottobre 2025 saranno gratuite."
+      },
+      {
+        "content": "Cancellazioni tra il 1 novembre 2025 e il 5 gennaio 2026:",
+        "items": [
+          "Le prenotazioni possono essere modificate, inclusi cambi di date, orari e voli.",
+          "Verrà applicata una penale del 50% per le prenotazioni completamente cancellate."
+        ]
+      },
+      {
+        "content": "Cancellazioni dopo il 5 gennaio 2026:",
+        "items": [
+          "Le modifiche alle prenotazioni saranno soggette a disponibilità.",
+          "Verrà applicata una penale del 100% per le prenotazioni completamente cancellate."
+        ]
+      }
+    ]
   }
 }

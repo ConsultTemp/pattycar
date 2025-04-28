@@ -1,7 +1,7 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import React from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useLanguage } from "@/components/language-provider"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,9 +11,69 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, Eye, Luggage, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import Link from "next/link"
+
+interface LocationSearchProps {
+  locations: Array<{ value: string; label: string }>;
+  onSelect: (value: string) => void;
+  dictionary: any;
+}
+
+const LocationSearch = React.memo(({ locations, onSelect, dictionary }: LocationSearchProps) => {
+  const [search, setSearch] = React.useState("");
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const filteredLocations = React.useMemo(() =>
+    locations.filter(location =>
+      location.label.toLowerCase().includes(search.toLowerCase())
+    ),
+    [locations, search]
+  );
+
+  const handleSelect = (value: string) => {
+    onSelect(value);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative w-full">
+      <Input
+        placeholder={dictionary.searchDepartureLocation || "Cerca luogo di partenza"}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onFocus={() => setIsOpen(true)}
+        className="w-full"
+      />
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+          {search.trim() !== "" && !filteredLocations.some(loc =>
+            loc.label.toLowerCase() === search.toLowerCase()
+          ) && (
+              <div
+                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSelect(search)}
+              >
+                {search}
+              </div>
+            )}
+          {filteredLocations.map((location) => (
+            <div
+              key={location.value}
+              className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+              onClick={() => handleSelect(location.value)}
+            >
+              {location.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+LocationSearch.displayName = "LocationSearch";
 
 export default function BookingForm({ dictionary }: { dictionary: any }) {
   const { lang } = useLanguage()
@@ -21,21 +81,34 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
   const [date, setDate] = useState<Date>()
   const [time, setTime] = useState("")
+  const [minutes, setMinutes] = useState("")
   const [differentVehicles, setDifferentVehicles] = useState(false)
   const [openPickupLocation, setOpenPickupLocation] = useState(false)
   const [pickupLocation, setPickupLocation] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value)
+  }, [])
+
+  const handleLocationSelect = useCallback((value: string) => {
+    setPickupLocation(value)
+    setOpenPickupLocation(false)
+  }, [])
 
   // Mock data for pickup locations
+  //Malpensa, Linate, Orio al serio, stazione centrale, stazione Garibaldi, Aeroporto Venezia Marco Polo, Stazione Venezia Santa Lucia */
   const locations = [
-    { value: "roma_termini", label: "Roma Termini" },
-    { value: "roma_tiburtina", label: "Roma Tiburtina" },
-    { value: "roma_fiumicino", label: "Aeroporto Fiumicino" },
-    { value: "roma_ciampino", label: "Aeroporto Ciampino" },
-    { value: "napoli_centrale", label: "Napoli Centrale" },
-    { value: "milano_centrale", label: "Milano Centrale" },
-    { value: "firenze_smn", label: "Firenze S.M.N." },
+    { value: "malpensa", label: "Aereoporto Malpensa" },
+    { value: "orioal-serio", label: "Aereoporto Orio al Serio" },
+    { value: "stazione-centrale", label: "Stazione Centrale" },
+    { value: "stazione-garibaldi", label: "Stazione Garibaldi" },
+    { value: "aereoporto-venenzia", label: "Aeroporto Venezia Marco Polo" },
+    { value: "stazione-venezia", label: "Stazione Venezia Santa Lucia" }
   ]
-
+  /* 
+  Malpensa, Linate, Orio al serio, stazione centrale, stazione Garibaldi, Aeroporto Venezia Marco Polo, Stazione Venezia Santa Lucia */
   // Country codes for phone prefixes
   const countryCodes = [
     { value: "+39", label: "Italy (+39)" },
@@ -56,8 +129,33 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     return { value: hour, label: hour }
   })
 
+  // Minutes for time selection
+  const minutesOptions = Array.from({ length: 12 }, (_, i) => {
+    const minute = (i * 5).toString().padStart(2, '0')
+    return { value: minute, label: minute }
+  })
+
+  // Get filtered locations based on search query
+  const filteredLocations = locations.filter(location =>
+    location.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Check if search query doesn't match any predefined location
+  const isCustomLocation = searchQuery.trim() !== "" &&
+    !locations.some(loc =>
+      loc.label.toLowerCase() === searchQuery.toLowerCase() ||
+      loc.value.toLowerCase() === searchQuery.toLowerCase()
+    );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Check if privacy is accepted
+    if (!privacyAccepted) {
+      alert(dictionary.privacyRequired || "You must accept the data processing terms to proceed")
+      return
+    }
+
     setIsSubmitting(true)
 
     // Create hidden inputs for date and time
@@ -72,16 +170,16 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       form.appendChild(dateInput)
     }
 
-    // Add time value
+    // Add time value with minutes
     if (time) {
       const timeInput = document.createElement("input")
       timeInput.type = "hidden"
       timeInput.name = "time"
-      timeInput.value = time
+      timeInput.value = `${time}:${minutes || '00'}`
       form.appendChild(timeInput)
     }
 
-    // Add pickup location value
+    // Add pickup location value - could be custom or from the list
     if (pickupLocation) {
       const pickupInput = document.createElement("input")
       pickupInput.type = "hidden"
@@ -181,10 +279,11 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                   <SelectValue placeholder={dictionary.selectVehicle} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sedan">Sedan</SelectItem>
-                  <SelectItem value="luxury">Luxury Sedan</SelectItem>
-                  <SelectItem value="minibus">Mini Bus</SelectItem>
-                  <SelectItem value="van">Van</SelectItem>
+                  <SelectItem value="sedan"> <div className="flex flex-row items-center">Sedan ( 3 <User2 className="w-4 h-4 mr-2" strokeWidth={2}/>   3 <Luggage className="w-4 h-4 mr-1" strokeWidth={2}/> ) </div></SelectItem>
+                  <SelectItem value="van"> <div className="flex flex-row items-center">Van ( 4-6 <User2 className="w-4 h-4 mr-2" strokeWidth={2}/>   6 <Luggage className="w-4 h-4 mr-1" strokeWidth={2}/> ) </div></SelectItem>
+                  <SelectItem value="minibus"> <div className="flex flex-row items-center">Mini Bus ( 8 <User2 className="w-4 h-4 mr-2" strokeWidth={2}/>   8 <Luggage className="w-4 h-4 mr-1" strokeWidth={2}/>) </div></SelectItem>
+                  <SelectItem value="luxury-sedan"> <div className="flex flex-row items-center">Luxury Sedan ( 2 <User2 className="w-4 h-4 mr-2" strokeWidth={2}/>   2 <Luggage className="w-4 h-4 mr-1" strokeWidth={2}/> ) </div></SelectItem>
+
                 </SelectContent>
               </Select>
             </div>
@@ -231,12 +330,24 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 </Popover>
                 <Select name="time" onValueChange={setTime}>
                   <SelectTrigger className="w-1/3">
-                    <SelectValue placeholder={dictionary.timeLabel || "Time"} />
+                    <SelectValue placeholder={dictionary.timeLabel || "Hour"} />
                   </SelectTrigger>
                   <SelectContent>
                     {hours.map((hour) => (
                       <SelectItem key={hour.value} value={hour.value}>
                         {hour.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select name="minutes" onValueChange={setMinutes}>
+                  <SelectTrigger className="w-1/3">
+                    <SelectValue placeholder={dictionary.minlabel || "Min"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {minutesOptions.map((minute) => (
+                      <SelectItem key={minute.value} value={minute.value}>
+                        {minute.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -256,31 +367,19 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     aria-expanded={openPickupLocation}
                     className="w-full justify-between font-normal bg-gray-100 border-transparent hover:bg-gray-200"
                   >
-                    {pickupLocation
-                      ? locations.find((location) => location.value === pickupLocation)?.label
-                      : dictionary.selectDepartureLocation || "Seleziona luogo di partenza"}
+                    {pickupLocation ? (
+                      locations.find((location) => location.value === pickupLocation)?.label || pickupLocation
+                    ) : (
+                      dictionary.selectDepartureLocation || "Seleziona luogo di partenza"
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder={dictionary.searchDepartureLocation || "Cerca luogo di partenza"} />
-                    <CommandEmpty>{dictionary.noLocationsFound}</CommandEmpty>
-                    <CommandGroup>
-                      {locations.map((location) => (
-                        <CommandItem
-                          key={location.value}
-                          value={location.value}
-                          className="pickup-location-item"
-                          onSelect={(currentValue) => {
-                            setPickupLocation(currentValue === pickupLocation ? "" : currentValue)
-                            setOpenPickupLocation(false)
-                          }}
-                        >
-                          {location.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  <LocationSearch
+                    locations={locations}
+                    onSelect={handleLocationSelect}
+                    dictionary={dictionary}
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -321,26 +420,38 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             </div>
 
             <div className="md:col-span-2">
-              <div className="flex items-center mb-4 transition-all duration-300 hover:bg-gray-50 p-2">
-                <Checkbox id="meetAndGreet" name="meetAndGreet" value="yes" className="mr-2" />
-                <label htmlFor="meetAndGreet" className="text-sm text-gray-600">
-                  {dictionary.meetAndGreetLabel}
+              <div className="md:col-span-2 mb-6 flex flex-row">
+                <div className="flex items-center transition-all duration-300 p-2 w-fit">
+                  <Checkbox
+                    id="meetAndGreet" name="meetAndGreet" value="yes"
+                    className="mr-2"
+                  />
+
+                </div>
+                <label htmlFor="privacyAccepted" className="text-sm text-gray-600 flex flex-row items-center gap-2">
+                {dictionary.meetAndGreetLabel}
                 </label>
               </div>
-              
-              <div className="flex items-center mb-4 transition-all duration-300 hover:bg-gray-50 p-2">
-                <Checkbox 
-                  id="differentVehicles" 
-                  name="differentVehicles" 
-                  value="yes" 
-                  className="mr-2"
-                  checked={differentVehicles}
-                  onCheckedChange={(checked) => setDifferentVehicles(checked as boolean)}
-                />
-                <label htmlFor="differentVehicles" className="text-sm text-gray-600">
+
+              <div className="md:col-span-2 mb-6 flex flex-row">
+                <div className="flex items-center transition-all duration-300 p-2 w-fit">
+                  <Checkbox
+                    id="differentVehicles"
+                    name="differentVehicles"
+                    value="yes"
+                    className="mr-2"
+                    checked={differentVehicles}
+                    onCheckedChange={(checked) => setDifferentVehicles(checked as boolean)}
+                  />
+
+                </div>
+                <label htmlFor="privacyAccepted" className="text-sm text-gray-600 flex flex-row items-center gap-2">
                   {dictionary.differentVehiclesLabel}
                 </label>
               </div>
+
+
+
               {differentVehicles && (
                 <p className="text-xs text-gray-500 ml-6 mb-4">{dictionary.differentVehiclesHelperText}</p>
               )}
@@ -353,13 +464,30 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
               <Textarea id="notes" name="notes" rows={4} />
             </div>
 
+            {/* Privacy policy acceptance checkbox */}
+            <div className="md:col-span-2 mb-6 flex flex-row">
+              <div className="flex items-center transition-all duration-300 p-2 w-fit">
+                <Checkbox
+                  id="privacyAccepted"
+                  name="privacyAccepted"
+                  checked={privacyAccepted}
+                  onCheckedChange={(checked) => setPrivacyAccepted(checked as boolean)}
+                  required
+                  className="mr-2"
+                />
+
+              </div>
+              <label htmlFor="privacyAccepted" className="text-sm text-gray-600 flex flex-row items-center gap-2">
+                {dictionary.privacyPolicyLabel || "I accept the processing of my personal data according to the"}<Link className="text-yellow-500" href={"/privacy"}>Privacy policy</Link>
+              </label>
+            </div>
+
             <div className="md:col-span-2 text-center">
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className={`bg-black text-white px-8 py-3 hover:bg-gray-800 transition-all duration-300 ${
-                  isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-                }`}
+                disabled={isSubmitting || !privacyAccepted}
+                className={`bg-black text-white px-8 py-3 hover:bg-gray-800 transition-all duration-300 ${(isSubmitting || !privacyAccepted) ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
               >
                 {isSubmitting ? <span>{dictionary.submitting || "Submitting..."}</span> : dictionary.submitButton}
               </button>

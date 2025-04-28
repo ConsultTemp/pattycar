@@ -139,7 +139,9 @@
     "passengersFieldLabel": "Number of passengers",
     "submitBookingButton": "Submit booking",
     "luggageLabel": "Number of bags",
-    "flightTrainLabel": "Flight/train number"
+    "flightTrainLabel": "Flight/train number",
+    "minlabel": "Min",
+    "privacyPolicyLabel": "I accept the processing of my personal data according to the"
   },
   "footer": {
     "rights": "All rights reserved",
@@ -148,6 +150,11 @@
         "key": "privacy",
         "href": "/privacy",
         "label": "Privacy"
+      },
+      {
+        "key": "cancellation",
+        "href": "/cancellation",
+        "label": "Cancellation policy"
       }
     ]
   },
@@ -349,7 +356,7 @@
     "phoneTitle": "Phone number",
     "phoneNumber": "+39 366 400 7807",
     "emailTitle": "Email",
-    "emailAddress": "gamestime@pattycar.com",
+    "emailAddress": "pattycar@pattycar.com",
     "formTitle": "Fill out the form",
     "nameLabel": "Full name*",
     "namePlaceholder": "Enter your full name",
@@ -530,5 +537,28 @@
         "content": "The user, by accessing and using the website www.pattycar.com, declares to have read, understood, and accepted without reservation all the provisions of the Privacy Policy, Cookie Policy, and Terms of Service, as well as any other related legal documentation."
       }
     }
+  },
+  "cancellation": {
+    "title": "Cancellation Policy",
+    "subtitle": "Terms and conditions for booking cancellations",
+    "sections": [
+      {
+        "content": "Cancellations on or before 31 October 2025 shall be free of charge."
+      },
+      {
+        "content": "Cancellations between 1 November 2025 and 5 January 2026:",
+        "items": [
+          "Bookings may be adjusted, including changes in dates, times, and flights.",
+          "A 50% cancellation fee shall apply for fully cancelled bookings."
+        ]
+      },
+      {
+        "content": "Cancellations after 5 January 2026:",
+        "items": [
+          "Adjustments to bookings shall be subject to availability.",
+          "A 100% cancellation fee shall apply for fully cancelled bookings."
+        ]
+      }
+    ]
   }
 }
