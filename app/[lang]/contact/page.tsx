@@ -5,6 +5,7 @@ import type { Metadata } from "next"
 import { generateSEOMetadata } from "@/lib/seo-config"
 import { Phone, Mail } from "lucide-react"
 import contacts from '../../../public/contacts.jpg'
+import ContactForm from "@/components/contact-form"
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -94,65 +95,7 @@ export default async function ContactPage(props: { params: Params }) {
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white p-6 border border-gray-100">
                         <h2 className="text-base font-light text-red-700 mb-6">{dictionary.contact.formTitle}</h2>
-
-                        <form action="https://formsubmit.co/14f7eed24c722a9bcf728d63f1e3d6bf" method="POST" className="space-y-6">
-                            <input type="hidden" name="_subject" value="Nuovo messaggio dal sito Patty Car" />
-                            <input type="hidden" name="_captcha" value="false" />
-                            <input type="hidden" name="_next" value={`https://pattycar.com/${params.lang}/`} />
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm text-gray-600 mb-1">
-                                        {dictionary.contact.nameLabel}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        required
-                                        className="w-full p-3 bg-gray-100 border border-transparent focus:outline-none focus:border-gray-300"
-                                        placeholder={dictionary.contact.namePlaceholder}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="email" className="block text-sm text-gray-600 mb-1">
-                                        {dictionary.contact.emailLabel}
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        required
-                                        className="w-full p-3 bg-gray-100 border border-transparent focus:outline-none focus:border-gray-300"
-                                        placeholder={dictionary.contact.emailPlaceholder}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label htmlFor="message" className="block text-sm text-gray-600 mb-1">
-                                    {dictionary.contact.detailsLabel}
-                                </label>
-                                <textarea
-                                    id="message"
-                                    name="message"
-                                    rows={6}
-                                    required
-                                    className="w-full p-3 bg-gray-100 border border-transparent focus:outline-none focus:border-gray-300"
-                                    placeholder={dictionary.contact.detailsPlaceholder}
-                                ></textarea>
-                            </div>
-
-                            <div className="text-center">
-                                <button
-                                    type="submit"
-                                    className="bg-black text-white px-8 py-3 hover:bg-gray-800 transition-colors duration-300"
-                                >
-                                    {dictionary.contact.submitButton}
-                                </button>
-                            </div>
-                        </form>
+                        <ContactForm dictionary={dictionary} />
                     </div>
                 </div>
             </div>

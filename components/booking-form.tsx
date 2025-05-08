@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
-import { CalendarIcon, Eye, Luggage, User2 } from "lucide-react"
+import { CalendarIcon, Eye, Luggage, RefreshCw, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -75,6 +75,18 @@ const LocationSearch = React.memo(({ locations, onSelect, dictionary }: Location
 
 LocationSearch.displayName = "LocationSearch";
 
+// Simple CAPTCHA generator
+const generateCaptcha = () => {
+  // Generate a random string of 5-6 characters (letters and numbers)
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let result = '';
+  const length = Math.floor(Math.random() * 2) + 5; // 5-6 characters
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+
 export default function BookingForm({ dictionary }: { dictionary: any }) {
   const { lang } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -87,6 +99,40 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   const [pickupLocation, setPickupLocation] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  
+  // CAPTCHA states
+  const [captchaText, setCaptchaText] = useState("")
+  const [userCaptchaInput, setUserCaptchaInput] = useState("")
+  const [captchaError, setCaptchaError] = useState(false)
+  const [showFinalConfirmation, setShowFinalConfirmation] = useState(false)
+  const [formData, setFormData] = useState<HTMLFormElement | null>(null)
+  const [csrfToken, setCsrfToken] = useState("")
+
+  // Generate initial CAPTCHA on component mount
+  useEffect(() => {
+    setCaptchaText(generateCaptcha());
+  }, []);
+
+  // Generate CSRF token on component mount
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('/api/submit-form')
+        const data = await response.json()
+        setCsrfToken(data.token)
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error)
+      }
+    }
+    fetchCsrfToken()
+  }, [])
+
+  // Refresh the CAPTCHA
+  const refreshCaptcha = () => {
+    setCaptchaText(generateCaptcha());
+    setUserCaptchaInput("");
+    setCaptchaError(false);
+  };
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value)
@@ -98,7 +144,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   }, [])
 
   // Mock data for pickup locations
-  //Malpensa, Linate, Orio al serio, stazione centrale, stazione Garibaldi, Aeroporto Venezia Marco Polo, Stazione Venezia Santa Lucia */
   const locations = [
     { value: "malpensa", label: "Aereoporto Malpensa" },
     { value: "orioal-serio", label: "Aereoporto Orio al Serio" },
@@ -107,8 +152,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     { value: "aereoporto-venenzia", label: "Aeroporto Venezia Marco Polo" },
     { value: "stazione-venezia", label: "Stazione Venezia Santa Lucia" }
   ]
-  /* 
-  Malpensa, Linate, Orio al serio, stazione centrale, stazione Garibaldi, Aeroporto Venezia Marco Polo, Stazione Venezia Santa Lucia */
+
   // Country codes for phone prefixes
   const countryCodes = [
     { value: "+39", label: "Italy (+39)" },
@@ -147,7 +191,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       loc.value.toLowerCase() === searchQuery.toLowerCase()
     );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Check if privacy is accepted
@@ -156,47 +200,82 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       return
     }
 
-    setIsSubmitting(true)
+    // Store the form data for later submission
+    setFormData(e.target as HTMLFormElement)
+    
+    // Show the CAPTCHA confirmation step instead of submitting directly
+    setShowFinalConfirmation(true)
+  }
 
-    // Create hidden inputs for date and time
-    const form = e.target as HTMLFormElement
+  const handleCaptchaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (userCaptchaInput.toLowerCase() === captchaText.toLowerCase()) {
+      // CAPTCHA is correct, proceed with form submission
+      setCaptchaError(false)
+      setIsSubmitting(true)
+      
+      try {
+        if (formData) {
+          // Create FormData object
+          const formDataObj = new FormData(formData)
 
-    // Add date value
-    if (date) {
-      const dateInput = document.createElement("input")
-      dateInput.type = "hidden"
-      dateInput.name = "date"
-      dateInput.value = format(date, "yyyy-MM-dd")
-      form.appendChild(dateInput)
+          // Add date value
+          if (date) {
+            formDataObj.append("date", format(date, "yyyy-MM-dd"))
+          }
+
+          // Add time value with minutes
+          if (time) {
+            formDataObj.append("time", `${time}:${minutes || '00'}`)
+          }
+
+          // Add pickup location value
+          if (pickupLocation) {
+            formDataObj.append("pickupLocation", pickupLocation)
+          }
+
+          // Add CSRF token
+          formDataObj.append("_csrf", csrfToken)
+
+          // Send to our API endpoint first
+          const response = await fetch('/api/submit-form', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              formData: Object.fromEntries(formDataObj),
+              captcha: userCaptchaInput,
+              csrfToken
+            })
+          })
+console.log(response)
+          if (!response.ok) {
+            throw new Error('Form submission failed')
+          }
+
+          // If successful, update UI
+          setIsSubmitting(false)
+          setSubmitStatus("success")
+          setShowFinalConfirmation(false)
+        }
+      } catch (error) {
+        console.error('Error submitting form:', error)
+        setIsSubmitting(false)
+        setSubmitStatus("error")
+      }
+    } else {
+      // CAPTCHA is incorrect
+      setCaptchaError(true)
+      refreshCaptcha()
     }
+  }
 
-    // Add time value with minutes
-    if (time) {
-      const timeInput = document.createElement("input")
-      timeInput.type = "hidden"
-      timeInput.name = "time"
-      timeInput.value = `${time}:${minutes || '00'}`
-      form.appendChild(timeInput)
-    }
-
-    // Add pickup location value - could be custom or from the list
-    if (pickupLocation) {
-      const pickupInput = document.createElement("input")
-      pickupInput.type = "hidden"
-      pickupInput.name = "pickupLocation"
-      pickupInput.value = pickupLocation
-      form.appendChild(pickupInput)
-    }
-
-    // Submit the form
-    form.submit()
-
-    // FormSubmit will handle the actual submission
-    // This is just for the UI feedback
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setSubmitStatus("success")
-    }, 1000)
+  // Handle canceling the CAPTCHA confirmation
+  const handleCancelConfirmation = () => {
+    setShowFinalConfirmation(false)
+    refreshCaptcha()
   }
 
   return (
@@ -218,19 +297,78 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
               {dictionary.newBooking || "Make another booking"}
             </button>
           </div>
+        ) : showFinalConfirmation ? (
+          <div className="max-w-4xl mx-auto p-8 bg-gray-50 border border-gray-200 text-center fade-in">
+            <h3 className="text-xl mb-4">{dictionary.captchaVerification || "Please verify you are human"}</h3>
+            
+            <div className="mb-6 flex flex-col items-center">
+              <div className="relative bg-gray-100 p-4 rounded-md mb-4 select-none">
+                <div className="text-2xl font-bold tracking-wider opacity-85 select-none"
+                  style={{ 
+                    fontFamily: "monospace", 
+                    letterSpacing: "0.2em",
+                    transform: "skew(-10deg, 2deg)",
+                    textShadow: "1px 1px 1px #00000030"
+                  }}>
+                  {captchaText}
+                </div>
+                <button 
+                  type="button"
+                  onClick={refreshCaptcha}
+                  className="absolute right-2 top-4 text-gray-500 hover:text-black"
+                  aria-label="Refresh CAPTCHA"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleCaptchaSubmit} className="w-full max-w-xs">
+                <div className="mb-4">
+                  <Input 
+                    type="text" 
+                    value={userCaptchaInput}
+                    onChange={(e) => setUserCaptchaInput(e.target.value)}
+                    placeholder={dictionary.enterCaptcha || "Enter text shown above"}
+                    className={captchaError ? "border-red-500" : ""}
+                    autoFocus
+                  />
+                  {captchaError && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {dictionary.captchaError || "Incorrect verification code. Please try again."}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex space-x-4 justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelConfirmation}
+                    className="px-4 py-2"
+                    disabled={isSubmitting}
+                  >
+                    {dictionary.cancel || "Cancel"}
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors"
+                    disabled={isSubmitting || !userCaptchaInput}
+                  >
+                    {isSubmitting ? 
+                      (dictionary.submitting || "Submitting...") : 
+                      (dictionary.confirm || "Confirm Booking")}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
         ) : (
           <form
-            action="https://formsubmit.co/14f7eed24c722a9bcf728d63f1e3d6bf"
-            method="POST"
             onSubmit={handleSubmit}
             className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6"
           >
-            {/* FormSubmit configuration fields */}
-            <input type="hidden" name="_subject" value="New Booking Request from Patty Car Website" />
-            <input type="hidden" name="_captcha" value="false" />
-            <input type="hidden" name="_next" value={`https://pattycar.com/${lang}/`} />
-            <input type="hidden" name="_template" value="table" />
-            <input type="hidden" name="language" value={lang} />
+            {/* Remove FormSubmit configuration fields */}
+            <input type="hidden" name="_csrf" value={csrfToken} />
 
             {/* Full width name field */}
             <div className="md:col-span-2 transition-all duration-300 ">
@@ -449,8 +587,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                   {dictionary.differentVehiclesLabel}
                 </label>
               </div>
-
-
 
               {differentVehicles && (
                 <p className="text-xs text-gray-500 ml-6 mb-4">{dictionary.differentVehiclesHelperText}</p>
