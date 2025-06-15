@@ -10,6 +10,40 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Inizializza Resend con la chiave API
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
+// Funzione per formattare l'orario in modo più elegante
+function formatTime(time: string): string {
+  if (time === "Non specificato" || !time) return "Non specificato"
+  
+  // Se è già in formato HH:MM, aggiunge solo lo stile
+  if (time.match(/^\d{1,2}:\d{2}$/)) {
+    return time
+  }
+  
+  return time
+}
+
+// Funzione per formattare la data in modo più elegante
+function formatDate(date: string): string {
+  if (date === "Non specificata" || !date) return "Non specificata"
+  
+  try {
+    // Prova a parsare e formattare la data
+    const dateObj = new Date(date)
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj.toLocaleDateString('it-IT', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    }
+  } catch (e) {
+    // Se non riesce a parsare, ritorna la data originale
+  }
+  
+  return date
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Leggi il raw body come buffer
@@ -94,130 +128,302 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Formatta data e ora
+      const formattedDate = formatDate(date)
+      const formattedTime = formatTime(time)
+
       try {
-        // 📧 EMAIL AL CLIENTE - Conferma prenotazione (senza invoice per ora)
+        // 📧 EMAIL AL CLIENTE - Conferma prenotazione elegante
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: "cahuas72@gmail.com", // La tua email per test
-          subject: "Prenotazione NCC Confermata - Ricevuta Pagamento",
+          subject: "🚗 Prenotazione Confermata - Servizio NCC",
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #333;">🚗 Prenotazione Confermata!</h2>
-              
-              <p>Ciao <strong>${customerName}</strong>,</p>
-              
-              <p>La tua prenotazione NCC è stata confermata con successo e il pagamento è stato ricevuto.</p>
-              
-              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #333;">📋 Dettagli Prenotazione</h3>
-                <p><strong>🚩 Partenza:</strong> ${pickup}</p>
-                <p><strong>🎯 Destinazione:</strong> ${destination}</p>
-                <p><strong>📅 Data:</strong> ${date}</p>
-                <p><strong>🕐 Orario:</strong> ${time}</p>
-                <p><strong>👥 Passeggeri:</strong> ${passengers}</p>
-                <p><strong>🧳 Bagagli:</strong> ${luggage}</p>
-                <p><strong>🚙 Tipo Veicolo:</strong> ${vehicleType}</p>
-                ${phone !== "Non specificato" ? `<p><strong>📞 Telefono:</strong> ${phone}</p>` : ""}
-                ${notes !== "Nessuna nota" ? `<p><strong>📝 Note:</strong> ${notes}</p>` : ""}
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
+              <!-- Header -->
+              <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">
+                  🚗 Prenotazione Confermata
+                </h1>
+                <p style="color: #e3f2fd; margin: 10px 0 0 0; font-size: 16px;">
+                  Il tuo viaggio è stato prenotato con successo
+                </p>
               </div>
               
-              <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #388e3c;">💰 Dettagli Pagamento</h3>
-                <p><strong>Importo Pagato:</strong> €${(session.amount_total! / 100).toFixed(2)}</p>
-                <p><strong>ID Transazione:</strong> ${session.id}</p>
-                <p><strong>Status:</strong> ✅ Completato</p>
-                ${paymentIntentId ? `<p><strong>ID Pagamento:</strong> ${paymentIntentId}</p>` : ""}
-              </div>
-              
-              ${
-                invoiceUrl
-                  ? `
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${invoiceUrl}" 
-                     style="background: #007cba; color: white; padding: 12px 24px; 
-                            text-decoration: none; border-radius: 6px; display: inline-block;">
-                    📄 Visualizza la Fattura
-                  </a>
+              <!-- Content -->
+              <div style="padding: 40px 30px;">
+                <p style="font-size: 18px; color: #333; margin: 0 0 30px 0; line-height: 1.6;">
+                  Gentile <strong style="color: #1e3c72;">${customerName}</strong>,
+                </p>
+                
+                <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 35px 0;">
+                  La tua prenotazione per il servizio NCC è stata confermata e il pagamento è stato elaborato con successo. 
+                  Di seguito trovi tutti i dettagli del tuo viaggio.
+                </p>
+                
+                <!-- Trip Details Card -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; margin: 30px 0;">
+                  <h2 style="color: #1e3c72; margin: 0 0 25px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+                    📋 Dettagli del Viaggio
+                  </h2>
+                  
+                  <div style="display: grid; gap: 15px;">
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #ef4444; font-size: 18px; margin-right: 12px;">📍</span>
+                      <div>
+                        <strong style="color: #374151;">Partenza:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${pickup}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #10b981; font-size: 18px; margin-right: 12px;">🎯</span>
+                      <div>
+                        <strong style="color: #374151;">Destinazione:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${destination}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">📅</span>
+                      <div>
+                        <strong style="color: #374151;">Data:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${formattedDate}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #8b5cf6; font-size: 18px; margin-right: 12px;">🕐</span>
+                      <div>
+                        <strong style="color: #374151;">Orario:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${formattedTime}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;">👥</span>
+                      <div>
+                        <strong style="color: #374151;">Passeggeri:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${passengers}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #84cc16; font-size: 18px; margin-right: 12px;">🧳</span>
+                      <div>
+                        <strong style="color: #374151;">Bagagli:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${luggage}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; padding: 12px 0;">
+                      <span style="color: #ec4899; font-size: 18px; margin-right: 12px;">🚙</span>
+                      <div>
+                        <strong style="color: #374151;">Veicolo:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${vehicleType}</span>
+                      </div>
+                    </div>
+                    
+                    ${notes !== "Nessuna nota" ? `
+                    <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: flex-start;">
+                        <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">📝</span>
+                        <div>
+                          <strong style="color: #92400e;">Note aggiuntive:</strong>
+                          <p style="color: #92400e; margin: 5px 0 0 0; line-height: 1.5;">${notes}</p>
+                        </div>
+                      </div>
+                    </div>
+                    ` : ""}
+                  </div>
                 </div>
-              `
-                  : `
-                <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
-                  <p style="margin: 0; color: #856404;">
-                    📄 La fattura verrà inviata separatamente nelle prossime ore.
+                
+                <!-- Payment Confirmation -->
+                <div style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border: 1px solid #22c55e; border-radius: 12px; padding: 25px; margin: 30px 0; text-align: center;">
+                  <div style="color: #16a34a; font-size: 24px; margin-bottom: 10px;">✅</div>
+                  <h3 style="color: #166534; margin: 0 0 10px 0; font-size: 18px;">Pagamento Confermato</h3>
+                  <p style="color: #166534; margin: 0; font-size: 24px; font-weight: 600;">
+                    €${(session.amount_total! / 100).toFixed(2)}
                   </p>
                 </div>
-              `
-              }
+                
+                ${invoiceUrl ? `
+                <div style="text-align: center; margin: 35px 0;">
+                  <a href="${invoiceUrl}" 
+                     style="display: inline-block; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+                            color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; 
+                            font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);">
+                    📄 Visualizza Fattura
+                  </a>
+                </div>
+                ` : `
+                <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
+                  <span style="color: #f59e0b; font-size: 20px;">📄</span>
+                  <p style="color: #92400e; margin: 10px 0 0 0; font-weight: 500;">
+                    La fattura verrà inviata separatamente nelle prossime ore
+                  </p>
+                </div>
+                `}
+                
+                <!-- Next Steps -->
+                <div style="background: #f1f5f9; border-radius: 12px; padding: 30px; margin: 35px 0;">
+                  <h3 style="color: #1e3c72; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
+                    🚀 Prossimi Passi
+                  </h3>
+                  <ul style="color: #475569; line-height: 1.8; margin: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Ti contatteremo entro <strong>24 ore</strong> per confermare tutti i dettagli</li>
+                    <li style="margin-bottom: 8px;">Riceverai un <strong>SMS promemoria</strong> il giorno prima del servizio</li>
+                    <li>Il nostro autista ti contatterà <strong>30 minuti prima</strong> dell'orario concordato</li>
+                  </ul>
+                </div>
+                
+                <div style="text-align: center; margin: 40px 0 20px 0;">
+                  <p style="color: #1e3c72; font-size: 18px; font-weight: 600; margin: 0;">
+                    Grazie per aver scelto i nostri servizi! 🙏
+                  </p>
+                </div>
+              </div>
               
-              <p><strong>Prossimi passi:</strong></p>
-              <ul>
-                <li>Ti contatteremo entro 24 ore per confermare tutti i dettagli</li>
-                <li>Riceverai un SMS di promemoria il giorno prima del servizio</li>
-                <li>Il nostro autista ti contatterà 30 minuti prima dell'orario concordato</li>
-              </ul>
-              
-              <p>Grazie per aver scelto i nostri servizi NCC!</p>
-              
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-              <p style="color: #666; font-size: 12px;">
-                Questa è una email automatica. Per assistenza contatta il nostro servizio clienti.
-              </p>
+              <!-- Footer -->
+              <div style="background: #f8fafc; padding: 25px 30px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e2e8f0;">
+                <p style="color: #6b7280; font-size: 13px; margin: 0; line-height: 1.5;">
+                  Questa è una email automatica di conferma. <br>
+                  Per assistenza o modifiche contatta il nostro servizio clienti.
+                </p>
+              </div>
             </div>
           `,
         })
 
         console.log("✅ Email cliente inviata:", customerEmailResult.data?.id)
 
-        // 📧 EMAIL ALL'ADMIN - Con debug info
+        // 📧 EMAIL ALL'ADMIN - Versione migliorata
         const adminEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: process.env.ADMIN_EMAIL!,
           subject: "🚗 Nuova Prenotazione NCC - Pagamento Completato",
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #d32f2f;">🚗 Nuova Prenotazione NCC</h2>
-              
-              <div style="background: #ffebee; padding: 15px; border-radius: 6px; margin: 20px 0;">
-                <p style="margin: 0; color: #c62828; font-weight: bold;">
-                  ⚡ AZIONE RICHIESTA: Contatta il cliente per confermare i dettagli
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
+              <!-- Header -->
+              <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">
+                  🚗 Nuova Prenotazione NCC
+                </h1>
+                <p style="color: #fecaca; margin: 10px 0 0 0; font-size: 14px;">
+                  Pagamento completato con successo
                 </p>
               </div>
               
-              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #333;">👤 Dati Cliente</h3>
-                <p><strong>Nome:</strong> ${customerName}</p>
-                <p><strong>Email:</strong> ${customerEmail}</p>
-                ${phone !== "Non specificato" ? `<p><strong>Telefono:</strong> ${phone}</p>` : ""}
+              <!-- Urgent Action Required -->
+              <div style="background: #fef2f2; border: 2px solid #fca5a5; border-radius: 8px; padding: 20px; margin: 25px 30px;">
+                <div style="display: flex; align-items: center;">
+                  <span style="color: #dc2626; font-size: 24px; margin-right: 15px;">⚡</span>
+                  <div>
+                    <h3 style="color: #dc2626; margin: 0 0 5px 0; font-size: 16px; font-weight: 600;">
+                      AZIONE RICHIESTA
+                    </h3>
+                    <p style="color: #dc2626; margin: 0; font-size: 14px;">
+                      Contatta il cliente entro 24 ore per confermare i dettagli del viaggio
+                    </p>
+                  </div>
+                </div>
               </div>
               
-              <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #1976d2;">📋 Dettagli Prenotazione</h3>
-                <p><strong>🚩 Partenza:</strong> ${pickup}</p>
-                <p><strong>🎯 Destinazione:</strong> ${destination}</p>
-                <p><strong>📅 Data:</strong> ${date}</p>
-                <p><strong>🕐 Orario:</strong> ${time}</p>
-                <p><strong>👥 Passeggeri:</strong> ${passengers}</p>
-                <p><strong>🧳 Bagagli:</strong> ${luggage}</p>
-                <p><strong>🚙 Tipo Veicolo:</strong> ${vehicleType}</p>
-                ${notes !== "Nessuna nota" ? `<p><strong>📝 Note:</strong> ${notes}</p>` : ""}
-              </div>
-              
-              <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #388e3c;">💰 Informazioni Pagamento</h3>
-                <p><strong>Sessione Stripe:</strong> ${session.id}</p>
-                <p><strong>Importo:</strong> €${(session.amount_total! / 100).toFixed(2)}</p>
-                <p><strong>Status:</strong> ✅ Pagato</p>
-                ${paymentIntentId ? `<p><strong>Payment Intent:</strong> ${paymentIntentId}</p>` : ""}
-                ${invoiceUrl ? `<p><strong>Fattura:</strong> <a href="${invoiceUrl}">Visualizza</a></p>` : "<p><strong>Fattura:</strong> ⚠️ Non disponibile (vedi debug)</p>"}
-              </div>
-              
-              <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
-                <h4 style="margin-top: 0; color: #856404;">🔍 Debug Info</h4>
-                <p style="font-size: 12px; color: #856404;">
-                  <strong>Has Invoice:</strong> ${session.invoice ? 'Sì' : 'No'}<br>
-                  <strong>Payment Intent:</strong> ${session.payment_intent ? 'Presente' : 'Assente'}<br>
-                  <strong>Customer ID:</strong> ${session.customer || 'N/A'}
-                </p>
+              <div style="padding: 0 30px 30px 30px;">
+                <!-- Customer Info -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                  <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                    👤 Informazioni Cliente
+                  </h2>
+                  <div style="display: grid; gap: 12px;">
+                    <p style="margin: 0; color: #374151;">
+                      <strong>Nome:</strong> <span style="color: #6b7280;">${customerName}</span>
+                    </p>
+                    <p style="margin: 0; color: #374151;">
+                      <strong>Email:</strong> <span style="color: #6b7280;">${customerEmail}</span>
+                    </p>
+                    ${phone !== "Non specificato" ? `
+                    <p style="margin: 0; color: #374151;">
+                      <strong>Telefono:</strong> <span style="color: #6b7280; font-weight: 600;">${phone}</span>
+                    </p>
+                    ` : ""}
+                  </div>
+                </div>
+                
+                <!-- Trip Details -->
+                <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                  <h2 style="color: #1e40af; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; border-bottom: 2px solid #93c5fd; padding-bottom: 8px;">
+                    📋 Dettagli Prenotazione
+                  </h2>
+                  <div style="display: grid; gap: 12px;">
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🚩 Partenza:</strong> <span style="color: #3730a3;">${pickup}</span>
+                    </p>
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🎯 Destinazione:</strong> <span style="color: #3730a3;">${destination}</span>
+                    </p>
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>📅 Data:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedDate}</span>
+                    </p>
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🕐 Orario:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedTime}</span>
+                    </p>
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>👥 Passeggeri:</strong> <span style="color: #3730a3;">${passengers}</span>
+                    </p>
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🧳 Bagagli:</strong> <span style="color: #3730a3;">${luggage}</span>
+                    </p>
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🚙 Veicolo:</strong> <span style="color: #3730a3;">${vehicleType}</span>
+                    </p>
+                    ${notes !== "Nessuna nota" ? `
+                    <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; padding: 15px; margin-top: 10px;">
+                      <p style="margin: 0; color: #92400e;">
+                        <strong>📝 Note:</strong> ${notes}
+                      </p>
+                    </div>
+                    ` : ""}
+                  </div>
+                </div>
+                
+                <!-- Payment Info -->
+                <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                  <h2 style="color: #16a34a; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; border-bottom: 2px solid #22c55e; padding-bottom: 8px;">
+                    💰 Informazioni Pagamento
+                  </h2>
+                  <div style="display: grid; gap: 12px;">
+                    <p style="margin: 0; color: #16a34a;">
+                      <strong>Importo:</strong> <span style="color: #15803d; font-size: 20px; font-weight: 700;">€${(session.amount_total! / 100).toFixed(2)}</span>
+                    </p>
+                    <p style="margin: 0; color: #16a34a;">
+                      <strong>Status:</strong> <span style="color: #15803d; font-weight: 600;">✅ Pagamento Completato</span>
+                    </p>
+                    ${invoiceUrl ? `
+                    <p style="margin: 0; color: #16a34a;">
+                      <strong>Fattura:</strong> 
+                      <a href="${invoiceUrl}" style="color: #15803d; text-decoration: underline;">Visualizza Fattura</a>
+                    </p>
+                    ` : `
+                    <p style="margin: 0; color: #f59e0b;">
+                      <strong>Fattura:</strong> <span style="color: #d97706;">⚠️ Non ancora disponibile</span>
+                    </p>
+                    `}
+                  </div>
+                </div>
+                
+                <!-- Technical Debug Info (per admin) -->
+                <div style="background: #fafafa; border: 1px solid #d4d4d8; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                  <h3 style="color: #71717a; margin: 0 0 15px 0; font-size: 14px; font-weight: 600;">
+                    🔍 Info Tecniche (Debug)
+                  </h3>
+                  <div style="font-size: 12px; color: #71717a; line-height: 1.4;">
+                    <p style="margin: 0 0 5px 0;"><strong>Sessione Stripe:</strong> ${session.id}</p>
+                    ${paymentIntentId ? `<p style="margin: 0 0 5px 0;"><strong>Payment Intent:</strong> ${paymentIntentId}</p>` : ""}
+                    <p style="margin: 0 0 5px 0;"><strong>Fattura Presente:</strong> ${session.invoice ? 'Sì' : 'No'}</p>
+                    <p style="margin: 0;"><strong>Customer ID:</strong> ${session.customer || 'N/A'}</p>
+                  </div>
+                </div>
               </div>
             </div>
           `,
