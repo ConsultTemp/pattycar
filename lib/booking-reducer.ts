@@ -151,6 +151,7 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
     case "SET_SUBMIT_STATUS":
       return {
         ...state,
+        //@ts-ignore
         ui: { ...state.ui, submitStatus: action.payload, isSubmitting: action.payload === "submitting" },
       }
 

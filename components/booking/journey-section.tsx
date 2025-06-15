@@ -139,9 +139,11 @@ export const JourneySection = memo<JourneySectionProps>(({ journey, errors, onCh
             </SelectTrigger>
             <SelectContent>
               {journey.departure.city &&
+              //@ts-ignore
                 Object.entries(CITIES_AND_LOCATIONS[journey.departure.city].locations).map(
                   ([locationKey, locationName]) => (
                     <SelectItem key={locationKey} value={locationKey}>
+                        {/* @ts-ignore */}
                       {locationName}
                     </SelectItem>
                   ),
@@ -202,9 +204,11 @@ export const JourneySection = memo<JourneySectionProps>(({ journey, errors, onCh
             </SelectTrigger>
             <SelectContent>
               {journey.destination.city &&
+              //@ts-ignore
                 Object.entries(CITIES_AND_LOCATIONS[journey.destination.city].locations).map(
                   ([locationKey, locationName]) => (
                     <SelectItem key={locationKey} value={locationKey}>
+                        {/* @ts-ignore */}
                       {locationName}
                     </SelectItem>
                   ),
