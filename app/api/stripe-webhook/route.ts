@@ -94,7 +94,8 @@ export async function POST(req: NextRequest) {
         date = "Non specificata",
         time = "Non specificato",
         endTime = "",
-        phone = "Non specificato",
+        phonePrefix = "",
+        phoneNumber = "",
         notes = "Nessuna nota",
         flight = "",
         meetAndGreet = "false",
@@ -102,7 +103,27 @@ export async function POST(req: NextRequest) {
         distance = "",
         duration = "",
         priceBreakdown = "",
+        sameVehicleType = "true",
+        individualVehicles = "",
       } = metadata
+
+      // Parsa i veicoli individuali se presenti
+      let parsedIndividualVehicles: Array<{ id: string; type: string; passengers: number; luggage: number }> = []
+      if (individualVehicles && individualVehicles !== "") {
+        try {
+          parsedIndividualVehicles = JSON.parse(individualVehicles)
+          console.log("🚗 Veicoli individuali parsati:", parsedIndividualVehicles)
+        } catch (error) {
+          console.error("❌ Errore parsing veicoli individuali:", error)
+        }
+      }
+
+      // Combina prefisso e numero di telefono
+      const phone = phonePrefix && phoneNumber ? `${phonePrefix} ${phoneNumber}` : "Non specificato"
+
+      // Determina se mostare i veicoli individuali o la configurazione unica
+      const hasIndividualVehicles = parsedIndividualVehicles.length > 0
+      const isMultipleVehicles = parseInt(vehicleCount) > 1
 
       // 🔍 DEBUG: Controlla se esiste una fattura
       console.log("🔍 Session invoice:", session.invoice)
@@ -278,6 +299,43 @@ export async function POST(req: NextRequest) {
                       </div>
                     </div>
                     
+                    ${
+                      hasIndividualVehicles
+                        ? `
+                    <!-- Veicoli Individuali -->
+                    <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 15px 0;">
+                      <h4 style="color: #374151; margin: 0 0 15px 0; font-size: 16px; font-weight: 600; display: flex; align-items: center;">
+                        <span style="color: #ec4899; font-size: 18px; margin-right: 10px;">🚙</span>
+                        Configurazione Veicoli
+                      </h4>
+                      ${parsedIndividualVehicles
+                        .map(
+                          (vehicle, index) => `
+                      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: ${
+                        index < parsedIndividualVehicles.length - 1 ? "10px" : "0px"
+                      };">
+                        <div style="font-weight: 600; color: #1f2937; margin-bottom: 8px;">
+                          🚗 Veicolo ${index + 1}
+                        </div>
+                        <div style="display: grid; gap: 8px; font-size: 14px;">
+                          <div style="color: #374151;">
+                            <strong>Tipo:</strong> <span style="color: #6b7280;">${vehicle.type}</span>
+                          </div>
+                          <div style="color: #374151;">
+                            <strong>Passeggeri:</strong> <span style="color: #6b7280;">${vehicle.passengers}</span>
+                          </div>
+                          <div style="color: #374151;">
+                            <strong>Bagagli:</strong> <span style="color: #6b7280;">${vehicle.luggage}</span>
+                          </div>
+                        </div>
+                      </div>
+                      `,
+                        )
+                        .join("")}
+                    </div>
+                    `
+                        : `
+                    <!-- Configurazione Unica Veicolo -->
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #ec4899; font-size: 18px; margin-right: 12px;">🚙</span>
                       <div>
@@ -287,17 +345,19 @@ export async function POST(req: NextRequest) {
                     </div>
                     
                     ${
-                      vehicleCount !== "1"
+                      isMultipleVehicles
                         ? `
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">🚗</span>
                       <div>
                         <strong style="color: #374151;">Numero veicoli:</strong>
-                        <span style="color: #6b7280; margin-left: 8px;">${vehicleCount}</span>
+                        <span style="color: #6b7280; margin-left: 8px;">${vehicleCount} (tutti dello stesso tipo)</span>
                       </div>
                     </div>
                     `
                         : ""
+                    }
+                    `
                     }
                     
                     ${
@@ -580,17 +640,55 @@ export async function POST(req: NextRequest) {
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🧳 Bagagli:</strong> <span style="color: #3730a3;">${luggage}</span>
                     </p>
+                    ${
+                      hasIndividualVehicles
+                        ? `
+                    <!-- Veicoli Individuali Admin -->
+                    <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 15px; margin: 10px 0;">
+                      <h4 style="color: #1e40af; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
+                        🚙 Configurazione Veicoli (${parsedIndividualVehicles.length} veicoli)
+                      </h4>
+                      ${parsedIndividualVehicles
+                        .map(
+                          (vehicle, index) => `
+                      <div style="background: #ffffff; border: 1px solid #93c5fd; border-radius: 6px; padding: 12px; margin-bottom: ${
+                        index < parsedIndividualVehicles.length - 1 ? "8px" : "0px"
+                      };">
+                        <div style="font-weight: 600; color: #1e40af; margin-bottom: 6px; font-size: 13px;">
+                          🚗 Veicolo ${index + 1}
+                        </div>
+                        <div style="display: grid; gap: 4px; font-size: 12px;">
+                          <div style="color: #1e40af;">
+                            <strong>Tipo:</strong> <span style="color: #3730a3;">${vehicle.type}</span>
+                          </div>
+                          <div style="color: #1e40af;">
+                            <strong>Passeggeri:</strong> <span style="color: #3730a3;">${vehicle.passengers}</span>
+                          </div>
+                          <div style="color: #1e40af;">
+                            <strong>Bagagli:</strong> <span style="color: #3730a3;">${vehicle.luggage}</span>
+                          </div>
+                        </div>
+                      </div>
+                      `,
+                        )
+                        .join("")}
+                    </div>
+                    `
+                        : `
+                    <!-- Configurazione Unica Veicolo Admin -->
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🚙 Veicolo:</strong> <span style="color: #3730a3;">${vehicleType}</span>
                     </p>
                     ${
-                      vehicleCount !== "1"
+                      isMultipleVehicles
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🚗 N. Veicoli:</strong> <span style="color: #3730a3;">${vehicleCount}</span>
+                      <strong>🚗 N. Veicoli:</strong> <span style="color: #3730a3;">${vehicleCount} (tutti dello stesso tipo)</span>
                     </p>
                     `
                         : ""
+                    }
+                    `
                     }
                     ${
                       meetAndGreet === "true"
