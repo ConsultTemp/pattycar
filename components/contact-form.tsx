@@ -171,7 +171,7 @@ export default function ContactForm({ dictionary }: { dictionary: any }) {
                   value={userCaptchaInput}
                   onChange={(e) => setUserCaptchaInput(e.target.value)}
                   placeholder={dictionary.contact.enterCaptcha || "Enter text shown above"}
-                  className={`w-full p-3 bg-gray-100 border ${captchaError ? "border-red-500" : "border-transparent"} focus:outline-none focus:border-gray-300`}
+                  className={`w-full p-3 bg-gray-100 border text-base placeholder:text-gray-400 ${captchaError ? "border-red-500" : "border-transparent"} focus:outline-none focus:border-gray-300`}
                   autoFocus
                 />
                 {captchaError && (
@@ -218,7 +218,7 @@ export default function ContactForm({ dictionary }: { dictionary: any }) {
                 id="name"
                 name="name"
                 required
-                className="w-full p-3 bg-gray-100 border border-transparent focus:outline-none focus:border-gray-300"
+                className="w-full p-3 bg-gray-100 border border-transparent text-base placeholder:text-gray-400 focus:outline-none focus:border-gray-300"
                 placeholder={dictionary.contact.namePlaceholder}
               />
             </div>
@@ -232,7 +232,7 @@ export default function ContactForm({ dictionary }: { dictionary: any }) {
                 id="email"
                 name="email"
                 required
-                className="w-full p-3 bg-gray-100 border border-transparent focus:outline-none focus:border-gray-300"
+                className="w-full p-3 bg-gray-100 border border-transparent text-base placeholder:text-gray-400 focus:outline-none focus:border-gray-300"
                 placeholder={dictionary.contact.emailPlaceholder}
               />
             </div>
@@ -247,7 +247,7 @@ export default function ContactForm({ dictionary }: { dictionary: any }) {
               name="message"
               rows={6}
               required
-              className="w-full p-3 bg-gray-100 border border-transparent focus:outline-none focus:border-gray-300"
+              className="w-full p-3 bg-gray-100 border border-transparent text-base placeholder:text-gray-400 focus:outline-none focus:border-gray-300"
               placeholder={dictionary.contact.detailsPlaceholder}
             ></textarea>
           </div>
