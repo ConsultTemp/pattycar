@@ -145,6 +145,7 @@ export async function POST(req: NextRequest) {
 
       try {
         // 📧 EMAIL AL CLIENTE - Conferma prenotazione completa
+        console.log("📧 Tentativo invio email cliente a:", customerEmail)
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: customerEmail,
@@ -454,8 +455,16 @@ export async function POST(req: NextRequest) {
         })
 
         console.log("✅ Email cliente inviata:", customerEmailResult.data?.id)
+        console.log("📧 Dettagli risposta email cliente:", JSON.stringify(customerEmailResult, null, 2))
 
+      } catch (customerEmailError) {
+        console.error("❌ Errore specifico invio email cliente:", customerEmailError)
+        // Non fermare il processo, continua con l'email admin
+      }
+
+      try {
         // 📧 EMAIL ALL'ADMIN - Versione completa con tutti i dettagli
+        console.log("📧 Tentativo invio email admin a:", process.env.ADMIN_EMAIL)
         const adminEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: process.env.ADMIN_EMAIL!,
@@ -687,9 +696,10 @@ export async function POST(req: NextRequest) {
         })
 
         console.log("✅ Email admin inviata:", adminEmailResult.data?.id)
-      } catch (emailError) {
-        console.error("❌ Errore invio email:", emailError)
-        return NextResponse.json({ error: "Errore invio email" }, { status: 500 })
+        console.log("📧 Dettagli risposta email admin:", JSON.stringify(adminEmailResult, null, 2))
+
+      } catch (adminEmailError) {
+        console.error("❌ Errore specifico invio email admin:", adminEmailError)
       }
     }
 

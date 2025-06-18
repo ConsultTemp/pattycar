@@ -160,135 +160,139 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   // Success state
   if (state.ui.submitStatus === "success") {
     return (
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto p-8 bg-green-50 border border-green-200 text-center">
-            <h3 className="text-xl mb-4 text-green-800">
-              {dictionary.success.title}
-            </h3>
-            <p className="text-green-700 mb-6">
-              {dictionary.success.description}
-            </p>
-            <button
-              onClick={() => dispatch({ type: "SET_SUBMIT_STATUS", payload: "idle" })}
-              className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors duration-300"
-            >
-              {dictionary.success.newBooking}
-            </button>
-          </div>
-        </div>
-      </section>
+      <div className="max-w-4xl mx-auto p-4 bg-green-50 border border-green-200 text-center rounded-lg">
+        <h3 className="text-xl mb-4 text-green-800">
+          {dictionary.success.title}
+        </h3>
+        <p className="text-green-700 mb-6">
+          {dictionary.success.description}
+        </p>
+        <button
+          onClick={() => dispatch({ type: "SET_SUBMIT_STATUS", payload: "idle" })}
+          className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors duration-300 rounded"
+        >
+          {dictionary.success.newBooking}
+        </button>
+      </div>
     )
   }
 
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl text-center mb-8 atacama">{dictionary.formTitle}</h2>
-        <p className="text-center text-darkGray font-light mb-12">
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl mb-4 atacama">{dictionary.formTitle}</h2>
+        <p className="text-darkGray font-light">
           {dictionary.formSubtitle}
         </p>
+      </div>
 
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Customer Information */}
-          <CustomerInfoSection
-            customer={state.customer}
-            errors={getFieldErrors("customer")}
-            onChange={handleCustomerChange}
-            dictionary={dictionary.customer}
-          />
+      <div className="space-y-6">
+        {/* Customer Information */}
+        <CustomerInfoSection
+          customer={state.customer}
+          errors={getFieldErrors("customer")}
+          onChange={handleCustomerChange}
+          dictionary={dictionary.customer}
+        />
 
-          {/* Service Type Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{dictionary.serviceType.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-6">
-                <label className="flex items-center cursor-pointer">
+        {/* Service Type Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{dictionary.serviceType.title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              <label className="flex items-start sm:items-center cursor-pointer">
+                <div className="flex items-center">
                   <input
                     type="radio"
                     name="serviceType"
                     value="transfer"
                     checked={state.serviceType === "transfer"}
                     onChange={(e) => handleServiceTypeChange(e.target.value as "transfer")}
-                    className="mr-2"
+                    className="mr-2 mt-1 sm:mt-0"
                   />
-                  <span className="font-medium">{dictionary.serviceType.transfer}</span>
-                  <span className="ml-2 text-sm text-gray-500">{dictionary.serviceType.transferDescription}</span>
-                </label>
-                <label className="flex items-center cursor-pointer">
+                  <div className="flex flex-col sm:flex-row sm:items-center">
+                    <span className="font-medium">{dictionary.serviceType.transfer}</span>
+                    <span className="text-sm text-gray-500 sm:ml-2">{dictionary.serviceType.transferDescription}</span>
+                  </div>
+                </div>
+              </label>
+              <label className="flex items-start sm:items-center cursor-pointer">
+                <div className="flex items-center">
                   <input
                     type="radio"
                     name="serviceType"
                     value="disposizione"
                     checked={state.serviceType === "disposizione"}
                     onChange={(e) => handleServiceTypeChange(e.target.value as "disposizione")}
-                    className="mr-2"
+                    className="mr-2 mt-1 sm:mt-0"
                   />
-                  <span className="font-medium">{dictionary.serviceType.disposition}</span>
-                  <span className="ml-2 text-sm text-gray-500">{dictionary.serviceType.dispositionDescription}</span>
-                </label>
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="flex flex-col sm:flex-row sm:items-center">
+                    <span className="font-medium">{dictionary.serviceType.disposition}</span>
+                    <span className="text-sm text-gray-500 sm:ml-2">{dictionary.serviceType.dispositionDescription}</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Journey Details */}
-          <JourneySection
-            journey={state.journey}
-            errors={getFieldErrors("journey")}
-            onChange={handleJourneyChange}
-            serviceType={state.serviceType}
-            dictionary={dictionary.journey}
-          />
+        {/* Journey Details */}
+        <JourneySection
+          journey={state.journey}
+          errors={getFieldErrors("journey")}
+          onChange={handleJourneyChange}
+          serviceType={state.serviceType}
+          dictionary={dictionary.journey}
+        />
 
-          {/* Vehicle Configuration */}
-          <VehicleConfigSection
-            vehicleCount={state.vehicles.count}
-            sameType={state.vehicles.sameType}
-            singleConfig={state.vehicles.singleConfig}
-            multipleConfigs={state.vehicles.multipleConfigs}
-            errors={getFieldErrors("vehicles")}
-            onCountChange={handleVehicleCountChange}
-            onToggleSameType={handleToggleSameType}
-            onSingleConfigChange={handleSingleConfigChange}
-            onMultipleConfigChange={handleMultipleConfigChange}
-            onAddVehicle={handleAddVehicle}
-            onRemoveVehicle={handleRemoveVehicle}
-            dictionary={dictionary.vehicles}
-          />
+        {/* Vehicle Configuration */}
+        <VehicleConfigSection
+          vehicleCount={state.vehicles.count}
+          sameType={state.vehicles.sameType}
+          singleConfig={state.vehicles.singleConfig}
+          multipleConfigs={state.vehicles.multipleConfigs}
+          errors={getFieldErrors("vehicles")}
+          onCountChange={handleVehicleCountChange}
+          onToggleSameType={handleToggleSameType}
+          onSingleConfigChange={handleSingleConfigChange}
+          onMultipleConfigChange={handleMultipleConfigChange}
+          onAddVehicle={handleAddVehicle}
+          onRemoveVehicle={handleRemoveVehicle}
+          dictionary={dictionary.vehicles}
+        />
 
-          {/* Pricing Display */}
-          <PricingDisplay
-            pricing={pricing}
-            isCalculating={isCalculating}
-            errors={getFieldErrors("pricing").map((e) => e.message)}
-            dictionary={dictionary.pricing}
-          />
+        {/* Pricing Display */}
+        <PricingDisplay
+          pricing={pricing}
+          isCalculating={isCalculating}
+          errors={getFieldErrors("pricing").map((e) => e.message)}
+          dictionary={dictionary.pricing}
+        />
 
-          {/* Additional Options */}
-          <AdditionalOptionsSection
-            options={state.options}
-            errors={getFieldErrors("options")}
-            onChange={handleOptionsChange}
-            dictionary={dictionary.options}
-          />
+        {/* Additional Options */}
+        <AdditionalOptionsSection
+          options={state.options}
+          errors={getFieldErrors("options")}
+          onChange={handleOptionsChange}
+          dictionary={dictionary.options}
+        />
 
-          {/* Submit Section */}
-          <SubmitSection
-            isValid={isValid}
-            isSubmitting={state.ui.isSubmitting}
-            pricing={pricing}
-            submitError={
-              state.ui.submitStatus === "error"
-                ? dictionary.submit.error
-                : undefined
-            }
-            onSubmit={handleSubmit}
-            dictionary={dictionary.submit}
-          />
-        </div>
+        {/* Submit Section */}
+        <SubmitSection
+          isValid={isValid}
+          isSubmitting={state.ui.isSubmitting}
+          pricing={pricing}
+          submitError={
+            state.ui.submitStatus === "error"
+              ? dictionary.submit.error
+              : undefined
+          }
+          onSubmit={handleSubmit}
+          dictionary={dictionary.submit}
+        />
       </div>
-    </section>
+    </div>
   )
 }
