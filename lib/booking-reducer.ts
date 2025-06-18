@@ -1,6 +1,7 @@
 import type { BookingState, BookingAction } from "./booking-types"
 
 export const initialBookingState: BookingState = {
+  serviceType: "transfer",
   customer: {
     name: "",
     email: "",
@@ -10,14 +11,32 @@ export const initialBookingState: BookingState = {
   journey: {
     time: "",
     minutes: "",
-    departure: { city: "", location: "" },
-    destination: { city: "", location: "" },
+    endTime: "",
+    endMinutes: "",
+    pickup: {
+      address: "",
+      placeId: "",
+    },
+    destination: {
+      address: "",
+      placeId: "",
+    },
   },
   vehicles: {
-    count: 0,
+    count: 1,
     sameType: true,
-    singleConfig: { type: "", passengers: 0, luggage: 0 },
-    multipleConfigs: [],
+    singleConfig: {
+      type: "",
+      passengers: 1,
+      luggage: 0,
+    },
+    multipleConfigs: [
+      {
+        type: "",
+        passengers: 1,
+        luggage: 0,
+      },
+    ],
   },
   options: {
     meetAndGreet: false,
@@ -35,6 +54,21 @@ export const initialBookingState: BookingState = {
 
 export function bookingReducer(state: BookingState, action: BookingAction): BookingState {
   switch (action.type) {
+    case "SET_SERVICE_TYPE":
+      return {
+        ...state,
+        serviceType: action.payload,
+        journey: {
+          ...state.journey,
+          endTime: action.payload === "transfer" ? "" : state.journey.endTime,
+          endMinutes: action.payload === "transfer" ? "" : state.journey.endMinutes,
+        },
+        ui: {
+          ...state.ui,
+          pricing: null,
+        },
+      }
+
     case "SET_CUSTOMER":
       return {
         ...state,
@@ -48,26 +82,26 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       }
 
     case "SET_VEHICLE_COUNT":
-      const count = action.payload
-      const newMultipleConfigs =
-        count > state.vehicles.multipleConfigs.length
-          ? [
-              ...state.vehicles.multipleConfigs,
-              ...Array(count - state.vehicles.multipleConfigs.length)
-                .fill(null)
-                .map(() => ({
-                  type: "",
-                  passengers: 0,
-                  luggage: 0,
-                })),
-            ]
-          : state.vehicles.multipleConfigs.slice(0, count)
+      const newCount = action.payload
+      const newMultipleConfigs = [...state.vehicles.multipleConfigs]
+
+      // Aggiungi o rimuovi configurazioni veicoli
+      while (newMultipleConfigs.length < newCount) {
+        newMultipleConfigs.push({
+          type: "",
+          passengers: 1,
+          luggage: 0,
+        })
+      }
+      while (newMultipleConfigs.length > newCount) {
+        newMultipleConfigs.pop()
+      }
 
       return {
         ...state,
         vehicles: {
           ...state.vehicles,
-          count,
+          count: newCount,
           multipleConfigs: newMultipleConfigs,
         },
       }
@@ -91,10 +125,11 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       }
 
     case "UPDATE_MULTIPLE_VEHICLE_CONFIG":
-      const { index, config } = action.payload
       const updatedConfigs = [...state.vehicles.multipleConfigs]
-      updatedConfigs[index] = { ...updatedConfigs[index], ...config }
-
+      updatedConfigs[action.payload.index] = {
+        ...updatedConfigs[action.payload.index],
+        ...action.payload.config,
+      }
       return {
         ...state,
         vehicles: {
@@ -109,18 +144,25 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
         vehicles: {
           ...state.vehicles,
           count: state.vehicles.count + 1,
-          multipleConfigs: [...state.vehicles.multipleConfigs, { type: "", passengers: 0, luggage: 0 }],
+          multipleConfigs: [
+            ...state.vehicles.multipleConfigs,
+            {
+              type: "",
+              passengers: 1,
+              luggage: 0,
+            },
+          ],
         },
       }
 
     case "REMOVE_VEHICLE_CONFIG":
-      const filteredConfigs = state.vehicles.multipleConfigs.filter((_, i) => i !== action.payload)
+      const filteredConfigs = state.vehicles.multipleConfigs.filter((_, index) => index !== action.payload)
       return {
         ...state,
         vehicles: {
           ...state.vehicles,
           count: Math.max(1, state.vehicles.count - 1),
-          multipleConfigs: filteredConfigs,
+          multipleConfigs: filteredConfigs.length > 0 ? filteredConfigs : [{ type: "", passengers: 1, luggage: 0 }],
         },
       }
 
@@ -151,8 +193,11 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
     case "SET_SUBMIT_STATUS":
       return {
         ...state,
-        //@ts-ignore
-        ui: { ...state.ui, submitStatus: action.payload, isSubmitting: action.payload === "submitting" },
+        ui: {
+          ...state.ui,
+          submitStatus: action.payload,
+          isSubmitting: action.payload === "submitting",
+        },
       }
 
     case "CLEAR_ERRORS":

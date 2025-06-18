@@ -3,29 +3,44 @@
 import { useCallback, useEffect, useMemo } from "react"
 import { debounce } from "lodash"
 import type { BookingState, PricingResult } from "@/lib/booking-types"
-import { calculateTotalPrice, calculateMultipleVehiclesPrice } from "@/lib/pricing-config"
+import {
+  calculateTotalPrice,
+  calculateMultipleVehiclesPrice,
+  calculateDispositionPrice,
+  calculateMultipleVehiclesDispositionPrice,
+} from "@/lib/pricing-config"
 
 export function usePriceCalculation(state: BookingState, dispatch: (action: any) => void) {
   const isReadyForPricing = useCallback((state: BookingState): boolean => {
-    const { journey, vehicles } = state
+    const { journey, vehicles, serviceType } = state
 
-    // Basic journey validation
-    if (
-      !journey.departure.city ||
-      !journey.departure.location ||
-      !journey.destination.city ||
-      !journey.destination.location ||
-      vehicles.count === 0
-    ) {
+    // Basic validation
+    if (!journey.pickup.address || !journey.destination.address || vehicles.count === 0) {
       return false
     }
 
-    // Same departure and destination check
-    if (
-      journey.departure.city === journey.destination.city &&
-      journey.departure.location === journey.destination.location
-    ) {
+    // Same pickup and destination check
+    if (journey.pickup.address === journey.destination.address) {
       return false
+    }
+
+    // Service type specific validation
+    if (serviceType === "transfer") {
+      // Transfer needs distance
+      if (!journey.distance?.km) {
+        return false
+      }
+    } else if (serviceType === "disposizione") {
+      // Disposition needs start and end time
+      if (!journey.time || !journey.minutes || !journey.endTime || !journey.endMinutes) {
+        return false
+      }
+      // Check end time is after start time
+      const startHour = Number.parseInt(journey.time) + Number.parseInt(journey.minutes) / 60
+      const endHour = Number.parseInt(journey.endTime) + Number.parseInt(journey.endMinutes) / 60
+      if (endHour <= startHour) {
+        return false
+      }
     }
 
     // Vehicle configuration validation
@@ -46,30 +61,49 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         return null
       }
 
-      const { journey, vehicles } = state
+      const { journey, vehicles, serviceType } = state
 
       try {
-        if (vehicles.count === 1 || vehicles.sameType) {
-          const config = vehicles.singleConfig
-          return calculateTotalPrice(
-            journey.departure.city,
-            journey.departure.location,
-            journey.destination.city,
-            journey.destination.location,
-            config.type,
-            config.passengers,
-            config.luggage,
-            vehicles.count,
-          )
-        } else {
-          return calculateMultipleVehiclesPrice(
-            journey.departure.city,
-            journey.departure.location,
-            journey.destination.city,
-            journey.destination.location,
-            vehicles.multipleConfigs,
-          )
+        if (serviceType === "transfer") {
+          // Transfer pricing (distance-based)
+          if (vehicles.count === 1 || vehicles.sameType) {
+            const config = vehicles.singleConfig
+            return calculateTotalPrice(
+              journey.distance!.km,
+              config.type,
+              config.passengers,
+              config.luggage,
+              vehicles.count,
+            )
+          } else {
+            return calculateMultipleVehiclesPrice(journey.distance!.km, vehicles.multipleConfigs)
+          }
+        } else if (serviceType === "disposizione") {
+          // Disposition pricing (time-based)
+          if (vehicles.count === 1 || vehicles.sameType) {
+            const config = vehicles.singleConfig
+            return calculateDispositionPrice(
+              journey.time!,
+              journey.minutes!,
+              journey.endTime!,
+              journey.endMinutes!,
+              config.type,
+              config.passengers,
+              config.luggage,
+              vehicles.count,
+            )
+          } else {
+            return calculateMultipleVehiclesDispositionPrice(
+              journey.time!,
+              journey.minutes!,
+              journey.endTime!,
+              journey.endMinutes!,
+              vehicles.multipleConfigs,
+            )
+          }
         }
+
+        return null
       } catch (error) {
         console.error("Price calculation error:", error)
         return null

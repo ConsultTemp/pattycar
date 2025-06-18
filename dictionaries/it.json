@@ -141,7 +141,112 @@
     "luggageLabel": "Numero di bagagli",
     "flightTrainLabel": "Volo/treno di provenienza",
     "minlabel": "Min",
-    "privacyPolicyLabel": "Accetto il trattamento dei miei dati personali secondo la"
+    "privacyPolicyLabel": "Accetto il trattamento dei miei dati personali secondo la",
+    "admin": {
+      "title": "Prenotazione Riservata",
+      "pageTitle": "Booking - Area Riservata",
+      "pageDescription": "Form di prenotazione",
+      "formTitle": "Prenota il tuo trasferimento",
+      "formSubtitle": "Compila il modulo per richiedere un preventivo",
+      "serviceType": {
+        "title": "Tipo di Servizio",
+        "transfer": "Transfer",
+        "disposition": "Disposizione",
+        "transferDescription": "(Prezzo basato sulla distanza)",
+        "dispositionDescription": "(Prezzo basato sulla durata - 100€/ora)"
+      },
+      "customer": {
+        "title": "Informazioni Cliente",
+        "nameLabel": "Nome completo *",
+        "emailLabel": "Email *",
+        "phoneLabel": "Telefono"
+      },
+      "journey": {
+        "title": "Dettagli del Viaggio",
+        "titleService": "Dettagli del Servizio",
+        "pickupLabel": "Indirizzo di Partenza *",
+        "meetingPointLabel": "Punto di Incontro *",
+        "destinationLabel": "Indirizzo di Destinazione *",
+        "dropoffLabel": "Punto di Drop-off *",
+        "pickupPlaceholder": "Cerca indirizzo di partenza...",
+        "meetingPlaceholder": "Cerca punto di incontro...",
+        "destinationPlaceholder": "Cerca indirizzo di destinazione...",
+        "dropoffPlaceholder": "Cerca punto di drop-off...",
+        "routeInfo": "Informazioni Percorso",
+        "calculatingDistance": "Calcolando distanza...",
+        "distance": "Distanza:",
+        "estimatedDuration": "Durata stimata:",
+        "serviceRoute": "Percorso del Servizio",
+        "from": "Da:",
+        "to": "A:",
+        "priceNote": "Il prezzo è calcolato in base alla durata del servizio, non alla distanza",
+        "dateLabel": "Data",
+        "selectDate": "Seleziona data",
+        "startTimeLabel": "Ora di Partenza",
+        "startServiceLabel": "Ora di Inizio",
+        "endTimeLabel": "Ora di Fine",
+        "endTimeInvalid": "L'ora di fine deve essere successiva all'ora di inizio",
+        "selectStartTime": "Seleziona prima l'ora di inizio",
+        "serviceDuration": "Durata del Servizio",
+        "effectiveDuration": "Durata effettiva:",
+        "billableHours": "Ore fatturabili:",
+        "hourlyRate": "Tariffa:"
+      },
+      "vehicles": {
+        "title": "Configurazione Veicoli",
+        "countLabel": "Numero di veicoli *",
+        "selectCount": "Seleziona numero di veicoli",
+        "vehicle": "veicolo",
+        "vehicles": "veicoli",
+        "sameTypeLabel": "Tutti i veicoli dello stesso tipo",
+        "typeLabel": "Tipo di veicolo *",
+        "selectType": "Seleziona tipo",
+        "passengersLabel": "Passeggeri *",
+        "luggageLabel": "Bagagli *",
+        "individualConfig": "Configurazione Individuale",
+        "addVehicle": "Aggiungi Veicolo",
+        "vehicleNumber": "Veicolo"
+      },
+      "pricing": {
+        "error": "Errore Calcolo Prezzo",
+        "calculating": "Calcolo prezzo in corso...",
+        "totalPrice": "Prezzo Totale",
+        "showDetails": "Mostra dettagli",
+        "hideDetails": "Nascondi dettagli",
+        "basePrice": "Prezzo base tratta:",
+        "vehicleDetails": "Dettaglio per veicolo:",
+        "passengers": "Passeggeri:",
+        "luggage": "Bagagli:",
+        "vehicleMultiplier": "Moltiplicatore veicolo:",
+        "passengerMultiplier": "Moltiplicatore passeggeri:",
+        "luggageMultiplier": "Moltiplicatore bagagli:",
+        "vehicleCount": "Numero veicoli:",
+        "pricePerVehicle": "Prezzo per veicolo:",
+        "price": "Prezzo:"
+      },
+      "options": {
+        "title": "Opzioni Aggiuntive",
+        "flightLabel": "Numero volo/treno",
+        "flightPlaceholder": "Es. AZ123",
+        "billingLabel": "Informazioni di fatturazione",
+        "billingPlaceholder": "Nome azienda, P.IVA, indirizzo...",
+        "notesLabel": "Note aggiuntive",
+        "notesPlaceholder": "Richieste speciali, note...",
+        "meetGreetLabel": "Servizio Meet & Greet",
+        "privacyLabel": "Accetto il trattamento dei dati personali secondo la"
+      },
+      "submit": {
+        "processing": "Creazione sessione pagamento...",
+        "button": "Procedi al Pagamento",
+        "validationMessage": "Compila tutti i campi obbligatori (*) per procedere al pagamento",
+        "error": "Errore durante la creazione della sessione di pagamento. Riprova."
+      },
+      "success": {
+        "title": "Prenotazione inviata con successo!",
+        "description": "Ti contatteremo a breve per confermare la prenotazione.",
+        "newBooking": "Nuova prenotazione"
+      }
+    }
   },
   "footer": {
     "rights": "Tutti i diritti riservati",

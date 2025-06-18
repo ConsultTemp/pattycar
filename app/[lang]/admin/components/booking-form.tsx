@@ -13,6 +13,7 @@ import { PricingDisplay } from "@/components/booking/pricing-display"
 import { AdditionalOptionsSection } from "@/components/booking/additional-options-section"
 import { SubmitSection } from "@/components/booking/submit-section"
 import { format } from "date-fns"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function BookingForm({ dictionary }: { dictionary: any }) {
   const { lang } = useLanguage()
@@ -25,6 +26,10 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   // Memoized handlers
   const handleCustomerChange = useCallback((customer: any) => {
     dispatch({ type: "SET_CUSTOMER", payload: customer })
+  }, [])
+
+  const handleServiceTypeChange = useCallback((serviceType: "transfer" | "disposizione") => {
+    dispatch({ type: "SET_SERVICE_TYPE", payload: serviceType })
   }, [])
 
   const handleJourneyChange = useCallback((journey: any) => {
@@ -75,10 +80,15 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     try {
       // Prepare booking details for API compatibility
       const bookingData = {
-        pickup: `${state.journey.departure.city} - ${state.journey.departure.location}`,
-        destination: `${state.journey.destination.city} - ${state.journey.destination.location}`,
+        serviceType: state.serviceType,
+        pickup: state.journey.pickup.address,
+        destination: state.journey.destination.address,
         date: state.journey.date ? format(state.journey.date, "yyyy-MM-dd") : "",
         time: state.journey.time && state.journey.minutes ? `${state.journey.time}:${state.journey.minutes}` : "",
+        endTime:
+          state.serviceType === "disposizione" && state.journey.endTime && state.journey.endMinutes
+            ? `${state.journey.endTime}:${state.journey.endMinutes}`
+            : "",
         passengers:
           state.vehicles.sameType || state.vehicles.count === 1
             ? state.vehicles.singleConfig.passengers.toString()
@@ -95,6 +105,13 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         notes: state.options.notes || "",
         meetAndGreet: state.options.meetAndGreet,
         sameVehicleType: state.vehicles.sameType,
+        distance: state.journey.distance
+          ? {
+              km: state.journey.distance.km,
+              text: state.journey.distance.text,
+              duration: state.journey.distance.duration,
+            }
+          : null,
         individualVehicles:
           !state.vehicles.sameType && state.vehicles.count > 1
             ? state.vehicles.multipleConfigs.map((config, index) => ({
@@ -147,16 +164,16 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto p-8 bg-green-50 border border-green-200 text-center">
             <h3 className="text-xl mb-4 text-green-800">
-              {dictionary.successMessage || "Prenotazione inviata con successo!"}
+              {dictionary.success.title}
             </h3>
             <p className="text-green-700 mb-6">
-              {dictionary.successDescription || "Ti contatteremo a breve per confermare la prenotazione."}
+              {dictionary.success.description}
             </p>
             <button
               onClick={() => dispatch({ type: "SET_SUBMIT_STATUS", payload: "idle" })}
               className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors duration-300"
             >
-              {dictionary.newBooking || "Nuova prenotazione"}
+              {dictionary.success.newBooking}
             </button>
           </div>
         </div>
@@ -167,9 +184,9 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl text-center mb-8 atacama">{dictionary.title || "Prenota il tuo trasferimento"}</h2>
+        <h2 className="text-3xl text-center mb-8 atacama">{dictionary.formTitle}</h2>
         <p className="text-center text-darkGray font-light mb-12">
-          {dictionary.subtitle || "Compila il modulo per richiedere un preventivo"}
+          {dictionary.formSubtitle}
         </p>
 
         <div className="max-w-4xl mx-auto space-y-8">
@@ -178,10 +195,52 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             customer={state.customer}
             errors={getFieldErrors("customer")}
             onChange={handleCustomerChange}
+            dictionary={dictionary.customer}
           />
 
+          {/* Service Type Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.serviceType.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-6">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="serviceType"
+                    value="transfer"
+                    checked={state.serviceType === "transfer"}
+                    onChange={(e) => handleServiceTypeChange(e.target.value as "transfer")}
+                    className="mr-2"
+                  />
+                  <span className="font-medium">{dictionary.serviceType.transfer}</span>
+                  <span className="ml-2 text-sm text-gray-500">{dictionary.serviceType.transferDescription}</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="serviceType"
+                    value="disposizione"
+                    checked={state.serviceType === "disposizione"}
+                    onChange={(e) => handleServiceTypeChange(e.target.value as "disposizione")}
+                    className="mr-2"
+                  />
+                  <span className="font-medium">{dictionary.serviceType.disposition}</span>
+                  <span className="ml-2 text-sm text-gray-500">{dictionary.serviceType.dispositionDescription}</span>
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Journey Details */}
-          <JourneySection journey={state.journey} errors={getFieldErrors("journey")} onChange={handleJourneyChange} />
+          <JourneySection
+            journey={state.journey}
+            errors={getFieldErrors("journey")}
+            onChange={handleJourneyChange}
+            serviceType={state.serviceType}
+            dictionary={dictionary.journey}
+          />
 
           {/* Vehicle Configuration */}
           <VehicleConfigSection
@@ -196,6 +255,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             onMultipleConfigChange={handleMultipleConfigChange}
             onAddVehicle={handleAddVehicle}
             onRemoveVehicle={handleRemoveVehicle}
+            dictionary={dictionary.vehicles}
           />
 
           {/* Pricing Display */}
@@ -203,6 +263,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             pricing={pricing}
             isCalculating={isCalculating}
             errors={getFieldErrors("pricing").map((e) => e.message)}
+            dictionary={dictionary.pricing}
           />
 
           {/* Additional Options */}
@@ -210,6 +271,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             options={state.options}
             errors={getFieldErrors("options")}
             onChange={handleOptionsChange}
+            dictionary={dictionary.options}
           />
 
           {/* Submit Section */}
@@ -219,10 +281,11 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             pricing={pricing}
             submitError={
               state.ui.submitStatus === "error"
-                ? "Errore durante la creazione della sessione di pagamento. Riprova."
+                ? dictionary.submit.error
                 : undefined
             }
             onSubmit={handleSubmit}
+            dictionary={dictionary.submit}
           />
         </div>
       </div>

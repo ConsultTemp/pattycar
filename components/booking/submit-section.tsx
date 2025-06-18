@@ -11,9 +11,10 @@ interface SubmitSectionProps {
   pricing: PricingResult | null
   submitError?: string
   onSubmit: () => void
+  dictionary: any
 }
 
-export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, pricing, submitError, onSubmit }) => {
+export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, pricing, submitError, onSubmit, dictionary }) => {
   const canSubmit = isValid && pricing && !isSubmitting
 
   return (
@@ -30,12 +31,12 @@ export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, 
         {isSubmitting ? (
           <>
             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Creazione sessione pagamento...
+            {dictionary.processing}
           </>
         ) : (
           <>
             <CreditCard className="w-5 h-5 mr-2" />
-            Procedi al Pagamento
+            {dictionary.button}
             {pricing && <span className="ml-2 font-bold">€{pricing.totalPrice}</span>}
           </>
         )}
@@ -48,7 +49,7 @@ export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, 
       )}
 
       {!isValid && (
-        <p className="text-gray-500 text-sm">Compila tutti i campi obbligatori (*) per procedere al pagamento</p>
+        <p className="text-gray-500 text-sm">{dictionary.validationMessage}</p>
       )}
     </div>
   )

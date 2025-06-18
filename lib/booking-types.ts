@@ -12,13 +12,20 @@ export interface Journey {
   date?: Date
   time: string
   minutes: string
-  departure: {
-    city: string
-    location: string
+  endTime?: string
+  endMinutes?: string
+  pickup: {
+    address: string
+    placeId: string
   }
   destination: {
-    city: string
-    location: string
+    address: string
+    placeId: string
+  }
+  distance?: {
+    km: number
+    text: string
+    duration: string
   }
 }
 
@@ -40,7 +47,18 @@ export interface BookingOptions {
 export interface PricingResult {
   basePrice: number
   totalPrice: number
-  breakdown: any
+  breakdown: {
+    distanceKm?: number
+    durationHours?: number
+    pricePerKm?: number
+    pricePerHour?: number
+    basePrice: number
+    vehicleMultiplier: number
+    passengerMultiplier: number
+    luggageMultiplier: number
+    vehicleCount: number
+    pricePerVehicle: number
+  }
   vehicleBreakdowns?: any[]
 }
 
@@ -57,22 +75,28 @@ export const journeySchema = z
     date: z.date().optional(),
     time: z.string().optional(),
     minutes: z.string().optional(),
-    departure: z.object({
-      city: z.string().min(1, "Città di partenza richiesta"),
-      location: z.string().min(1, "Luogo di partenza richiesto"),
+    endTime: z.string().optional(),
+    endMinutes: z.string().optional(),
+    pickup: z.object({
+      address: z.string().min(1, "Indirizzo di partenza richiesto"),
+      placeId: z.string().optional(),
     }),
     destination: z.object({
-      city: z.string().min(1, "Città di destinazione richiesta"),
-      location: z.string().min(1, "Luogo di destinazione richiesto"),
+      address: z.string().min(1, "Indirizzo di destinazione richiesto"),
+      placeId: z.string().optional(),
     }),
+    distance: z
+      .object({
+        km: z.number().min(1, "Distanza richiesta"),
+        text: z.string(),
+        duration: z.string(),
+      })
+      .optional(),
   })
-  .refine(
-    (data) => !(data.departure.city === data.destination.city && data.departure.location === data.destination.location),
-    {
-      message: "Il punto di partenza e di arrivo non possono essere uguali",
-      path: ["destination"],
-    },
-  )
+  .refine((data) => data.pickup.address !== data.destination.address, {
+    message: "Il punto di partenza e di arrivo non possono essere uguali",
+    path: ["destination"],
+  })
 
 export const vehicleConfigSchema = z.object({
   type: z.string().min(1, "Tipo di veicolo richiesto"),
@@ -119,6 +143,7 @@ export type BookingError =
 
 // State types
 export interface BookingState {
+  serviceType: "transfer" | "disposizione"
   customer: Customer
   journey: Journey
   vehicles: {
@@ -130,7 +155,7 @@ export interface BookingState {
   options: BookingOptions
   ui: {
     isSubmitting: boolean
-    submitStatus: "idle" | "success" | "error"
+    submitStatus: "idle" | "success" | "error" | "submitting"
     errors: ValidationError[]
     pricing: PricingResult | null
     isCalculatingPrice: boolean
@@ -139,6 +164,7 @@ export interface BookingState {
 
 // Action types
 export type BookingAction =
+  | { type: "SET_SERVICE_TYPE"; payload: "transfer" | "disposizione" }
   | { type: "SET_CUSTOMER"; payload: Partial<Customer> }
   | { type: "SET_JOURNEY"; payload: Partial<Journey> }
   | { type: "SET_VEHICLE_COUNT"; payload: number }

@@ -20,6 +20,7 @@ interface VehicleConfigSectionProps {
   onMultipleConfigChange: (index: number, config: Partial<VehicleConfig>) => void
   onAddVehicle: () => void
   onRemoveVehicle: (index: number) => void
+  dictionary: any
 }
 
 const vehicleTypes = [
@@ -42,6 +43,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     onMultipleConfigChange,
     onAddVehicle,
     onRemoveVehicle,
+    dictionary,
   }) => {
     const getFieldError = (field: string) => {
       return errors.find((error) => error.field === `vehicles.${field}`)?.message
@@ -49,19 +51,19 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
 
     return (
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold">Configurazione Veicoli</h3>
+        <h3 className="text-lg font-semibold">{dictionary.title}</h3>
 
         {/* Vehicle Count */}
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Numero di veicoli *</label>
+          <label className="block text-sm text-gray-600 mb-1">{dictionary.countLabel}</label>
           <Select value={vehicleCount.toString()} onValueChange={(value) => onCountChange(Number.parseInt(value))}>
             <SelectTrigger className={getFieldError("count") ? "border-red-500" : ""}>
-              <SelectValue placeholder="Seleziona numero di veicoli" />
+              <SelectValue placeholder={dictionary.selectCount} />
             </SelectTrigger>
             <SelectContent>
               {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
                 <SelectItem key={num} value={num.toString()}>
-                  {num} {num === 1 ? "veicolo" : "veicoli"}
+                  {num} {num === 1 ? dictionary.vehicle : dictionary.vehicles}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -78,7 +80,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
           <div className="flex items-center space-x-2">
             <Checkbox id="sameVehicleType" checked={sameType} onCheckedChange={onToggleSameType} />
             <label htmlFor="sameVehicleType" className="text-sm text-gray-600">
-              Tutti i veicoli dello stesso tipo
+              {dictionary.sameTypeLabel}
             </label>
           </div>
         )}
@@ -87,10 +89,10 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
         {(vehicleCount === 1 || sameType) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-gray-50">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Tipo di veicolo *</label>
+              <label className="block text-sm text-gray-600 mb-1">{dictionary.typeLabel}</label>
               <Select value={singleConfig.type} onValueChange={(type) => onSingleConfigChange({ type })}>
                 <SelectTrigger className={getFieldError("config.type") ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Seleziona tipo" />
+                  <SelectValue placeholder={dictionary.selectType} />
                 </SelectTrigger>
                 <SelectContent>
                   {vehicleTypes.map((vehicle) => (
@@ -111,7 +113,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Passeggeri *</label>
+              <label className="block text-sm text-gray-600 mb-1">{dictionary.passengersLabel}</label>
               <Input
                 type="number"
                 min="1"
@@ -132,7 +134,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Bagagli *</label>
+              <label className="block text-sm text-gray-600 mb-1">{dictionary.luggageLabel}</label>
               <Input
                 type="number"
                 min="0"
@@ -158,17 +160,17 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
         {vehicleCount > 1 && !sameType && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium">Configurazione Individuale</h4>
+              <h4 className="font-medium">{dictionary.individualConfig}</h4>
               <Button type="button" onClick={onAddVehicle} variant="outline" size="sm">
                 <Plus className="w-4 h-4 mr-2" />
-                Aggiungi Veicolo
+                {dictionary.addVehicle}
               </Button>
             </div>
 
             {multipleConfigs.map((config, index) => (
               <div key={index} className="border rounded-lg p-4 bg-gray-50">
                 <div className="flex items-center justify-between mb-4">
-                  <h5 className="font-medium">Veicolo {index + 1}</h5>
+                  <h5 className="font-medium">{dictionary.vehicleNumber} {index + 1}</h5>
                   {multipleConfigs.length > 1 && (
                     <Button
                       type="button"
@@ -184,10 +186,10 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Tipo Veicolo *</label>
+                    <label className="block text-sm text-gray-600 mb-1">{dictionary.typeLabel}</label>
                     <Select value={config.type} onValueChange={(type) => onMultipleConfigChange(index, { type })}>
                       <SelectTrigger className={getFieldError(`configs.${index}.type`) ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Seleziona tipo" />
+                        <SelectValue placeholder={dictionary.selectType} />
                       </SelectTrigger>
                       <SelectContent>
                         {vehicleTypes.map((vehicle) => (
@@ -205,7 +207,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   </div>
 
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Passeggeri *</label>
+                    <label className="block text-sm text-gray-600 mb-1">{dictionary.passengersLabel}</label>
                     <Input
                       type="number"
                       min="1"
@@ -226,7 +228,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   </div>
 
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Bagagli *</label>
+                    <label className="block text-sm text-gray-600 mb-1">{dictionary.luggageLabel}</label>
                     <Input
                       type="number"
                       min="0"

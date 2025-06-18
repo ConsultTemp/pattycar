@@ -19,12 +19,11 @@ export default async function AdminBookingPage({ params }: { params: { lang: Loc
     <div className="min-h-screen bg-gray-50 p-4 py-32">
       <div className="container mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Area Riservata - Booking</h1>
-          <p className="text-gray-600">Compilare il form di prenotazione</p>
+          <p className="text-gray-600">{dictionary.booking.admin.title}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <BookingForm dictionary={dictionary.booking} />
+          <BookingForm dictionary={dictionary.booking.admin} />
         </div>
       </div>
     </div>

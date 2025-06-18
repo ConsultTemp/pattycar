@@ -67,7 +67,7 @@ export default function AdminLoginForm({ lang }: AdminLoginFormProps) {
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">RESTRICTED ACCESS</h1>
-          <p className="text-gray-400 text-sm">Elite Security Portal</p>
+          <p className="text-gray-400 text-sm">Security Portal</p>
         </div>
 
         {/* Login Form */}
@@ -85,7 +85,7 @@ export default function AdminLoginForm({ lang }: AdminLoginFormProps) {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter elite access code"
+                  placeholder="Enter access code"
                   className="bg-gray-900/50 border-gray-600 text-white placeholder-gray-500 pr-10"
                   disabled={isLoading}
                   autoComplete="off"
@@ -137,7 +137,7 @@ export default function AdminLoginForm({ lang }: AdminLoginFormProps) {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-gray-500 text-xs">Patty Car Elite Portal • Unauthorized access prohibited</p>
+          <p className="text-gray-500 text-xs">Patty Car Booking Portal • Unauthorized access prohibited</p>
         </div>
       </div>
     </div>

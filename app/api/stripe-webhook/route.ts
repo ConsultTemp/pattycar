@@ -13,34 +13,34 @@ const resend = new Resend(process.env.RESEND_API_KEY!)
 // Funzione per formattare l'orario in modo più elegante
 function formatTime(time: string): string {
   if (time === "Non specificato" || !time) return "Non specificato"
-  
+
   // Se è già in formato HH:MM, aggiunge solo lo stile
   if (time.match(/^\d{1,2}:\d{2}$/)) {
     return time
   }
-  
+
   return time
 }
 
 // Funzione per formattare la data in modo più elegante
 function formatDate(date: string): string {
   if (date === "Non specificata" || !date) return "Non specificata"
-  
+
   try {
     // Prova a parsare e formattare la data
     const dateObj = new Date(date)
     if (!isNaN(dateObj.getTime())) {
-      return dateObj.toLocaleDateString('it-IT', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      return dateObj.toLocaleDateString("it-IT", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       })
     }
   } catch (e) {
     // Se non riesce a parsare, ritorna la data originale
   }
-  
+
   return date
 }
 
@@ -84,25 +84,34 @@ export async function POST(req: NextRequest) {
       // Estrai i metadata della prenotazione
       const metadata = session.metadata || {}
       const {
+        serviceType = "transfer",
         pickup = "Non specificato",
-        destination = "Non specificato", 
+        destination = "Non specificato",
         passengers = "1",
         luggage = "0",
         vehicleType = "Non specificato",
+        vehicleCount = "1",
         date = "Non specificata",
         time = "Non specificato",
+        endTime = "",
         phone = "Non specificato",
         notes = "Nessuna nota",
+        flight = "",
+        meetAndGreet = "false",
+        billingInfo = "",
+        distance = "",
+        duration = "",
+        priceBreakdown = "",
       } = metadata
 
       // 🔍 DEBUG: Controlla se esiste una fattura
       console.log("🔍 Session invoice:", session.invoice)
       console.log("🔍 Session payment_intent:", session.payment_intent)
-      
-      // Recupera l'invoice URL se disponibile - con più debug
+
+      // Recupera l'invoice URL se disponibile
       let invoiceUrl = ""
       let paymentIntentId = ""
-      
+
       if (session.invoice) {
         try {
           console.log("📄 Tentativo recupero fattura:", session.invoice)
@@ -131,13 +140,15 @@ export async function POST(req: NextRequest) {
       // Formatta data e ora
       const formattedDate = formatDate(date)
       const formattedTime = formatTime(time)
+      const formattedEndTime = endTime ? formatTime(endTime) : ""
+      const isDisposizione = serviceType === "disposizione"
 
       try {
-        // 📧 EMAIL AL CLIENTE - Conferma prenotazione elegante
+        // 📧 EMAIL AL CLIENTE - Conferma prenotazione completa
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
-          to: "cahuas72@gmail.com", // La tua email per test
-          subject: "🚗 Prenotazione Confermata - Servizio NCC",
+          to: customerEmail,
+          subject: `✅ Prenotazione Confermata - ${isDisposizione ? "Disposizione" : "Transfer"} Patty Car`,
           html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
               <!-- Header -->
@@ -146,7 +157,7 @@ export async function POST(req: NextRequest) {
                   🚗 Prenotazione Confermata
                 </h1>
                 <p style="color: #e3f2fd; margin: 10px 0 0 0; font-size: 16px;">
-                  Il tuo viaggio è stato prenotato con successo
+                  ${isDisposizione ? "Disposizione" : "Transfer"} prenotato con successo
                 </p>
               </div>
               
@@ -157,14 +168,22 @@ export async function POST(req: NextRequest) {
                 </p>
                 
                 <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 35px 0;">
-                  La tua prenotazione per il servizio NCC è stata confermata e il pagamento è stato elaborato con successo. 
-                  Di seguito trovi tutti i dettagli del tuo viaggio.
+                  La sua prenotazione per il servizio ${isDisposizione ? "di disposizione" : "transfer"} è stata confermata e il pagamento è stato elaborato con successo. 
+                  Di seguito trova tutti i dettagli del suo ${isDisposizione ? "servizio" : "viaggio"}.
                 </p>
+                
+                <!-- Service Type Badge -->
+                <div style="text-align: center; margin: 25px 0;">
+                  <span style="display: inline-block; background: ${isDisposizione ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)"}; 
+                             color: white; padding: 12px 24px; border-radius: 25px; font-weight: 600; font-size: 16px;">
+                    ${isDisposizione ? "⏰ DISPOSIZIONE" : "🚗 TRANSFER"}
+                  </span>
+                </div>
                 
                 <!-- Trip Details Card -->
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; margin: 30px 0;">
                   <h2 style="color: #1e3c72; margin: 0 0 25px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-                    📋 Dettagli del Viaggio
+                    📋 Dettagli del ${isDisposizione ? "Servizio" : "Viaggio"}
                   </h2>
                   
                   <div style="display: grid; gap: 15px;">
@@ -179,7 +198,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #10b981; font-size: 18px; margin-right: 12px;">🎯</span>
                       <div>
-                        <strong style="color: #374151;">Destinazione:</strong>
+                        <strong style="color: #374151;">${isDisposizione ? "Destinazione:" : "Arrivo:"}</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${destination}</span>
                       </div>
                     </div>
@@ -195,10 +214,52 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #8b5cf6; font-size: 18px; margin-right: 12px;">🕐</span>
                       <div>
-                        <strong style="color: #374151;">Orario:</strong>
+                        <strong style="color: #374151;">${isDisposizione ? "Inizio servizio:" : "Orario partenza:"}</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${formattedTime}</span>
                       </div>
                     </div>
+                    
+                    ${
+                      isDisposizione && formattedEndTime
+                        ? `
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #ef4444; font-size: 18px; margin-right: 12px;">🕐</span>
+                      <div>
+                        <strong style="color: #374151;">Fine servizio:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${formattedEndTime}</span>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      distance && !isDisposizione
+                        ? `
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;">📏</span>
+                      <div>
+                        <strong style="color: #374151;">Distanza:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${distance}</span>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      duration && !isDisposizione
+                        ? `
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #84cc16; font-size: 18px; margin-right: 12px;">⏱️</span>
+                      <div>
+                        <strong style="color: #374151;">Durata stimata:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${duration}</span>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
                     
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;">👥</span>
@@ -216,7 +277,7 @@ export async function POST(req: NextRequest) {
                       </div>
                     </div>
                     
-                    <div style="display: flex; align-items: center; padding: 12px 0;">
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #ec4899; font-size: 18px; margin-right: 12px;">🚙</span>
                       <div>
                         <strong style="color: #374151;">Veicolo:</strong>
@@ -224,7 +285,55 @@ export async function POST(req: NextRequest) {
                       </div>
                     </div>
                     
-                    ${notes !== "Nessuna nota" ? `
+                    ${
+                      vehicleCount !== "1"
+                        ? `
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">🚗</span>
+                      <div>
+                        <strong style="color: #374151;">Numero veicoli:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${vehicleCount}</span>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      meetAndGreet === "true"
+                        ? `
+                    <div style="background: #dcfce7; border: 1px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: center;">
+                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🤝</span>
+                        <div>
+                          <strong style="color: #166534;">Servizio Meet & Greet incluso</strong>
+                          <p style="color: #166534; margin: 5px 0 0 0; font-size: 14px;">Il nostro autista la aspetterà con un cartello personalizzato</p>
+                        </div>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      flight
+                        ? `
+                    <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: center;">
+                        <span style="color: #2563eb; font-size: 18px; margin-right: 12px;">✈️</span>
+                        <div>
+                          <strong style="color: #1e40af;">Numero volo: ${flight}</strong>
+                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Monitoreremo eventuali ritardi del volo</p>
+                        </div>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      notes !== "Nessuna nota" && notes
+                        ? `
                     <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: flex-start;">
                         <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">📝</span>
@@ -234,7 +343,25 @@ export async function POST(req: NextRequest) {
                         </div>
                       </div>
                     </div>
-                    ` : ""}
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      billingInfo
+                        ? `
+                    <div style="background: #f3f4f6; border: 1px solid #9ca3af; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: flex-start;">
+                        <span style="color: #6b7280; font-size: 18px; margin-right: 12px;">🧾</span>
+                        <div>
+                          <strong style="color: #374151;">Dati di fatturazione:</strong>
+                          <p style="color: #374151; margin: 5px 0 0 0; line-height: 1.5; white-space: pre-line;">${billingInfo}</p>
+                        </div>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
                   </div>
                 </div>
                 
@@ -245,9 +372,20 @@ export async function POST(req: NextRequest) {
                   <p style="color: #166534; margin: 0; font-size: 24px; font-weight: 600;">
                     €${(session.amount_total! / 100).toFixed(2)}
                   </p>
+                  ${
+                    priceBreakdown
+                      ? `
+                  <p style="color: #166534; margin: 10px 0 0 0; font-size: 14px;">
+                    ${priceBreakdown}
+                  </p>
+                  `
+                      : ""
+                  }
                 </div>
                 
-                ${invoiceUrl ? `
+                ${
+                  invoiceUrl
+                    ? `
                 <div style="text-align: center; margin: 35px 0;">
                   <a href="${invoiceUrl}" 
                      style="display: inline-block; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
@@ -256,14 +394,16 @@ export async function POST(req: NextRequest) {
                     📄 Visualizza Fattura
                   </a>
                 </div>
-                ` : `
+                `
+                    : `
                 <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
                   <span style="color: #f59e0b; font-size: 20px;">📄</span>
                   <p style="color: #92400e; margin: 10px 0 0 0; font-weight: 500;">
                     La fattura verrà inviata separatamente nelle prossime ore
                   </p>
                 </div>
-                `}
+                `
+                }
                 
                 <!-- Next Steps -->
                 <div style="background: #f1f5f9; border-radius: 12px; padding: 30px; margin: 35px 0;">
@@ -277,9 +417,27 @@ export async function POST(req: NextRequest) {
                   </ul>
                 </div>
                 
+                <!-- Contact Info -->
+                <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 25px; margin: 30px 0;">
+                  <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+                    📞 Hai bisogno di assistenza?
+                  </h3>
+                  <p style="color: #1e40af; margin: 0 0 10px 0;">
+                    Per qualsiasi domanda o modifica alla prenotazione:
+                  </p>
+                  <ul style="color: #1e40af; margin: 0; padding-left: 20px; line-height: 1.6;">
+                    <li>📧 Email: info@pattycar.com</li>
+                    <li>📱 Telefono: ${phone !== "Non specificato" ? phone : "+39 XXX XXX XXXX"}</li>
+                    <li>🌐 Sito web: www.pattycar.com</li>
+                  </ul>
+                </div>
+                
                 <div style="text-align: center; margin: 40px 0 20px 0;">
                   <p style="color: #1e3c72; font-size: 18px; font-weight: 600; margin: 0;">
-                    Grazie per aver scelto i nostri servizi! 🙏
+                    Grazie per aver scelto Patty Car! 🙏
+                  </p>
+                  <p style="color: #6b7280; font-size: 14px; margin: 10px 0 0 0;">
+                    Il tuo servizio di trasporto di fiducia
                   </p>
                 </div>
               </div>
@@ -297,17 +455,17 @@ export async function POST(req: NextRequest) {
 
         console.log("✅ Email cliente inviata:", customerEmailResult.data?.id)
 
-        // 📧 EMAIL ALL'ADMIN - Versione migliorata
+        // 📧 EMAIL ALL'ADMIN - Versione completa con tutti i dettagli
         const adminEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: process.env.ADMIN_EMAIL!,
-          subject: "🚗 Nuova Prenotazione NCC - Pagamento Completato",
+          subject: `🚗 Nuova Prenotazione ${isDisposizione ? "DISPOSIZIONE" : "TRANSFER"} - Pagamento Completato - ${customerName}`,
           html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">
-                  🚗 Nuova Prenotazione NCC
+                  🚗 Nuova Prenotazione ${isDisposizione ? "DISPOSIZIONE" : "TRANSFER"}
                 </h1>
                 <p style="color: #fecaca; margin: 10px 0 0 0; font-size: 14px;">
                   Pagamento completato con successo
@@ -323,7 +481,7 @@ export async function POST(req: NextRequest) {
                       AZIONE RICHIESTA
                     </h3>
                     <p style="color: #dc2626; margin: 0; font-size: 14px;">
-                      Contatta il cliente entro 24 ore per confermare i dettagli del viaggio
+                      Contatta il cliente entro 24 ore per confermare i dettagli del ${isDisposizione ? "servizio" : "viaggio"}
                     </p>
                   </div>
                 </div>
@@ -342,32 +500,71 @@ export async function POST(req: NextRequest) {
                     <p style="margin: 0; color: #374151;">
                       <strong>Email:</strong> <span style="color: #6b7280;">${customerEmail}</span>
                     </p>
-                    ${phone !== "Non specificato" ? `
+                    ${
+                      phone !== "Non specificato"
+                        ? `
                     <p style="margin: 0; color: #374151;">
                       <strong>Telefono:</strong> <span style="color: #6b7280; font-weight: 600;">${phone}</span>
                     </p>
-                    ` : ""}
+                    `
+                        : ""
+                    }
                   </div>
+                </div>
+                
+                <!-- Service Type Badge -->
+                <div style="text-align: center; margin: 25px 0;">
+                  <span style="display: inline-block; background: ${isDisposizione ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)"}; 
+                             color: white; padding: 12px 24px; border-radius: 25px; font-weight: 600; font-size: 16px;">
+                    ${isDisposizione ? "⏰ DISPOSIZIONE" : "🚗 TRANSFER"}
+                  </span>
                 </div>
                 
                 <!-- Trip Details -->
                 <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 10px; padding: 25px; margin: 25px 0;">
                   <h2 style="color: #1e40af; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; border-bottom: 2px solid #93c5fd; padding-bottom: 8px;">
-                    📋 Dettagli Prenotazione
+                    📋 Dettagli ${isDisposizione ? "Disposizione" : "Transfer"}
                   </h2>
                   <div style="display: grid; gap: 12px;">
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🚩 Partenza:</strong> <span style="color: #3730a3;">${pickup}</span>
                     </p>
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🎯 Destinazione:</strong> <span style="color: #3730a3;">${destination}</span>
+                      <strong>🎯 ${isDisposizione ? "Destinazione:" : "Arrivo:"}</strong> <span style="color: #3730a3;">${destination}</span>
                     </p>
                     <p style="margin: 0; color: #1e40af;">
                       <strong>📅 Data:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedDate}</span>
                     </p>
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🕐 Orario:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedTime}</span>
+                      <strong>🕐 ${isDisposizione ? "Inizio:" : "Orario:"}</strong> <span style="color: #3730a3; font-weight: 600;">${formattedTime}</span>
                     </p>
+                    ${
+                      isDisposizione && formattedEndTime
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🕐 Fine:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedEndTime}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      distance && !isDisposizione
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>📏 Distanza:</strong> <span style="color: #3730a3;">${distance}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      duration && !isDisposizione
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>⏱️ Durata:</strong> <span style="color: #3730a3;">${duration}</span>
+                    </p>
+                    `
+                        : ""
+                    }
                     <p style="margin: 0; color: #1e40af;">
                       <strong>👥 Passeggeri:</strong> <span style="color: #3730a3;">${passengers}</span>
                     </p>
@@ -377,15 +574,62 @@ export async function POST(req: NextRequest) {
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🚙 Veicolo:</strong> <span style="color: #3730a3;">${vehicleType}</span>
                     </p>
-                    ${notes !== "Nessuna nota" ? `
+                    ${
+                      vehicleCount !== "1"
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🚗 N. Veicoli:</strong> <span style="color: #3730a3;">${vehicleCount}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      meetAndGreet === "true"
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🤝 Meet & Greet:</strong> <span style="color: #16a34a; font-weight: 600;">SÌ</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      flight
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>✈️ Volo:</strong> <span style="color: #3730a3; font-weight: 600;">${flight}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      notes !== "Nessuna nota" && notes
+                        ? `
                     <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; padding: 15px; margin-top: 10px;">
                       <p style="margin: 0; color: #92400e;">
                         <strong>📝 Note:</strong> ${notes}
                       </p>
                     </div>
-                    ` : ""}
+                    `
+                        : ""
+                    }
                   </div>
                 </div>
+                
+                ${
+                  billingInfo
+                    ? `
+                <!-- Billing Info -->
+                <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                  <h2 style="color: #92400e; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; border-bottom: 2px solid #fbbf24; padding-bottom: 8px;">
+                    🧾 Dati di Fatturazione
+                  </h2>
+                  <div style="color: #92400e; white-space: pre-line; line-height: 1.6;">
+                    ${billingInfo}
+                  </div>
+                </div>
+                `
+                    : ""
+                }
                 
                 <!-- Payment Info -->
                 <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 10px; padding: 25px; margin: 25px 0;">
@@ -399,20 +643,33 @@ export async function POST(req: NextRequest) {
                     <p style="margin: 0; color: #16a34a;">
                       <strong>Status:</strong> <span style="color: #15803d; font-weight: 600;">✅ Pagamento Completato</span>
                     </p>
-                    ${invoiceUrl ? `
+                    ${
+                      priceBreakdown
+                        ? `
+                    <p style="margin: 0; color: #16a34a;">
+                      <strong>Dettagli:</strong> <span style="color: #15803d;">${priceBreakdown}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      invoiceUrl
+                        ? `
                     <p style="margin: 0; color: #16a34a;">
                       <strong>Fattura:</strong> 
                       <a href="${invoiceUrl}" style="color: #15803d; text-decoration: underline;">Visualizza Fattura</a>
                     </p>
-                    ` : `
+                    `
+                        : `
                     <p style="margin: 0; color: #f59e0b;">
                       <strong>Fattura:</strong> <span style="color: #d97706;">⚠️ Non ancora disponibile</span>
                     </p>
-                    `}
+                    `
+                    }
                   </div>
                 </div>
                 
-                <!-- Technical Debug Info (per admin) -->
+                <!-- Technical Debug Info -->
                 <div style="background: #fafafa; border: 1px solid #d4d4d8; border-radius: 8px; padding: 20px; margin: 25px 0;">
                   <h3 style="color: #71717a; margin: 0 0 15px 0; font-size: 14px; font-weight: 600;">
                     🔍 Info Tecniche (Debug)
@@ -420,8 +677,8 @@ export async function POST(req: NextRequest) {
                   <div style="font-size: 12px; color: #71717a; line-height: 1.4;">
                     <p style="margin: 0 0 5px 0;"><strong>Sessione Stripe:</strong> ${session.id}</p>
                     ${paymentIntentId ? `<p style="margin: 0 0 5px 0;"><strong>Payment Intent:</strong> ${paymentIntentId}</p>` : ""}
-                    <p style="margin: 0 0 5px 0;"><strong>Fattura Presente:</strong> ${session.invoice ? 'Sì' : 'No'}</p>
-                    <p style="margin: 0;"><strong>Customer ID:</strong> ${session.customer || 'N/A'}</p>
+                    <p style="margin: 0 0 5px 0;"><strong>Fattura Presente:</strong> ${session.invoice ? "Sì" : "No"}</p>
+                    <p style="margin: 0;"><strong>Customer ID:</strong> ${session.customer || "N/A"}</p>
                   </div>
                 </div>
               </div>

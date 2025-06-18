@@ -141,7 +141,112 @@
     "luggageLabel": "عدد الحقائب",
     "minlabel": "دقيقة",
     "flightTrainLabel": "رقم الرحلة/القطار",
-    "privacyPolicyLabel": "أوافق على معالجة بياناتي الشخصية وفقًا لـ"
+    "privacyPolicyLabel": "أوافق على معالجة بياناتي الشخصية وفقًا لـ",
+    "admin": {
+      "title": "حجز محجوز",
+      "pageTitle": "الحجز - منطقة محظورة",
+      "pageDescription": "نموذج الحجز",
+      "formTitle": "احجز نقلك",
+      "formSubtitle": "املأ النموذج لطلب عرض أسعار",
+      "serviceType": {
+        "title": "نوع الخدمة",
+        "transfer": "نقل",
+        "disposition": "توزيع",
+        "transferDescription": "(السعر بناءً على المسافة)",
+        "dispositionDescription": "(السعر بناءً على المدة - 100 يورو/ساعة)"
+      },
+      "customer": {
+        "title": "معلومات العميل",
+        "nameLabel": "الاسم الكامل *",
+        "emailLabel": "البريد الإلكتروني *",
+        "phoneLabel": "الهاتف"
+      },
+      "journey": {
+        "title": "تفاصيل الرحلة",
+        "titleService": "تفاصيل الخدمة",
+        "pickupLabel": "عنوان الاستلام *",
+        "meetingPointLabel": "نقطة الالتقاء *",
+        "destinationLabel": "عنوان الوجهة *",
+        "dropoffLabel": "نقطة التوصيل *",
+        "pickupPlaceholder": "البحث عن عنوان الاستلام...",
+        "meetingPlaceholder": "البحث عن نقطة الالتقاء...",
+        "destinationPlaceholder": "البحث عن عنوان الوجهة...",
+        "dropoffPlaceholder": "البحث عن نقطة التوصيل...",
+        "routeInfo": "معلومات الطريق",
+        "calculatingDistance": "حساب المسافة...",
+        "distance": "المسافة:",
+        "estimatedDuration": "المدة المقدرة:",
+        "serviceRoute": "طريق الخدمة",
+        "from": "من:",
+        "to": "إلى:",
+        "priceNote": "السعر محسوب بناءً على مدة الخدمة، وليس المسافة",
+        "dateLabel": "التاريخ",
+        "selectDate": "اختر التاريخ",
+        "startTimeLabel": "وقت المغادرة",
+        "startServiceLabel": "وقت البدء",
+        "endTimeLabel": "وقت الانتهاء",
+        "endTimeInvalid": "يجب أن يكون وقت الانتهاء بعد وقت البدء",
+        "selectStartTime": "اختر وقت البدء أولاً",
+        "serviceDuration": "مدة الخدمة",
+        "effectiveDuration": "المدة الفعلية:",
+        "billableHours": "الساعات القابلة للفوترة:",
+        "hourlyRate": "التعريفة:"
+      },
+      "vehicles": {
+        "title": "تكوين المركبات",
+        "countLabel": "عدد المركبات *",
+        "selectCount": "اختر عدد المركبات",
+        "vehicle": "مركبة",
+        "vehicles": "مركبات",
+        "sameTypeLabel": "جميع المركبات من نفس النوع",
+        "typeLabel": "نوع المركبة *",
+        "selectType": "اختر النوع",
+        "passengersLabel": "الركاب *",
+        "luggageLabel": "الأمتعة *",
+        "individualConfig": "التكوين الفردي",
+        "addVehicle": "إضافة مركبة",
+        "vehicleNumber": "مركبة"
+      },
+      "pricing": {
+        "error": "خطأ في حساب السعر",
+        "calculating": "حساب السعر...",
+        "totalPrice": "السعر الإجمالي",
+        "showDetails": "إظهار التفاصيل",
+        "hideDetails": "إخفاء التفاصيل",
+        "basePrice": "سعر الطريق الأساسي:",
+        "vehicleDetails": "تفاصيل المركبة:",
+        "passengers": "الركاب:",
+        "luggage": "الأمتعة:",
+        "vehicleMultiplier": "مضاعف المركبة:",
+        "passengerMultiplier": "مضاعف الركاب:",
+        "luggageMultiplier": "مضاعف الأمتعة:",
+        "vehicleCount": "عدد المركبات:",
+        "pricePerVehicle": "السعر لكل مركبة:",
+        "price": "السعر:"
+      },
+      "options": {
+        "title": "خيارات إضافية",
+        "flightLabel": "رقم الرحلة/القطار",
+        "flightPlaceholder": "مثلاً AZ123",
+        "billingLabel": "معلومات الفوترة",
+        "billingPlaceholder": "اسم الشركة، رقم ضريبة القيمة المضافة، العنوان...",
+        "notesLabel": "ملاحظات إضافية",
+        "notesPlaceholder": "طلبات خاصة، ملاحظات...",
+        "meetGreetLabel": "خدمة الاستقبال والتوديع",
+        "privacyLabel": "أوافق على معالجة البيانات الشخصية وفقاً لـ"
+      },
+      "submit": {
+        "processing": "إنشاء جلسة دفع...",
+        "button": "المتابعة للدفع",
+        "validationMessage": "املأ جميع الحقول المطلوبة (*) للمتابعة للدفع",
+        "error": "خطأ في إنشاء جلسة الدفع. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "title": "تم إرسال الحجز بنجاح!",
+        "description": "سنتصل بك قريباً لتأكيد الحجز.",
+        "newBooking": "حجز جديد"
+      }
+    }
   },
   "footer": {
     "rights": "جميع الحقوق محفوظة",

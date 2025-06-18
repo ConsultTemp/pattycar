@@ -8,15 +8,16 @@ interface PricingDisplayProps {
   pricing: PricingResult | null
   isCalculating: boolean
   errors: string[]
+  dictionary: any
 }
 
-export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculating, errors }) => {
+export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculating, errors, dictionary }) => {
   const [showBreakdown, setShowBreakdown] = useState(false)
 
   if (errors.length > 0) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">Errore Calcolo Prezzo</h3>
+        <h3 className="text-lg font-semibold text-red-800 mb-2">{dictionary.error}</h3>
         {errors.map((error, index) => (
           <p key={index} className="text-red-700 text-sm">
             {error}
@@ -31,7 +32,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center">
           <Loader2 className="w-5 h-5 text-blue-600 mr-2 animate-spin" />
-          <span className="text-blue-800">Calcolo prezzo in corso...</span>
+          <span className="text-blue-800">{dictionary.calculating}</span>
         </div>
       </div>
     )
@@ -46,14 +47,14 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-semibold text-blue-800 flex items-center">
           <Calculator className="w-5 h-5 mr-2" />
-          Prezzo Totale
+          {dictionary.totalPrice}
         </h3>
         <button
           type="button"
           onClick={() => setShowBreakdown(!showBreakdown)}
           className="text-blue-600 hover:text-blue-800 text-sm"
         >
-          {showBreakdown ? "Nascondi dettagli" : "Mostra dettagli"}
+          {showBreakdown ? dictionary.hideDetails : dictionary.showDetails}
         </button>
       </div>
 
@@ -61,25 +62,25 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
 
       {showBreakdown && (
         <div className="text-sm text-blue-700 space-y-1">
-          <div>Prezzo base tratta: €{pricing.breakdown.basePrice}</div>
+          <div>{dictionary.basePrice} €{pricing.breakdown.basePrice}</div>
           {pricing.vehicleBreakdowns ? (
             // Individual vehicles breakdown
             <div className="space-y-2 mt-2">
-              <div className="font-semibold">Dettaglio per veicolo:</div>
+              <div className="font-semibold">{dictionary.vehicleDetails}</div>
               {pricing.vehicleBreakdowns.map((vb: any) => (
                 <div key={vb.vehicleIndex} className="bg-blue-100 p-2 rounded">
                   <div className="font-medium">
-                    Veicolo {vb.vehicleIndex} ({vb.type})
+                    {dictionary.vehicleNumber || "Veicolo"} {vb.vehicleIndex} ({vb.type})
                   </div>
                   <div className="text-xs space-y-1">
                     <div>
-                      Passeggeri: {vb.passengers} (x{vb.passengerMultiplier})
+                      {dictionary.passengers} {vb.passengers} (x{vb.passengerMultiplier})
                     </div>
                     <div>
-                      Bagagli: {vb.luggage} (x{vb.luggageMultiplier})
+                      {dictionary.luggage} {vb.luggage} (x{vb.luggageMultiplier})
                     </div>
-                    <div>Moltiplicatore veicolo: x{vb.vehicleMultiplier}</div>
-                    <div className="font-semibold">Prezzo: €{vb.price}</div>
+                    <div>{dictionary.vehicleMultiplier} x{vb.vehicleMultiplier}</div>
+                    <div className="font-semibold">{dictionary.price} €{vb.price}</div>
                   </div>
                 </div>
               ))}
@@ -87,12 +88,12 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
           ) : (
             // Standard breakdown
             <>
-              <div>Moltiplicatore veicolo: x{pricing.breakdown.vehicleMultiplier}</div>
-              <div>Moltiplicatore passeggeri: x{pricing.breakdown.passengerMultiplier}</div>
-              <div>Moltiplicatore bagagli: x{pricing.breakdown.luggageMultiplier}</div>
-              <div>Numero veicoli: {pricing.breakdown.vehicleCount}</div>
+              <div>{dictionary.vehicleMultiplier} x{pricing.breakdown.vehicleMultiplier}</div>
+              <div>{dictionary.passengerMultiplier} x{pricing.breakdown.passengerMultiplier}</div>
+              <div>{dictionary.luggageMultiplier} x{pricing.breakdown.luggageMultiplier}</div>
+              <div>{dictionary.vehicleCount} {pricing.breakdown.vehicleCount}</div>
               <div className="border-t pt-1 font-semibold">
-                Prezzo per veicolo: €{pricing.breakdown.pricePerVehicle}
+                {dictionary.pricePerVehicle} €{pricing.breakdown.pricePerVehicle}
               </div>
             </>
           )}

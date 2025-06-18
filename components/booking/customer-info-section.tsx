@@ -9,6 +9,7 @@ interface CustomerInfoSectionProps {
   customer: Customer
   errors: ValidationError[]
   onChange: (customer: Partial<Customer>) => void
+  dictionary: any
 }
 
 const countryCodes = [
@@ -17,18 +18,18 @@ const countryCodes = [
   { value: "+1", label: "🇺🇸 +1" },
 ]
 
-export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, errors, onChange }) => {
+export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, errors, onChange, dictionary }) => {
   const getFieldError = (field: string) => {
     return errors.find((error) => error.field === `customer.${field}`)?.message
   }
 
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Informazioni Cliente</h3>
+      <h3 className="text-lg font-semibold">{dictionary.title}</h3>
 
       <div className="md:col-span-2">
         <label htmlFor="name" className="block text-sm text-gray-600 mb-1">
-          Nome completo *
+          {dictionary.nameLabel}
         </label>
         <Input
           type="text"
@@ -48,7 +49,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="email" className="block text-sm text-gray-600 mb-1">
-            Email *
+            {dictionary.emailLabel}
           </label>
           <Input
             type="email"
@@ -67,7 +68,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
 
         <div>
           <label htmlFor="phone" className="block text-sm text-gray-600 mb-1">
-            Telefono
+            {dictionary.phoneLabel}
           </label>
           <div className="flex space-x-2">
             <Select value={customer.phonePrefix} onValueChange={(value) => onChange({ phonePrefix: value })}>

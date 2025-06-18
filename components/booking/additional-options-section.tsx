@@ -11,55 +11,56 @@ interface AdditionalOptionsSectionProps {
   options: BookingOptions
   errors: ValidationError[]
   onChange: (options: Partial<BookingOptions>) => void
+  dictionary: any
 }
 
-export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ options, errors, onChange }) => {
+export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ options, errors, onChange, dictionary }) => {
   const getFieldError = (field: string) => {
     return errors.find((error) => error.field === `options.${field}`)?.message
   }
 
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Opzioni Aggiuntive</h3>
+      <h3 className="text-lg font-semibold">{dictionary.title}</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="flight" className="block text-sm text-gray-600 mb-1">
-            Numero volo/treno
+            {dictionary.flightLabel}
           </label>
           <Input
             type="text"
             id="flight"
             value={options.flight || ""}
             onChange={(e) => onChange({ flight: e.target.value })}
-            placeholder="Es. AZ123"
+            placeholder={dictionary.flightPlaceholder}
           />
         </div>
       </div>
 
       <div>
         <label htmlFor="billingInfo" className="block text-sm text-gray-600 mb-1">
-          Informazioni di fatturazione
+          {dictionary.billingLabel}
         </label>
         <Textarea
           id="billingInfo"
           value={options.billingInfo || ""}
           onChange={(e) => onChange({ billingInfo: e.target.value })}
           rows={3}
-          placeholder="Nome azienda, P.IVA, indirizzo..."
+          placeholder={dictionary.billingPlaceholder}
         />
       </div>
 
       <div>
         <label htmlFor="notes" className="block text-sm text-gray-600 mb-1">
-          Note aggiuntive
+          {dictionary.notesLabel}
         </label>
         <Textarea
           id="notes"
           value={options.notes || ""}
           onChange={(e) => onChange({ notes: e.target.value })}
           rows={3}
-          placeholder="Richieste speciali, note..."
+          placeholder={dictionary.notesPlaceholder}
         />
       </div>
 
@@ -71,7 +72,7 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
             onCheckedChange={(checked) => onChange({ meetAndGreet: checked as boolean })}
           />
           <label htmlFor="meetAndGreet" className="text-sm text-gray-600">
-            Servizio Meet & Greet
+            {dictionary.meetGreetLabel}
           </label>
         </div>
 
@@ -83,7 +84,7 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
             className={getFieldError("privacyAccepted") ? "border-red-500" : ""}
           />
           <label htmlFor="privacyAccepted" className="text-sm text-gray-600">
-            Accetto il trattamento dei dati personali secondo la{" "}
+            {dictionary.privacyLabel}{" "}
             <Link className="text-yellow-500 underline" href="/privacy">
               Privacy Policy
             </Link>{" "}

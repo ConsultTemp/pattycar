@@ -141,7 +141,112 @@
     "luggageLabel": "Number of bags",
     "flightTrainLabel": "Flight/train number",
     "minlabel": "Min",
-    "privacyPolicyLabel": "I accept the processing of my personal data according to the"
+    "privacyPolicyLabel": "I accept the processing of my personal data according to the",
+    "admin": {
+      "title": "Reserved Booking",
+      "pageTitle": "Booking - Restricted Area",
+      "pageDescription": "Booking form",
+      "formTitle": "Book your transfer",
+      "formSubtitle": "Fill out the form to request a quote",
+      "serviceType": {
+        "title": "Service Type",
+        "transfer": "Transfer",
+        "disposition": "Disposition",
+        "transferDescription": "(Price based on distance)",
+        "dispositionDescription": "(Price based on duration - €100/hour)"
+      },
+      "customer": {
+        "title": "Customer Information",
+        "nameLabel": "Full name *",
+        "emailLabel": "Email *",
+        "phoneLabel": "Phone"
+      },
+      "journey": {
+        "title": "Trip Details",
+        "titleService": "Service Details",
+        "pickupLabel": "Pickup Address *",
+        "meetingPointLabel": "Meeting Point *",
+        "destinationLabel": "Destination Address *",
+        "dropoffLabel": "Drop-off Point *",
+        "pickupPlaceholder": "Search pickup address...",
+        "meetingPlaceholder": "Search meeting point...",
+        "destinationPlaceholder": "Search destination address...",
+        "dropoffPlaceholder": "Search drop-off point...",
+        "routeInfo": "Route Information",
+        "calculatingDistance": "Calculating distance...",
+        "distance": "Distance:",
+        "estimatedDuration": "Estimated duration:",
+        "serviceRoute": "Service Route",
+        "from": "From:",
+        "to": "To:",
+        "priceNote": "The price is calculated based on service duration, not distance",
+        "dateLabel": "Date",
+        "selectDate": "Select date",
+        "startTimeLabel": "Departure Time",
+        "startServiceLabel": "Start Time",
+        "endTimeLabel": "End Time",
+        "endTimeInvalid": "End time must be after start time",
+        "selectStartTime": "Select start time first",
+        "serviceDuration": "Service Duration",
+        "effectiveDuration": "Effective duration:",
+        "billableHours": "Billable hours:",
+        "hourlyRate": "Rate:"
+      },
+      "vehicles": {
+        "title": "Vehicle Configuration",
+        "countLabel": "Number of vehicles *",
+        "selectCount": "Select number of vehicles",
+        "vehicle": "vehicle",
+        "vehicles": "vehicles",
+        "sameTypeLabel": "All vehicles of the same type",
+        "typeLabel": "Vehicle type *",
+        "selectType": "Select type",
+        "passengersLabel": "Passengers *",
+        "luggageLabel": "Luggage *",
+        "individualConfig": "Individual Configuration",
+        "addVehicle": "Add Vehicle",
+        "vehicleNumber": "Vehicle"
+      },
+      "pricing": {
+        "error": "Price Calculation Error",
+        "calculating": "Calculating price...",
+        "totalPrice": "Total Price",
+        "showDetails": "Show details",
+        "hideDetails": "Hide details",
+        "basePrice": "Base route price:",
+        "vehicleDetails": "Vehicle details:",
+        "passengers": "Passengers:",
+        "luggage": "Luggage:",
+        "vehicleMultiplier": "Vehicle multiplier:",
+        "passengerMultiplier": "Passenger multiplier:",
+        "luggageMultiplier": "Luggage multiplier:",
+        "vehicleCount": "Number of vehicles:",
+        "pricePerVehicle": "Price per vehicle:",
+        "price": "Price:"
+      },
+      "options": {
+        "title": "Additional Options",
+        "flightLabel": "Flight/train number",
+        "flightPlaceholder": "E.g. AZ123",
+        "billingLabel": "Billing information",
+        "billingPlaceholder": "Company name, VAT number, address...",
+        "notesLabel": "Additional notes",
+        "notesPlaceholder": "Special requests, notes...",
+        "meetGreetLabel": "Meet & Greet Service",
+        "privacyLabel": "I accept the processing of personal data according to the"
+      },
+      "submit": {
+        "processing": "Creating payment session...",
+        "button": "Proceed to Payment",
+        "validationMessage": "Fill in all required fields (*) to proceed to payment",
+        "error": "Error creating payment session. Please try again."
+      },
+      "success": {
+        "title": "Booking submitted successfully!",
+        "description": "We will contact you shortly to confirm the booking.",
+        "newBooking": "New booking"
+      }
+    }
   },
   "footer": {
     "rights": "All rights reserved",
