@@ -114,6 +114,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         billingInfo: state.options.billingInfo || "",
         notes: state.options.notes || "",
         meetAndGreet: state.options.meetAndGreet,
+        phonePrefix: state.customer.phonePrefix || "",
+        phoneNumber: state.customer.phone || "",
         sameVehicleType: state.vehicles.sameType,
         distance: state.journey.distance
           ? {
