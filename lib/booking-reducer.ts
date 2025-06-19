@@ -11,8 +11,10 @@ export const initialBookingState: BookingState = {
   journey: {
     time: "",
     minutes: "",
+    timeAmPm: "AM",
     endTime: "",
     endMinutes: "",
+    endTimeAmPm: "AM",
     pickup: {
       address: "",
       placeId: "",
@@ -27,13 +29,13 @@ export const initialBookingState: BookingState = {
     sameType: true,
     singleConfig: {
       type: "",
-      passengers: 1,
+      passengers: 0,
       luggage: 0,
     },
     multipleConfigs: [
       {
         type: "",
-        passengers: 1,
+        passengers: 0,
         luggage: 0,
       },
     ],
@@ -62,6 +64,7 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
           ...state.journey,
           endTime: action.payload === "transfer" ? "" : state.journey.endTime,
           endMinutes: action.payload === "transfer" ? "" : state.journey.endMinutes,
+          endTimeAmPm: action.payload === "transfer" ? "AM" : state.journey.endTimeAmPm,
         },
         ui: {
           ...state.ui,
@@ -89,7 +92,7 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       while (newMultipleConfigs.length < newCount) {
         newMultipleConfigs.push({
           type: "",
-          passengers: 1,
+          passengers: 0,
           luggage: 0,
         })
       }
@@ -148,7 +151,7 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
             ...state.vehicles.multipleConfigs,
             {
               type: "",
-              passengers: 1,
+              passengers: 0,
               luggage: 0,
             },
           ],
@@ -162,7 +165,7 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
         vehicles: {
           ...state.vehicles,
           count: Math.max(1, state.vehicles.count - 1),
-          multipleConfigs: filteredConfigs.length > 0 ? filteredConfigs : [{ type: "", passengers: 1, luggage: 0 }],
+          multipleConfigs: filteredConfigs.length > 0 ? filteredConfigs : [{ type: "", passengers: 0, luggage: 0 }],
         },
       }
 

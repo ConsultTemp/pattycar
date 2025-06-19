@@ -12,8 +12,10 @@ export interface Journey {
   date?: Date
   time: string
   minutes: string
+  timeAmPm: string
   endTime?: string
   endMinutes?: string
+  endTimeAmPm?: string
   pickup: {
     address: string
     placeId: string
@@ -58,6 +60,9 @@ export interface PricingResult {
     luggageMultiplier: number
     vehicleCount: number
     pricePerVehicle: number
+    subtotal: number
+    vatAmount: number
+    vatRate: number
   }
   vehicleBreakdowns?: any[]
 }
@@ -66,7 +71,7 @@ export interface PricingResult {
 export const customerSchema = z.object({
   name: z.string().min(2, "Nome richiesto (minimo 2 caratteri)"),
   email: z.string().email("Email non valida"),
-  phone: z.string().optional(),
+  phone: z.string().min(1, "Numero di telefono richiesto"),
   phonePrefix: z.string().default("+39"),
 })
 
@@ -121,7 +126,7 @@ export const optionsSchema = z.object({
   meetAndGreet: z.boolean().default(false),
   differentVehicles: z.boolean().default(false),
   flight: z.string().optional(),
-  billingInfo: z.string().optional(),
+  billingInfo: z.string().min(1, "Informazioni di fatturazione richieste"),
   notes: z.string().optional(),
   privacyAccepted: z.boolean().refine((val) => val === true, {
     message: "Accettazione privacy policy richiesta",

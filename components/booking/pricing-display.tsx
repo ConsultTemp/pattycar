@@ -58,7 +58,8 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
         </button>
       </div>
 
-      <div className="text-3xl font-bold text-blue-900 mb-2">€{pricing.totalPrice}</div>
+      <div className="text-3xl font-bold text-blue-900 mb-1">€{pricing.totalPrice}</div>
+      <div className="text-sm text-blue-700 mb-2">{dictionary.vatIncluded}</div>
 
       {showBreakdown && (
         <div className="text-sm text-blue-700 space-y-1">
@@ -84,6 +85,11 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                   </div>
                 </div>
               ))}
+              <div className="border-t pt-2 space-y-1">
+                <div>{dictionary.subtotal} €{pricing.breakdown.subtotal}</div>
+                <div>{dictionary.vat} ({Math.round(pricing.breakdown.vatRate * 100)}%) €{pricing.breakdown.vatAmount}</div>
+                <div className="font-semibold">{dictionary.totalPrice} €{pricing.totalPrice}</div>
+              </div>
             </div>
           ) : (
             // Standard breakdown
@@ -92,8 +98,11 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
               <div>{dictionary.passengerMultiplier} x{pricing.breakdown.passengerMultiplier}</div>
               <div>{dictionary.luggageMultiplier} x{pricing.breakdown.luggageMultiplier}</div>
               <div>{dictionary.vehicleCount} {pricing.breakdown.vehicleCount}</div>
-              <div className="border-t pt-1 font-semibold">
-                {dictionary.pricePerVehicle} €{pricing.breakdown.pricePerVehicle}
+              <div className="border-t pt-1 space-y-1">
+                <div>{dictionary.pricePerVehicle} €{pricing.breakdown.pricePerVehicle}</div>
+                <div>{dictionary.subtotal} €{pricing.breakdown.subtotal}</div>
+                <div>{dictionary.vat} ({Math.round(pricing.breakdown.vatRate * 100)}%) €{pricing.breakdown.vatAmount}</div>
+                <div className="font-semibold">{dictionary.totalPrice} €{pricing.totalPrice}</div>
               </div>
             </>
           )}

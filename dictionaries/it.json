@@ -153,25 +153,26 @@
         "transfer": "Transfer",
         "disposition": "Disposizione",
         "transferDescription": "(Prezzo basato sulla distanza)",
-        "dispositionDescription": "(Prezzo basato sulla durata - 100€/ora)"
+        "dispositionDescription": "(Prezzo basato sulla durata"
       },
       "customer": {
         "title": "Informazioni Cliente",
         "nameLabel": "Nome completo *",
+        "nameHelperText": "Questo sarà il nome che verrà esposto all'accoglienza",
         "emailLabel": "Email *",
-        "phoneLabel": "Telefono"
+        "phoneLabel": "Telefono *"
       },
       "journey": {
         "title": "Dettagli del Viaggio",
         "titleService": "Dettagli del Servizio",
         "pickupLabel": "Indirizzo di Partenza *",
-        "meetingPointLabel": "Punto di Incontro *",
+        "meetingPointLabel": "Punto di Partenza *",
         "destinationLabel": "Indirizzo di Destinazione *",
-        "dropoffLabel": "Punto di Drop-off *",
+        "dropoffLabel": "Destinazione *",
         "pickupPlaceholder": "Cerca indirizzo di partenza...",
         "meetingPlaceholder": "Cerca punto di incontro...",
         "destinationPlaceholder": "Cerca indirizzo di destinazione...",
-        "dropoffPlaceholder": "Cerca punto di drop-off...",
+        "dropoffPlaceholder": "Cerca destinazione...",
         "routeInfo": "Informazioni Percorso",
         "calculatingDistance": "Calcolando distanza...",
         "distance": "Distanza:",
@@ -190,7 +191,10 @@
         "serviceDuration": "Durata del Servizio",
         "effectiveDuration": "Durata effettiva:",
         "billableHours": "Ore fatturabili:",
-        "hourlyRate": "Tariffa:"
+        "hourlyRate": "Tariffa:",
+        "flightLabel": "Numero volo/treno",
+        "flightPlaceholder": "Es. AZ123",
+        "meetGreetLabel": "Servizio Meet & Greet"
       },
       "vehicles": {
         "title": "Configurazione Veicoli",
@@ -205,7 +209,18 @@
         "luggageLabel": "Bagagli *",
         "individualConfig": "Configurazione Individuale",
         "addVehicle": "Aggiungi Veicolo",
-        "vehicleNumber": "Veicolo"
+        "vehicleNumber": "Veicolo",
+        "selectVehicleFirst": "Seleziona prima il tipo di veicolo",
+        "selectVehicleFirstShort": "Seleziona prima il tipo",
+        "maxPassengers": "Massimo {max} passeggeri per questo veicolo",
+        "maxPassengersShort": "Max {max} passeggeri",
+        "maxLuggage": "Massimo {max} bagagli per questo veicolo",
+        "maxLuggageShort": "Max {max} bagagli",
+        "selectVehiclePlaceholder": "Seleziona prima il tipo di veicolo",
+        "selectVehiclePlaceholderShort": "Seleziona prima il tipo",
+        "smallLuggage": "piccolo",
+        "maxSedanLuggage": "Massimo {maxLuggage} grandi bagagli e {maxSmallLuggage} piccolo bagaglio",
+        "maxSedanLuggageShort": "Max {maxLuggage} grandi e {maxSmallLuggage} piccolo"
       },
       "pricing": {
         "error": "Errore Calcolo Prezzo",
@@ -222,20 +237,23 @@
         "luggageMultiplier": "Moltiplicatore bagagli:",
         "vehicleCount": "Numero veicoli:",
         "pricePerVehicle": "Prezzo per veicolo:",
-        "price": "Prezzo:"
+        "price": "Prezzo:",
+        "subtotal": "Subtotale:",
+        "vat": "IVA",
+        "vatIncluded": "IVA inclusa"
       },
       "options": {
         "title": "Opzioni Aggiuntive",
-        "flightLabel": "Numero volo/treno",
-        "flightPlaceholder": "Es. AZ123",
-        "billingLabel": "Informazioni di fatturazione",
+        "billingLabel": "Informazioni di fatturazione *",
         "billingPlaceholder": "Nome azienda, P.IVA, indirizzo...",
+        "billingHelperText": "Accertarsi di aver inserito tutte le informazioni necessarie con particolare attenzione al numero di partita IVA",
         "notesLabel": "Note aggiuntive",
         "notesPlaceholder": "Richieste speciali, note...",
-        "meetGreetLabel": "Servizio Meet & Greet",
         "privacyLabel": "Accetto il trattamento dei dati personali secondo la"
       },
       "submit": {
+        "contactInfo": "Per informazioni contattare pattycar@pattycar.com",
+        "cancellationPolicy": "Politica di cancellazione: Le cancellazioni effettuate entro il 31 ottobre 2025 saranno gratuite. Cancellazioni tra il 1 novembre 2025 e il 5 gennaio 2026: le prenotazioni possono essere modificate, inclusi cambi di date, orari e voli, verrà applicata una penale del 50% per le prenotazioni completamente cancellate. Cancellazioni dopo il 5 gennaio 2026: le modifiche alle prenotazioni saranno soggette a disponibilità, verrà applicata una penale del 100% per le prenotazioni completamente cancellate.",
         "processing": "Creazione sessione pagamento...",
         "button": "Procedi al Pagamento",
         "validationMessage": "Compila tutti i campi obbligatori (*) per procedere al pagamento",

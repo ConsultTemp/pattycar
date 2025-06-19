@@ -153,13 +153,14 @@
         "transfer": "Transfer",
         "disposition": "Disposition",
         "transferDescription": "(Price based on distance)",
-        "dispositionDescription": "(Price based on duration - €100/hour)"
+        "dispositionDescription": "(Price based on duration)"
       },
       "customer": {
         "title": "Customer Information",
         "nameLabel": "Full name *",
+        "nameHelperText": "This name will be displayed at reception",
         "emailLabel": "Email *",
-        "phoneLabel": "Phone"
+        "phoneLabel": "Phone *"
       },
       "journey": {
         "title": "Trip Details",
@@ -190,7 +191,10 @@
         "serviceDuration": "Service Duration",
         "effectiveDuration": "Effective duration:",
         "billableHours": "Billable hours:",
-        "hourlyRate": "Rate:"
+        "hourlyRate": "Rate:",
+        "flightLabel": "Flight/train number",
+        "flightPlaceholder": "E.g. AZ123",
+        "meetGreetLabel": "Meet & Greet Service"
       },
       "vehicles": {
         "title": "Vehicle Configuration",
@@ -205,7 +209,18 @@
         "luggageLabel": "Luggage *",
         "individualConfig": "Individual Configuration",
         "addVehicle": "Add Vehicle",
-        "vehicleNumber": "Vehicle"
+        "vehicleNumber": "Vehicle",
+        "selectVehicleFirst": "Select vehicle type first",
+        "selectVehicleFirstShort": "Select type first",
+        "maxPassengers": "Maximum {max} passengers for this vehicle",
+        "maxPassengersShort": "Max {max} passengers",
+        "maxLuggage": "Maximum {max} luggage for this vehicle",
+        "maxLuggageShort": "Max {max} luggage",
+        "selectVehiclePlaceholder": "Select vehicle type first",
+        "selectVehiclePlaceholderShort": "Select type first",
+        "smallLuggage": "small",
+        "maxSedanLuggage": "Maximum {maxLuggage} large luggage and {maxSmallLuggage} small luggage",
+        "maxSedanLuggageShort": "Max {maxLuggage} large and {maxSmallLuggage} small"
       },
       "pricing": {
         "error": "Price Calculation Error",
@@ -222,20 +237,23 @@
         "luggageMultiplier": "Luggage multiplier:",
         "vehicleCount": "Number of vehicles:",
         "pricePerVehicle": "Price per vehicle:",
-        "price": "Price:"
+        "price": "Price:",
+        "subtotal": "Subtotal:",
+        "vat": "VAT",
+        "vatIncluded": "VAT included"
       },
       "options": {
         "title": "Additional Options",
-        "flightLabel": "Flight/train number",
-        "flightPlaceholder": "E.g. AZ123",
-        "billingLabel": "Billing information",
+        "billingLabel": "Billing information *",
         "billingPlaceholder": "Company name, VAT number, address...",
+        "billingHelperText": "Make sure to include all necessary information with particular attention to the VAT number",
         "notesLabel": "Additional notes",
         "notesPlaceholder": "Special requests, notes...",
-        "meetGreetLabel": "Meet & Greet Service",
         "privacyLabel": "I accept the processing of personal data according to the"
       },
       "submit": {
+        "contactInfo": "For information contact pattycar@pattycar.com",
+        "cancellationPolicy": "Cancellation Policy: Cancellations on or before 31 October 2025 shall be free of charge. Cancellations between 1 November 2025 and 5 January 2026: bookings may be adjusted, including changes in dates, times, and flights, a 50% cancellation fee shall apply for fully cancelled bookings. Cancellations after 5 January 2026: adjustments to bookings shall be subject to availability, a 100% cancellation fee shall apply for fully cancelled bookings.",
         "processing": "Creating payment session...",
         "button": "Proceed to Payment",
         "validationMessage": "Fill in all required fields (*) to proceed to payment",

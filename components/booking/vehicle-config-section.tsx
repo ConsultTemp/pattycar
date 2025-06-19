@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { Plus, Trash2, User2, Luggage } from "lucide-react"
+import { Plus, Trash2, User2, Luggage, Backpack } from "lucide-react"
 import type { VehicleConfig, ValidationError } from "@/lib/booking-types"
 
 interface VehicleConfigSectionProps {
@@ -24,7 +24,7 @@ interface VehicleConfigSectionProps {
 }
 
 const vehicleTypes = [
-  { value: "sedan", label: "Sedan", maxPassengers: 3, maxLuggage: 3 },
+  { value: "sedan", label: "Sedan", maxPassengers: 3, maxLuggage: 2, maxSmallLuggage: 1 },
   { value: "van", label: "Van", maxPassengers: 6, maxLuggage: 6 },
   { value: "minibus", label: "Mini Bus", maxPassengers: 8, maxLuggage: 8 },
   { value: "luxury-sedan", label: "Luxury Sedan", maxPassengers: 2, maxLuggage: 2 },
@@ -47,6 +47,40 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
   }) => {
     const getFieldError = (field: string) => {
       return errors.find((error) => error.field === `vehicles.${field}`)?.message
+    }
+
+    // Helper function to get vehicle limits
+    const getVehicleLimits = (vehicleType: string) => {
+      const vehicle = vehicleTypes.find(v => v.value === vehicleType)
+      if (!vehicle) return { maxPassengers: 8, maxLuggage: 8 }
+      
+      // Se ha bagagli piccoli, il totale è bagagli normali + bagagli piccoli
+      const totalLuggage = vehicle.maxSmallLuggage ? vehicle.maxLuggage + vehicle.maxSmallLuggage : vehicle.maxLuggage
+      return { maxPassengers: vehicle.maxPassengers, maxLuggage: totalLuggage }
+    }
+
+    // Helper function to get vehicle object
+    const getVehicle = (vehicleType: string) => {
+      return vehicleTypes.find(v => v.value === vehicleType)
+    }
+
+    // Helper function to get luggage message
+    const getLuggageMessage = (vehicleType: string, isShort = false) => {
+      const vehicle = getVehicle(vehicleType)
+      if (!vehicle) return ""
+      
+      if (vehicle.maxSmallLuggage) {
+        // Sedan: messaggio specifico con grandi e piccoli bagagli
+        const template = isShort ? dictionary.maxSedanLuggageShort : dictionary.maxSedanLuggage
+        return template
+          .replace('{maxLuggage}', vehicle.maxLuggage.toString())
+          .replace('{maxSmallLuggage}', vehicle.maxSmallLuggage.toString())
+      } else {
+        // Altri veicoli: messaggio standard
+        const template = isShort ? dictionary.maxLuggageShort : dictionary.maxLuggage
+        const totalLuggage = getVehicleLimits(vehicleType).maxLuggage
+        return template.replace('{max}', totalLuggage.toString())
+      }
     }
 
     return (
@@ -90,7 +124,26 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-gray-50">
             <div>
               <label className="block text-sm text-gray-600 mb-1">{dictionary.typeLabel}</label>
-              <Select value={singleConfig.type} onValueChange={(type) => onSingleConfigChange({ type })}>
+              <Select 
+                value={singleConfig.type} 
+                onValueChange={(type) => {
+                  // Quando cambia il tipo di veicolo, limita automaticamente passeggeri e bagagli ai nuovi limiti
+                  const limits = getVehicleLimits(type)
+                  const newConfig: Partial<VehicleConfig> = { type }
+                  
+                  // Se i passeggeri attuali superano il limite, riducili
+                  if (singleConfig.passengers > limits.maxPassengers) {
+                    newConfig.passengers = limits.maxPassengers
+                  }
+                  
+                  // Se i bagagli attuali superano il limite, riducili
+                  if (singleConfig.luggage > limits.maxLuggage) {
+                    newConfig.luggage = limits.maxLuggage
+                  }
+                  
+                  onSingleConfigChange(newConfig)
+                }}
+              >
                 <SelectTrigger className={getFieldError("config.type") ? "border-red-500" : ""}>
                   <SelectValue placeholder={dictionary.selectType} />
                 </SelectTrigger>
@@ -98,8 +151,17 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   {vehicleTypes.map((vehicle) => (
                     <SelectItem key={vehicle.value} value={vehicle.value}>
                       <div className="flex items-center">
-                        {vehicle.label} ({vehicle.maxPassengers} <User2 className="w-4 h-4 mx-1" /> {vehicle.maxLuggage}{" "}
-                        <Luggage className="w-4 h-4 ml-1" />)
+                        {vehicle.label} ({vehicle.maxPassengers} <User2 className="w-4 h-4 mx-1" />{" "}
+                        {vehicle.maxSmallLuggage ? (
+                          <span className="flex items-center">
+                            {vehicle.maxLuggage} <Luggage className="w-4 h-4 mx-1" />
+                            + {vehicle.maxSmallLuggage} <Backpack className="w-4 h-4 mx-1" />
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            {vehicle.maxLuggage} <Luggage className="w-4 h-4 ml-1" />
+                          </span>
+                        )})
                       </div>
                     </SelectItem>
                   ))}
@@ -117,15 +179,39 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
               <Input
                 type="number"
                 min="1"
+                max={getVehicleLimits(singleConfig.type).maxPassengers}
                 value={singleConfig.passengers || ""}
-                onChange={(e) =>
-                  onSingleConfigChange({
-                    passengers: Number.parseInt(e.target.value) || 0,
-                  })
-                }
-                placeholder="Es. 2"
+                disabled={!singleConfig.type}
+                onChange={(e) => {
+                  const value = e.target.value
+                  if (value === "") {
+                    // Permetti campo vuoto durante la digitazione
+                    onSingleConfigChange({ passengers: 0 })
+                  } else {
+                    const numValue = parseInt(value) || 0
+                    const limits = getVehicleLimits(singleConfig.type)
+                    const validValue = Math.min(Math.max(numValue, 1), limits.maxPassengers)
+                    onSingleConfigChange({ passengers: validValue })
+                  }
+                }}
+                onBlur={(e) => {
+                  // Al blur, assicurati che ci sia almeno 1 passeggero se il campo è vuoto
+                  if (!e.target.value || parseInt(e.target.value) < 1) {
+                    onSingleConfigChange({ passengers: 1 })
+                  }
+                }}
+                placeholder={singleConfig.type ? "Es. 2" : dictionary.selectVehiclePlaceholder}
                 className={getFieldError("config.passengers") ? "border-red-500" : ""}
               />
+              {!singleConfig.type ? (
+                <p className="text-xs text-gray-500 mt-1">
+                  {dictionary.selectVehicleFirst}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  {dictionary.maxPassengers.replace('{max}', getVehicleLimits(singleConfig.type).maxPassengers.toString())}
+                </p>
+              )}
               {getFieldError("config.passengers") && (
                 <p className="text-red-500 text-sm mt-1" role="alert">
                   {getFieldError("config.passengers")}
@@ -138,15 +224,27 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
               <Input
                 type="number"
                 min="0"
+                max={getVehicleLimits(singleConfig.type).maxLuggage}
                 value={singleConfig.luggage || ""}
-                onChange={(e) =>
-                  onSingleConfigChange({
-                    luggage: Number.parseInt(e.target.value) || 0,
-                  })
-                }
-                placeholder="Es. 2"
+                disabled={!singleConfig.type}
+                onChange={(e) => {
+                  const numValue = parseInt(e.target.value) || 0
+                  const limits = getVehicleLimits(singleConfig.type)
+                  const validValue = Math.min(Math.max(numValue, 0), limits.maxLuggage)
+                  onSingleConfigChange({ luggage: validValue })
+                }}
+                placeholder={singleConfig.type ? "Es. 2" : dictionary.selectVehiclePlaceholder}
                 className={getFieldError("config.luggage") ? "border-red-500" : ""}
               />
+              {!singleConfig.type ? (
+                <p className="text-xs text-gray-500 mt-1">
+                  {dictionary.selectVehicleFirst}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  {getLuggageMessage(singleConfig.type)}
+                </p>
+              )}
               {getFieldError("config.luggage") && (
                 <p className="text-red-500 text-sm mt-1" role="alert">
                   {getFieldError("config.luggage")}
@@ -187,14 +285,45 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-1">{dictionary.typeLabel}</label>
-                    <Select value={config.type} onValueChange={(type) => onMultipleConfigChange(index, { type })}>
+                    <Select 
+                      value={config.type} 
+                      onValueChange={(type) => {
+                        // Quando cambia il tipo di veicolo, limita automaticamente passeggeri e bagagli ai nuovi limiti
+                        const limits = getVehicleLimits(type)
+                        const newConfig: Partial<VehicleConfig> = { type }
+                        
+                        // Se i passeggeri attuali superano il limite, riducili
+                        if (config.passengers > limits.maxPassengers) {
+                          newConfig.passengers = limits.maxPassengers
+                        }
+                        
+                        // Se i bagagli attuali superano il limite, riducili
+                        if (config.luggage > limits.maxLuggage) {
+                          newConfig.luggage = limits.maxLuggage
+                        }
+                        
+                        onMultipleConfigChange(index, newConfig)
+                      }}
+                    >
                       <SelectTrigger className={getFieldError(`configs.${index}.type`) ? "border-red-500" : ""}>
                         <SelectValue placeholder={dictionary.selectType} />
                       </SelectTrigger>
                       <SelectContent>
                         {vehicleTypes.map((vehicle) => (
                           <SelectItem key={vehicle.value} value={vehicle.value}>
-                            {vehicle.label}
+                            <div className="flex items-center">
+                              {vehicle.label} ({vehicle.maxPassengers} <User2 className="w-4 h-4 mx-1" />{" "}
+                              {vehicle.maxSmallLuggage ? (
+                                <span className="flex items-center">
+                                  {vehicle.maxLuggage} <Luggage className="w-4 h-4 mx-1" />
+                                  + {vehicle.maxSmallLuggage} <Backpack className="w-4 h-4 mx-1" />
+                                </span>
+                              ) : (
+                                <span className="flex items-center">
+                                  {vehicle.maxLuggage} <Luggage className="w-4 h-4 ml-1" />
+                                </span>
+                              )})
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -211,15 +340,39 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                     <Input
                       type="number"
                       min="1"
+                      max={getVehicleLimits(config.type).maxPassengers}
                       value={config.passengers || ""}
-                      onChange={(e) =>
-                        onMultipleConfigChange(index, {
-                          passengers: Number.parseInt(e.target.value) || 0,
-                        })
-                      }
-                      placeholder="Es. 2"
+                      disabled={!config.type}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === "") {
+                          // Permetti campo vuoto durante la digitazione
+                          onMultipleConfigChange(index, { passengers: 0 })
+                        } else {
+                          const numValue = parseInt(value) || 0
+                          const limits = getVehicleLimits(config.type)
+                          const validValue = Math.min(Math.max(numValue, 1), limits.maxPassengers)
+                          onMultipleConfigChange(index, { passengers: validValue })
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Al blur, assicurati che ci sia almeno 1 passeggero se il campo è vuoto
+                        if (!e.target.value || parseInt(e.target.value) < 1) {
+                          onMultipleConfigChange(index, { passengers: 1 })
+                        }
+                      }}
+                      placeholder={config.type ? "Es. 2" : dictionary.selectVehiclePlaceholderShort}
                       className={getFieldError(`configs.${index}.passengers`) ? "border-red-500" : ""}
                     />
+                    {!config.type ? (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {dictionary.selectVehicleFirstShort}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {dictionary.maxPassengersShort.replace('{max}', getVehicleLimits(config.type).maxPassengers.toString())}
+                      </p>
+                    )}
                     {getFieldError(`configs.${index}.passengers`) && (
                       <p className="text-red-500 text-sm mt-1" role="alert">
                         {getFieldError(`configs.${index}.passengers`)}
@@ -232,15 +385,27 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                     <Input
                       type="number"
                       min="0"
+                      max={getVehicleLimits(config.type).maxLuggage}
                       value={config.luggage || ""}
-                      onChange={(e) =>
-                        onMultipleConfigChange(index, {
-                          luggage: Number.parseInt(e.target.value) || 0,
-                        })
-                      }
-                      placeholder="Es. 2"
+                      disabled={!config.type}
+                      onChange={(e) => {
+                        const numValue = parseInt(e.target.value) || 0
+                        const limits = getVehicleLimits(config.type)
+                        const validValue = Math.min(Math.max(numValue, 0), limits.maxLuggage)
+                        onMultipleConfigChange(index, { luggage: validValue })
+                      }}
+                      placeholder={config.type ? "Es. 2" : dictionary.selectVehiclePlaceholderShort}
                       className={getFieldError(`configs.${index}.luggage`) ? "border-red-500" : ""}
                     />
+                    {!config.type ? (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {dictionary.selectVehicleFirstShort}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getLuggageMessage(config.type, true)}
+                      </p>
+                    )}
                     {getFieldError(`configs.${index}.luggage`) && (
                       <p className="text-red-500 text-sm mt-1" role="alert">
                         {getFieldError(`configs.${index}.luggage`)}

@@ -15,6 +15,14 @@ import { SubmitSection } from "@/components/booking/submit-section"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+// Helper function to convert 12h format to 24h format
+const convertTo24Hour = (hour: string, minutes: string, ampm: string): string => {
+  let hour24 = parseInt(hour)
+  if (ampm === "PM" && hour24 !== 12) hour24 += 12
+  if (ampm === "AM" && hour24 === 12) hour24 = 0
+  return `${hour24.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`
+}
+
 export default function BookingForm({ dictionary }: { dictionary: any }) {
   const { lang } = useLanguage()
   const [state, dispatch] = useReducer(bookingReducer, initialBookingState)
@@ -84,10 +92,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         pickup: state.journey.pickup.address,
         destination: state.journey.destination.address,
         date: state.journey.date ? format(state.journey.date, "yyyy-MM-dd") : "",
-        time: state.journey.time && state.journey.minutes ? `${state.journey.time}:${state.journey.minutes}` : "",
+        time: state.journey.time && state.journey.minutes && state.journey.timeAmPm 
+          ? convertTo24Hour(state.journey.time, state.journey.minutes, state.journey.timeAmPm) 
+          : "",
         endTime:
-          state.serviceType === "disposizione" && state.journey.endTime && state.journey.endMinutes
-            ? `${state.journey.endTime}:${state.journey.endMinutes}`
+          state.serviceType === "disposizione" && state.journey.endTime && state.journey.endMinutes && state.journey.endTimeAmPm
+            ? convertTo24Hour(state.journey.endTime, state.journey.endMinutes, state.journey.endTimeAmPm)
             : "",
         passengers:
           state.vehicles.sameType || state.vehicles.count === 1
@@ -244,6 +254,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           errors={getFieldErrors("journey")}
           onChange={handleJourneyChange}
           serviceType={state.serviceType}
+          options={state.options}
+          onOptionsChange={handleOptionsChange}
           dictionary={dictionary.journey}
         />
 

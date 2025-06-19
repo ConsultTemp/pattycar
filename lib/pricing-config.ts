@@ -32,6 +32,17 @@ export const PRICE_PER_KM = 5.0
 // Prezzo base per ora (disposizioni)
 export const PRICE_PER_HOUR = 100
 
+// IVA
+export const VAT_RATE = 0.1 // 10%
+
+// Helper function to convert 12h format to 24h format
+const convertTo24Hour = (hour: string, minutes: string, ampm: string): { hour24: number, totalMinutes: number } => {
+  let hour24 = parseInt(hour)
+  if (ampm === "PM" && hour24 !== 12) hour24 += 12
+  if (ampm === "AM" && hour24 === 12) hour24 = 0
+  return { hour24, totalMinutes: hour24 * 60 + parseInt(minutes) }
+}
+
 // Funzione per calcolare il prezzo totale basato sulla distanza (transfer)
 export function calculateTotalPrice(
   distanceKm: number,
@@ -50,7 +61,9 @@ export function calculateTotalPrice(
 
   // Calcola il prezzo finale
   const pricePerVehicle = basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier
-  const totalPrice = Math.round(pricePerVehicle * vehicleCount)
+  const subtotal = Math.round(pricePerVehicle * vehicleCount)
+  const vatAmount = Math.round(subtotal * VAT_RATE)
+  const totalPrice = subtotal + vatAmount
 
   return {
     basePrice,
@@ -64,6 +77,9 @@ export function calculateTotalPrice(
       luggageMultiplier,
       vehicleCount,
       pricePerVehicle: Math.round(pricePerVehicle),
+      subtotal,
+      vatAmount,
+      vatRate: VAT_RATE,
     },
   }
 }
@@ -73,7 +89,7 @@ export function calculateMultipleVehiclesPrice(
   distanceKm: number,
   vehicles: Array<{ type: string; passengers: number; luggage: number }>,
 ): { basePrice: number; totalPrice: number; breakdown: any; vehicleBreakdowns: any[] } {
-  let totalPrice = 0
+  let subtotal = 0
   const vehicleBreakdowns: any[] = []
 
   // Calcola il prezzo base della tratta
@@ -86,7 +102,7 @@ export function calculateMultipleVehiclesPrice(
     const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(vehicle.luggage)
 
     const vehiclePrice = Math.round(basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier)
-    totalPrice += vehiclePrice
+    subtotal += vehiclePrice
 
     vehicleBreakdowns.push({
       vehicleIndex: index + 1,
@@ -101,6 +117,9 @@ export function calculateMultipleVehiclesPrice(
     })
   })
 
+  const vatAmount = Math.round(subtotal * VAT_RATE)
+  const totalPrice = subtotal + vatAmount
+
   return {
     basePrice,
     totalPrice,
@@ -109,6 +128,9 @@ export function calculateMultipleVehiclesPrice(
       pricePerKm: PRICE_PER_KM,
       basePrice,
       totalVehicles: vehicles.length,
+      subtotal,
+      vatAmount,
+      vatRate: VAT_RATE,
     },
     vehicleBreakdowns,
   }
@@ -118,17 +140,20 @@ export function calculateMultipleVehiclesPrice(
 export function calculateDispositionPrice(
   startTime: string,
   startMinutes: string,
+  startTimeAmPm: string,
   endTime: string,
   endMinutes: string,
+  endTimeAmPm: string,
   vehicleType: string,
   passengers: number,
   luggage: number,
   vehicleCount = 1,
 ): { basePrice: number; totalPrice: number; breakdown: any } {
-  // Calcola la durata in ore
-  const startHour = Number.parseInt(startTime) + Number.parseInt(startMinutes) / 60
-  const endHour = Number.parseInt(endTime) + Number.parseInt(endMinutes) / 60
-  const durationHours = Math.ceil(Math.max(0, endHour - startHour))
+  // Calcola la durata in ore utilizzando la conversione dal formato 12h al 24h
+  const startTimeConverted = convertTo24Hour(startTime, startMinutes, startTimeAmPm)
+  const endTimeConverted = convertTo24Hour(endTime, endMinutes, endTimeAmPm)
+  const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
+  const durationHours = Math.ceil(durationMinutes / 60)
 
   // Prezzo base basato sulla durata
   const basePrice = durationHours * PRICE_PER_HOUR
@@ -140,7 +165,9 @@ export function calculateDispositionPrice(
 
   // Calcola il prezzo finale
   const pricePerVehicle = basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier
-  const totalPrice = Math.round(pricePerVehicle * vehicleCount)
+  const subtotal = Math.round(pricePerVehicle * vehicleCount)
+  const vatAmount = Math.round(subtotal * VAT_RATE)
+  const totalPrice = subtotal + vatAmount
 
   return {
     basePrice,
@@ -154,6 +181,9 @@ export function calculateDispositionPrice(
       luggageMultiplier,
       vehicleCount,
       pricePerVehicle: Math.round(pricePerVehicle),
+      subtotal,
+      vatAmount,
+      vatRate: VAT_RATE,
     },
   }
 }
@@ -162,17 +192,20 @@ export function calculateDispositionPrice(
 export function calculateMultipleVehiclesDispositionPrice(
   startTime: string,
   startMinutes: string,
+  startTimeAmPm: string,
   endTime: string,
   endMinutes: string,
+  endTimeAmPm: string,
   vehicles: Array<{ type: string; passengers: number; luggage: number }>,
 ): { basePrice: number; totalPrice: number; breakdown: any; vehicleBreakdowns: any[] } {
-  let totalPrice = 0
+  let subtotal = 0
   const vehicleBreakdowns: any[] = []
 
-  // Calcola la durata in ore
-  const startHour = Number.parseInt(startTime) + Number.parseInt(startMinutes) / 60
-  const endHour = Number.parseInt(endTime) + Number.parseInt(endMinutes) / 60
-  const durationHours = Math.ceil(Math.max(0, endHour - startHour))
+  // Calcola la durata in ore utilizzando la conversione dal formato 12h al 24h
+  const startTimeConverted = convertTo24Hour(startTime, startMinutes, startTimeAmPm)
+  const endTimeConverted = convertTo24Hour(endTime, endMinutes, endTimeAmPm)
+  const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
+  const durationHours = Math.ceil(durationMinutes / 60)
 
   // Calcola il prezzo base della durata
   const basePrice = durationHours * PRICE_PER_HOUR
@@ -184,7 +217,7 @@ export function calculateMultipleVehiclesDispositionPrice(
     const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(vehicle.luggage)
 
     const vehiclePrice = Math.round(basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier)
-    totalPrice += vehiclePrice
+    subtotal += vehiclePrice
 
     vehicleBreakdowns.push({
       vehicleIndex: index + 1,
@@ -199,6 +232,9 @@ export function calculateMultipleVehiclesDispositionPrice(
     })
   })
 
+  const vatAmount = Math.round(subtotal * VAT_RATE)
+  const totalPrice = subtotal + vatAmount
+
   return {
     basePrice,
     totalPrice,
@@ -207,6 +243,9 @@ export function calculateMultipleVehiclesDispositionPrice(
       pricePerHour: PRICE_PER_HOUR,
       basePrice,
       totalVehicles: vehicles.length,
+      subtotal,
+      vatAmount,
+      vatRate: VAT_RATE,
     },
     vehicleBreakdowns,
   }

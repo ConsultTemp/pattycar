@@ -5,6 +5,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-05-28.basil",
 })
 
+// Funzione per convertire dal formato 24h al 12h con AM/PM
+function convertTo12Hour(time24: string): string {
+  if (!time24) return "Non specificato"
+  
+  try {
+    const [hours, minutes] = time24.split(':')
+    const hour24 = parseInt(hours)
+    const min = minutes || "00"
+    
+    if (hour24 === 0) return `12:${min} AM`
+    if (hour24 < 12) return `${hour24}:${min} AM`
+    if (hour24 === 12) return `12:${min} PM`
+    return `${hour24 - 12}:${min} PM`
+  } catch (error) {
+    return time24
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -77,14 +95,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const formatTime = (time: string, minutes = "00") => {
-      if (!time) return "Non specificato"
-      return `${time}:${minutes.padStart(2, "0")}`
-    }
-
     const formattedDate = formatDate(bookingData.date)
-    const startTime = formatTime(bookingData.time, bookingData.minutes)
-    const endTime = bookingData.endTime ? formatTime(bookingData.endTime, bookingData.endMinutes) : null
+    const startTime = convertTo12Hour(bookingData.time)
+    const endTime = bookingData.endTime ? convertTo12Hour(bookingData.endTime) : null
 
     // Crea descrizione dettagliata del servizio
     let serviceDescription = ""

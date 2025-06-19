@@ -10,6 +10,14 @@ import {
   calculateMultipleVehiclesDispositionPrice,
 } from "@/lib/pricing-config"
 
+// Helper function to convert 12h format to 24h format
+const convertTo24Hour = (hour: string, minutes: string, ampm: string): { hour24: number, totalMinutes: number } => {
+  let hour24 = parseInt(hour)
+  if (ampm === "PM" && hour24 !== 12) hour24 += 12
+  if (ampm === "AM" && hour24 === 12) hour24 = 0
+  return { hour24, totalMinutes: hour24 * 60 + parseInt(minutes) }
+}
+
 export function usePriceCalculation(state: BookingState, dispatch: (action: any) => void) {
   const isReadyForPricing = useCallback((state: BookingState): boolean => {
     const { journey, vehicles, serviceType } = state
@@ -32,13 +40,13 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       }
     } else if (serviceType === "disposizione") {
       // Disposition needs start and end time
-      if (!journey.time || !journey.minutes || !journey.endTime || !journey.endMinutes) {
+      if (!journey.time || !journey.minutes || !journey.timeAmPm || !journey.endTime || !journey.endMinutes || !journey.endTimeAmPm) {
         return false
       }
-      // Check end time is after start time
-      const startHour = Number.parseInt(journey.time) + Number.parseInt(journey.minutes) / 60
-      const endHour = Number.parseInt(journey.endTime) + Number.parseInt(journey.endMinutes) / 60
-      if (endHour <= startHour) {
+      // Check end time is after start time using 12h to 24h conversion
+      const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
+      const endTime = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
+      if (endTime.totalMinutes <= startTime.totalMinutes) {
         return false
       }
     }
@@ -85,8 +93,10 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             return calculateDispositionPrice(
               journey.time!,
               journey.minutes!,
+              journey.timeAmPm!,
               journey.endTime!,
               journey.endMinutes!,
+              journey.endTimeAmPm!,
               config.type,
               config.passengers,
               config.luggage,
@@ -96,8 +106,10 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             return calculateMultipleVehiclesDispositionPrice(
               journey.time!,
               journey.minutes!,
+              journey.timeAmPm!,
               journey.endTime!,
               journey.endMinutes!,
+              journey.endTimeAmPm!,
               vehicles.multipleConfigs,
             )
           }

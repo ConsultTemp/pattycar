@@ -153,13 +153,14 @@
         "transfer": "نقل",
         "disposition": "توزيع",
         "transferDescription": "(السعر بناءً على المسافة)",
-        "dispositionDescription": "(السعر بناءً على المدة - 100 يورو/ساعة)"
+        "dispositionDescription": "(السعر بناءً على المدة)"
       },
       "customer": {
         "title": "معلومات العميل",
         "nameLabel": "الاسم الكامل *",
+        "nameHelperText": "سيتم عرض هذا الاسم في الاستقبال",
         "emailLabel": "البريد الإلكتروني *",
-        "phoneLabel": "الهاتف"
+        "phoneLabel": "الهاتف *"
       },
       "journey": {
         "title": "تفاصيل الرحلة",
@@ -190,7 +191,10 @@
         "serviceDuration": "مدة الخدمة",
         "effectiveDuration": "المدة الفعلية:",
         "billableHours": "الساعات القابلة للفوترة:",
-        "hourlyRate": "التعريفة:"
+        "hourlyRate": "التعريفة:",
+        "flightLabel": "رقم الرحلة/القطار",
+        "flightPlaceholder": "مثلاً AZ123",
+        "meetGreetLabel": "خدمة الاستقبال والتوديع"
       },
       "vehicles": {
         "title": "تكوين المركبات",
@@ -205,7 +209,18 @@
         "luggageLabel": "الأمتعة *",
         "individualConfig": "التكوين الفردي",
         "addVehicle": "إضافة مركبة",
-        "vehicleNumber": "مركبة"
+        "vehicleNumber": "مركبة",
+        "selectVehicleFirst": "اختر نوع المركبة أولاً",
+        "selectVehicleFirstShort": "اختر النوع أولاً",
+        "maxPassengers": "حد أقصى {max} ركاب لهذه المركبة",
+        "maxPassengersShort": "حد أقصى {max} ركاب",
+        "maxLuggage": "حد أقصى {max} أمتعة لهذه المركبة",
+        "maxLuggageShort": "حد أقصى {max} أمتعة",
+        "selectVehiclePlaceholder": "اختر نوع المركبة أولاً",
+        "selectVehiclePlaceholderShort": "اختر النوع أولاً",
+        "smallLuggage": "صغيرة",
+        "maxSedanLuggage": "حد أقصى {maxLuggage} أمتعة كبيرة و{maxSmallLuggage} أمتعة صغيرة",
+        "maxSedanLuggageShort": "حد أقصى {maxLuggage} كبيرة و{maxSmallLuggage} صغيرة"
       },
       "pricing": {
         "error": "خطأ في حساب السعر",
@@ -222,20 +237,23 @@
         "luggageMultiplier": "مضاعف الأمتعة:",
         "vehicleCount": "عدد المركبات:",
         "pricePerVehicle": "السعر لكل مركبة:",
-        "price": "السعر:"
+        "price": "السعر:",
+        "subtotal": "المجموع الفرعي:",
+        "vat": "ضريبة القيمة المضافة",
+        "vatIncluded": "شامل ضريبة القيمة المضافة"
       },
       "options": {
         "title": "خيارات إضافية",
-        "flightLabel": "رقم الرحلة/القطار",
-        "flightPlaceholder": "مثلاً AZ123",
-        "billingLabel": "معلومات الفوترة",
+        "billingLabel": "معلومات الفوترة *",
         "billingPlaceholder": "اسم الشركة، رقم ضريبة القيمة المضافة، العنوان...",
+        "billingHelperText": "تأكد من إدراج جميع المعلومات الضرورية مع إيلاء اهتمام خاص لرقم ضريبة القيمة المضافة",
         "notesLabel": "ملاحظات إضافية",
         "notesPlaceholder": "طلبات خاصة، ملاحظات...",
-        "meetGreetLabel": "خدمة الاستقبال والتوديع",
         "privacyLabel": "أوافق على معالجة البيانات الشخصية وفقاً لـ"
       },
       "submit": {
+        "contactInfo": "للحصول على المعلومات تواصل معنا على pattycar@pattycar.com",
+        "cancellationPolicy": "سياسة الإلغاء: الإلغاءات في أو قبل 31 أكتوبر 2025 ستكون مجانية. الإلغاءات بين 1 نوفمبر 2025 و 5 يناير 2026: يمكن تعديل الحجوزات، بما في ذلك تغييرات في التواريخ والأوقات والرحلات، سيتم تطبيق رسوم إلغاء بنسبة 50٪ للحجوزات الملغاة بالكامل. الإلغاءات بعد 5 يناير 2026: تعديلات الحجوزات ستخضع للتوفر، سيتم تطبيق رسوم إلغاء بنسبة 100٪ للحجوزات الملغاة بالكامل.",
         "processing": "إنشاء جلسة دفع...",
         "button": "المتابعة للدفع",
         "validationMessage": "املأ جميع الحقول المطلوبة (*) للمتابعة للدفع",

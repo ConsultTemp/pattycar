@@ -10,13 +10,31 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Inizializza Resend con la chiave API
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
+// Funzione per convertire dal formato 24h al 12h con AM/PM
+function convertTo12Hour(time24: string): string {
+  if (!time24 || time24 === "Non specificato") return "Non specificato"
+  
+  try {
+    const [hours, minutes] = time24.split(':')
+    const hour24 = parseInt(hours)
+    const min = minutes || "00"
+    
+    if (hour24 === 0) return `12:${min} AM`
+    if (hour24 < 12) return `${hour24}:${min} AM`
+    if (hour24 === 12) return `12:${min} PM`
+    return `${hour24 - 12}:${min} PM`
+  } catch (error) {
+    return time24
+  }
+}
+
 // Funzione per formattare l'orario in modo più elegante
 function formatTime(time: string): string {
   if (time === "Non specificato" || !time) return "Non specificato"
 
-  // Se è già in formato HH:MM, aggiunge solo lo stile
+  // Se è già in formato HH:MM, convertilo al formato 12h con AM/PM
   if (time.match(/^\d{1,2}:\d{2}$/)) {
-    return time
+    return convertTo12Hour(time)
   }
 
   return time
