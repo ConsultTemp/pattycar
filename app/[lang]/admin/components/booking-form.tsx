@@ -33,6 +33,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
   // Memoized handlers
   const handleCustomerChange = useCallback((customer: any) => {
+    // 🔍 DEBUG: Log dei dati customer in handleCustomerChange
+    console.log("🔍 DEBUG handleCustomerChange ricevuto:", JSON.stringify(customer, null, 2))
     dispatch({ type: "SET_CUSTOMER", payload: customer })
   }, [])
 
@@ -86,6 +88,9 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     dispatch({ type: "SET_SUBMIT_STATUS", payload: "submitting" })
 
     try {
+      // 🔍 DEBUG: Log dei dati customer prima del submit
+      console.log("🔍 DEBUG state.customer prima del submit:", JSON.stringify(state.customer, null, 2))
+
       // Prepare booking details for API compatibility
       const bookingData = {
         serviceType: state.serviceType,
@@ -134,6 +139,9 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
               }))
             : null,
       }
+
+      // 🔍 DEBUG: Log del bookingData finale
+      console.log("🔍 DEBUG bookingData finale:", JSON.stringify(bookingData, null, 2))
 
       // Create Stripe checkout session with correct payload structure
       const response = await fetch("/api/create-checkout-session", {
