@@ -136,8 +136,23 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Combina prefisso e numero di telefono
-      const phone = phonePrefix && phoneNumber ? `${phonePrefix} ${phoneNumber}` : "Non specificato"
+      // 🔍 DEBUG: Controlla i valori del telefono
+      console.log("🔍 Debug telefono - phonePrefix:", phonePrefix)
+      console.log("🔍 Debug telefono - phoneNumber:", phoneNumber)
+      
+      // Combina prefisso e numero di telefono (migliorata la logica)
+      let phone = "Non specificato"
+      if (phonePrefix || phoneNumber) {
+        if (phonePrefix && phoneNumber) {
+          phone = `${phonePrefix} ${phoneNumber}`
+        } else if (phonePrefix) {
+          phone = phonePrefix
+        } else if (phoneNumber) {
+          phone = phoneNumber
+        }
+      }
+      
+      console.log("🔍 Debug telefono - Risultato finale:", phone)
 
       // Determina se mostare i veicoli individuali o la configurazione unica
       const hasIndividualVehicles = parsedIndividualVehicles.length > 0
