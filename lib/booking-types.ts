@@ -1,5 +1,8 @@
 import { z } from "zod"
 
+// Service Types  
+export type ServiceType = "transfer" | "disposizione" | "inter-cluster" | "altri-servizi" | "ceremony-disposition"
+
 // Base types
 export interface Customer {
   name: string
@@ -19,10 +22,18 @@ export interface Journey {
   pickup: {
     address: string
     placeId: string
+    coordinates?: { lat: number; lng: number }
+    // NEW: Location registry support
+    locationId?: string // ID from LOCATION_REGISTRY if selected from listino
+    isCustom?: boolean // true if user chose custom input instead of listino
   }
   destination: {
     address: string
     placeId: string
+    coordinates?: { lat: number; lng: number }
+    // NEW: Location registry support
+    locationId?: string // ID from LOCATION_REGISTRY if selected from listino
+    isCustom?: boolean // true if user chose custom input instead of listino
   }
   distance?: {
     km: number
@@ -37,10 +48,31 @@ export interface VehicleConfig {
   luggage: number
 }
 
+// Enhanced Meet & Greet Configuration Types
+export interface MeetGreetConfig {
+  enabled: boolean
+  serviceId?: string // Now uses specific service IDs like "malpensa-arrivals", "linate-departures", etc.
+  selectedService?: string // New property for the selected service type
+  passengers: number
+  children: number
+  infants: number
+  extraLuggage: number
+  extraHours: number // New property for extra hours
+  specialServices?: {
+    tarmac?: boolean
+    fastTrack?: boolean
+    vipLounge?: boolean
+    greeterOnly?: boolean
+    veniceCombo?: boolean // New property for Venice combo service
+  }
+}
+
 export interface BookingOptions {
-  meetAndGreet: boolean
+  meetAndGreet: boolean // Keep for backward compatibility
+  meetGreetConfig: MeetGreetConfig // New enhanced configuration
   differentVehicles: boolean
   flight?: string
+  departureCity?: string
   billingInfo?: string
   notes?: string
   privacyAccepted: boolean
@@ -58,6 +90,8 @@ export interface PricingResult {
     vehicleMultiplier: number
     passengerMultiplier: number
     luggageMultiplier: number
+    nightSurcharge?: number
+    nightSurchargeRate?: number
     vehicleCount: number
     pricePerVehicle: number
     subtotal: number
@@ -65,6 +99,26 @@ export interface PricingResult {
     vatRate: number
   }
   vehicleBreakdowns?: any[]
+  meetGreetPrice?: number
+  meetGreetBreakdown?: {
+    basePrice: number
+    extraAdults: number
+    children: number
+    extraLuggage: number
+    nightSurcharge: number
+    specialServices: number
+    subtotal: number
+    vat: number
+    total: number
+  }
+  eventRoute?: {
+    name: string
+    from: string
+    to: string
+    notes?: string
+  }
+  isEventPricing?: boolean
+  isOlympicPricing?: boolean
 }
 
 // Validation schemas
@@ -122,10 +176,30 @@ export const vehiclesSchema = z.discriminatedUnion("sameType", [
   }),
 ])
 
+export const meetGreetConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  serviceId: z.string().optional(),
+  selectedService: z.string().optional(),
+  passengers: z.number().min(0).default(0),
+  children: z.number().min(0).default(0),
+  infants: z.number().min(0).default(0),
+  extraLuggage: z.number().min(0).default(0),
+  extraHours: z.number().min(0).default(0),
+  specialServices: z.object({
+    tarmac: z.boolean().optional(),
+    fastTrack: z.boolean().optional(),
+    vipLounge: z.boolean().optional(),
+    greeterOnly: z.boolean().optional(),
+    veniceCombo: z.boolean().optional(),
+  }).optional(),
+})
+
 export const optionsSchema = z.object({
   meetAndGreet: z.boolean().default(false),
+  meetGreetConfig: meetGreetConfigSchema,
   differentVehicles: z.boolean().default(false),
   flight: z.string().optional(),
+  departureCity: z.string().optional(),
   billingInfo: z.string().min(1, "Informazioni di fatturazione richieste"),
   notes: z.string().optional(),
   privacyAccepted: z.boolean().refine((val) => val === true, {
@@ -148,7 +222,7 @@ export type BookingError =
 
 // State types
 export interface BookingState {
-  serviceType: "transfer" | "disposizione"
+  serviceType: ServiceType
   customer: Customer
   journey: Journey
   vehicles: {
@@ -169,7 +243,7 @@ export interface BookingState {
 
 // Action types
 export type BookingAction =
-  | { type: "SET_SERVICE_TYPE"; payload: "transfer" | "disposizione" }
+  | { type: "SET_SERVICE_TYPE"; payload: ServiceType }
   | { type: "SET_CUSTOMER"; payload: Partial<Customer> }
   | { type: "SET_JOURNEY"; payload: Partial<Journey> }
   | { type: "SET_VEHICLE_COUNT"; payload: number }
@@ -179,6 +253,7 @@ export type BookingAction =
   | { type: "ADD_VEHICLE_CONFIG" }
   | { type: "REMOVE_VEHICLE_CONFIG"; payload: number }
   | { type: "SET_OPTIONS"; payload: Partial<BookingOptions> }
+  | { type: "UPDATE_MEET_GREET_CONFIG"; payload: Partial<MeetGreetConfig> }
   | { type: "SET_PRICING"; payload: PricingResult | null }
   | { type: "SET_CALCULATING_PRICE"; payload: boolean }
   | { type: "SET_VALIDATION_ERRORS"; payload: ValidationError[] }

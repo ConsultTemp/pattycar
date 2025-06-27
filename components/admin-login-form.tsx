@@ -44,7 +44,7 @@ export default function AdminLoginForm({ lang }: AdminLoginFormProps) {
       if (response.ok && data.success) {
         // Login riuscito
         setPassword("")
-        router.push(`/${lang}/admin/booking`)
+        router.push(`/${lang}/on-location/booking`)
       } else {
         setError(data.error || "Invalid password")
       }

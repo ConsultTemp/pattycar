@@ -10,7 +10,7 @@ export default function PaymentCancelledPage() {
         <p className="text-gray-600 mb-6">Il pagamento è stato annullato. Puoi riprovare quando vuoi.</p>
         <div className="space-y-3">
           <Link
-            href="/it/admin/booking"
+            href="/it/on-location/booking"
             className="block w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors"
           >
             Riprova Prenotazione

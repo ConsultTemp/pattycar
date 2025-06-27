@@ -1,0 +1,7 @@
+Service Type,Date,Location,Vehicle Type,Max Passengers,Base Price EUR,Hourly Rate EUR,Notes
+Ceremony Disposition,2026-02-06,San Siro Milano,Berlina,3,1700.00,300.00,Apertura - disponibilità da 2 ore prima
+Ceremony Disposition,2026-02-06,San Siro Milano,Monovolume,6,2200.00,400.00,Apertura - disponibilità da 2 ore prima
+Ceremony Disposition,2026-02-06,San Siro Milano,Minibus,8,2900.00,500.00,Apertura - disponibilità da 2 ore prima
+Ceremony Disposition,2026-02-22,Arena Verona,Berlina,3,1700.00,300.00,Chiusura - disponibilità da 2 ore prima
+Ceremony Disposition,2026-02-22,Arena Verona,Monovolume,6,2200.00,400.00,Chiusura - disponibilità da 2 ore prima
+Ceremony Disposition,2026-02-22,Arena Verona,Minibus,8,2900.00,500.00,Chiusura - disponibilità da 2 ore prima 

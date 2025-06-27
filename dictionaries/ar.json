@@ -147,7 +147,14 @@
       "pageTitle": "الحجز - منطقة محظورة",
       "pageDescription": "نموذج الحجز",
       "formTitle": "احجز نقلك",
-      "formSubtitle": "املأ النموذج لطلب عرض أسعار",
+      "formSubtitle": "املأ النموذج لحجز الخدمة",
+      "date": {
+        "title": "تاريخ الخدمة",
+        "dateLabel": "اختر تاريخ الخدمة",
+        "selectDate": "اختر تاريخاً",
+        "dateImportance": "التاريخ أساسي: تعتمد الأسعار وتوفر الخدمة عليه. يرجى اختيار التاريخ أولاً للمتابعة.",
+        "dateSelected": "تم اختيار التاريخ! يمكنك الآن المتابعة مع إعداد الرحلة."
+      },
       "serviceType": {
         "title": "نوع الخدمة",
         "transfer": "نقل",
@@ -194,6 +201,8 @@
         "hourlyRate": "التعريفة:",
         "flightLabel": "رقم الرحلة/القطار",
         "flightPlaceholder": "مثلاً AZ123",
+        "departureCityLabel": "مدينة المغادرة",
+        "departureCityPlaceholder": "مثلاً ميلانو (للرحلات المتصلة، المحطة الأخيرة)",
         "meetGreetLabel": "خدمة الاستقبال والتوديع"
       },
       "vehicles": {

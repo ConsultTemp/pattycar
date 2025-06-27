@@ -9,6 +9,7 @@ export const initialBookingState: BookingState = {
     phonePrefix: "+39",
   },
   journey: {
+    date: undefined,
     time: "",
     minutes: "",
     timeAmPm: "AM",
@@ -42,6 +43,14 @@ export const initialBookingState: BookingState = {
   },
   options: {
     meetAndGreet: false,
+    meetGreetConfig: {
+      enabled: false,
+      passengers: 0,
+      children: 0,
+      infants: 0,
+      extraLuggage: 0,
+      extraHours: 0,
+    },
     differentVehicles: false,
     privacyAccepted: false,
   },
@@ -83,6 +92,32 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       }
 
     case "SET_JOURNEY":
+      // Check if date is being changed
+      const isDateChange = action.payload.date !== undefined && 
+                          action.payload.date !== state.journey.date
+
+      if (isDateChange) {
+        // If date changes, reset everything except customer data
+        return {
+          ...state,
+          journey: { 
+            ...initialBookingState.journey, 
+            ...action.payload 
+          },
+          vehicles: { 
+            ...initialBookingState.vehicles 
+          },
+          options: { 
+            ...initialBookingState.options 
+          },
+          ui: {
+            ...state.ui,
+            pricing: null,
+            errors: [],
+          },
+        }
+      }
+
       return {
         ...state,
         journey: { ...state.journey, ...action.payload },
@@ -177,6 +212,15 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       return {
         ...state,
         options: { ...state.options, ...action.payload },
+      }
+
+    case "UPDATE_MEET_GREET_CONFIG":
+      return {
+        ...state,
+        options: {
+          ...state.options,
+          meetGreetConfig: { ...state.options.meetGreetConfig, ...action.payload },
+        },
       }
 
     case "SET_PRICING":

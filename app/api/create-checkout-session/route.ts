@@ -126,7 +126,8 @@ export async function POST(req: NextRequest) {
     // Aggiungi servizi extra se presenti
     const extras = []
     if (bookingData.meetAndGreet) extras.push("✅ Meet & Greet")
-    if (bookingData.flight) extras.push(`✈️ Volo: ${bookingData.flight}`)
+    if (bookingData.flight) extras.push(`✈️ Volo/Treno: ${bookingData.flight}`)
+    if (bookingData.departureCity) extras.push(`🏙️ Provenienza: ${bookingData.departureCity}`)
     if (bookingData.luggage && bookingData.luggage > 0) extras.push(`🧳 ${bookingData.luggage} bagagli`)
 
     if (extras.length > 0) {
@@ -148,6 +149,7 @@ export async function POST(req: NextRequest) {
       vehicleCount: bookingData.vehicleCount || "",
       luggage: bookingData.luggage || "",
       flight: bookingData.flight || "",
+      departureCity: bookingData.departureCity || "",
       billingInfo: bookingData.billingInfo || "",
       notes: bookingData.notes || "",
       meetAndGreet: bookingData.meetAndGreet ? "true" : "false",

@@ -147,7 +147,14 @@
       "pageTitle": "Booking - Area Riservata",
       "pageDescription": "Form di prenotazione",
       "formTitle": "Prenota il tuo trasferimento",
-      "formSubtitle": "Compila il modulo per richiedere un preventivo",
+      "formSubtitle": "Compila il modulo per prenotare il servizio",
+      "date": {
+        "title": "Data del Servizio",
+        "dateLabel": "Seleziona la data del servizio",
+        "selectDate": "Scegli una data",
+        "dateImportance": "La data è fondamentale: da essa dipendono i prezzi e la disponibilità dei servizi. Seleziona prima la data per procedere.",
+        "dateSelected": "Data selezionata! Ora puoi procedere con la configurazione del viaggio."
+      },
       "serviceType": {
         "title": "Tipo di Servizio",
         "transfer": "Transfer",
@@ -194,6 +201,8 @@
         "hourlyRate": "Tariffa:",
         "flightLabel": "Numero volo/treno",
         "flightPlaceholder": "Es. AZ123",
+        "departureCityLabel": "Città di provenienza",
+        "departureCityPlaceholder": "Es. Milano (in caso di scali, ultima tappa)",
         "meetGreetLabel": "Servizio Meet & Greet"
       },
       "vehicles": {

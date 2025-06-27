@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
         phoneNumber = "",
         notes = "Nessuna nota",
         flight = "",
+        departureCity = "",
         meetAndGreet = "false",
         billingInfo = "",
         distance = "",
@@ -410,13 +411,14 @@ export async function POST(req: NextRequest) {
                     }
                     
                     ${
-                      flight
+                      flight || departureCity
                         ? `
                     <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
                         <span style="color: #2563eb; font-size: 18px; margin-right: 12px;">✈️</span>
                         <div>
-                          <strong style="color: #1e40af;">Numero volo: ${flight}</strong>
+                          ${flight ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Numero volo/treno:</strong> ${flight}</div>` : ""}
+                          ${departureCity ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Città di provenienza:</strong> ${departureCity}</div>` : ""}
                           <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Monitoreremo eventuali ritardi del volo</p>
                         </div>
                       </div>
@@ -736,7 +738,16 @@ export async function POST(req: NextRequest) {
                       flight
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>✈️ Volo:</strong> <span style="color: #3730a3; font-weight: 600;">${flight}</span>
+                      <strong>✈️ Volo/Treno:</strong> <span style="color: #3730a3; font-weight: 600;">${flight}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      departureCity
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🏙️ Città Provenienza:</strong> <span style="color: #3730a3; font-weight: 600;">${departureCity}</span>
                     </p>
                     `
                         : ""

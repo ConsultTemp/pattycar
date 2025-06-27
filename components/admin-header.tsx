@@ -17,7 +17,7 @@ export default function AdminHeader({ lang }: AdminHeaderProps) {
       })
 
       if (response.ok) {
-        router.push(`/${lang}/admin`)
+        router.push(`/${lang}/on-location`)
       }
     } catch (error) {
       console.error("Logout error:", error)

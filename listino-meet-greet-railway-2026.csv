@@ -1,0 +1,43 @@
+Service Type,Station,Direction,Service Description,Price EUR,Notes
+Meet & Greet,Milano Centrale,Arrivals,Greeter + Porter + 2 luggages for 1 passenger,250.00,Meet at platform in front of right coach
+Meet & Greet,Milano Centrale,Arrivals,Each extra passenger,70.00,
+Meet & Greet,Milano Centrale,Arrivals,Children up to 12 years,35.00,50% adult rate
+Meet & Greet,Milano Centrale,Arrivals,Infants 0-2,0.00,FREE
+Meet & Greet,Milano Centrale,Arrivals,Each extra luggage,25.00,
+Meet & Greet,Milano Centrale,Arrivals,Night surcharge porter (06:30 PM - 09:00 AM),175.00,Max 5 pieces of luggage
+Meet & Greet,Milano Centrale,Arrivals,Each extra hour after 2 hours included,90.00,
+Meet & Greet,Verona Porta Nuova,Arrivals,Greeter + Porter + 2 luggages for 1 passenger,250.00,Meet at platform in front of right coach
+Meet & Greet,Verona Porta Nuova,Arrivals,Each extra passenger,70.00,
+Meet & Greet,Verona Porta Nuova,Arrivals,Children up to 12 years,35.00,50% adult rate
+Meet & Greet,Verona Porta Nuova,Arrivals,Infants 0-2,0.00,FREE
+Meet & Greet,Verona Porta Nuova,Arrivals,Each extra luggage,25.00,
+Meet & Greet,Verona Porta Nuova,Arrivals,Night surcharge porter (06:30 PM - 09:00 AM),175.00,Max 5 pieces of luggage
+Meet & Greet,Verona Porta Nuova,Arrivals,Each extra hour after 2 hours included,90.00,
+Meet & Greet,Venezia Santa Lucia,Arrivals,Greeter for 1 passenger,250.00,Only greeter available
+Meet & Greet,Venezia Santa Lucia,Arrivals,Each extra passenger,70.00,
+Meet & Greet,Venezia Santa Lucia,Arrivals,Children up to 12 years,35.00,50% adult rate
+Meet & Greet,Venezia Santa Lucia,Arrivals,Infants 0-2,0.00,FREE
+Meet & Greet,Venezia Santa Lucia,Arrivals,Each extra luggage,25.00,
+Meet & Greet,Venezia Santa Lucia,Arrivals,Porter service,0.00,On demand
+Meet & Greet,Venezia Santa Lucia,Arrivals,Each extra hour after 2 hours included,90.00,
+Meet & Greet,Milano Centrale,Departures,Greeter + Porter + 2 luggages for 1 passenger,250.00,Meet at station entrance - escort to platform
+Meet & Greet,Milano Centrale,Departures,Each extra passenger,70.00,
+Meet & Greet,Milano Centrale,Departures,Children up to 12 years,35.00,50% adult rate
+Meet & Greet,Milano Centrale,Departures,Infants 0-2,0.00,FREE
+Meet & Greet,Milano Centrale,Departures,Each extra luggage,25.00,
+Meet & Greet,Milano Centrale,Departures,Night surcharge porter (06:30 PM - 09:00 AM),175.00,Max 5 pieces of luggage
+Meet & Greet,Milano Centrale,Departures,Each extra hour after 2 hours included,90.00,
+Meet & Greet,Verona Porta Nuova,Departures,Greeter + Porter + 2 luggages for 1 passenger,250.00,Meet at station entrance - escort to platform
+Meet & Greet,Verona Porta Nuova,Departures,Each extra passenger,70.00,
+Meet & Greet,Verona Porta Nuova,Departures,Children up to 12 years,35.00,50% adult rate
+Meet & Greet,Verona Porta Nuova,Departures,Infants 0-2,0.00,FREE
+Meet & Greet,Verona Porta Nuova,Departures,Each extra luggage,25.00,
+Meet & Greet,Verona Porta Nuova,Departures,Night surcharge porter (06:30 PM - 09:00 AM),175.00,Max 5 pieces of luggage
+Meet & Greet,Verona Porta Nuova,Departures,Each extra hour after 2 hours included,90.00,
+Meet & Greet,Venezia Santa Lucia,Departures,Greeter for 1 passenger,250.00,Only greeter available
+Meet & Greet,Venezia Santa Lucia,Departures,Each extra passenger,70.00,
+Meet & Greet,Venezia Santa Lucia,Departures,Children up to 12 years,35.00,50% adult rate
+Meet & Greet,Venezia Santa Lucia,Departures,Infants 0-2,0.00,FREE
+Meet & Greet,Venezia Santa Lucia,Departures,Each extra luggage,25.00,
+Meet & Greet,Venezia Santa Lucia,Departures,Porter service,0.00,On demand
+Meet & Greet,Venezia Santa Lucia,Departures,Each extra hour after 2 hours included,90.00, 

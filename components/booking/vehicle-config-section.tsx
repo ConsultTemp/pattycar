@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { Plus, Trash2, User2, Luggage, Backpack } from "lucide-react"
+import { Plus, Trash2, User2, Luggage, Backpack, Zap } from "lucide-react"
 import type { VehicleConfig, ValidationError } from "@/lib/booking-types"
+import { getAllowedVehicleTypes } from "@/lib/event-pricing"
+import { isOlympicPeriod, getOlympicVehicleTypes, OLYMPIC_VEHICLE_TYPES, getCeremonyVehicleTypes, isCeremonyDate } from "@/lib/olympic-pricing"
 
 interface VehicleConfigSectionProps {
   vehicleCount: number
@@ -14,6 +16,8 @@ interface VehicleConfigSectionProps {
   singleConfig: VehicleConfig
   multipleConfigs: VehicleConfig[]
   errors: ValidationError[]
+  journeyDate?: Date // Add journey date to filter vehicle types
+  serviceType?: string // Add service type to determine ceremony vehicles
   onCountChange: (count: number) => void
   onToggleSameType: () => void
   onSingleConfigChange: (config: Partial<VehicleConfig>) => void
@@ -23,7 +27,7 @@ interface VehicleConfigSectionProps {
   dictionary: any
 }
 
-const vehicleTypes = [
+const allVehicleTypes = [
   { value: "sedan", label: "Sedan", maxPassengers: 3, maxLuggage: 2, maxSmallLuggage: 1 },
   { value: "van", label: "Van", maxPassengers: 6, maxLuggage: 6 },
   { value: "minibus", label: "Mini Bus", maxPassengers: 8, maxLuggage: 8 },
@@ -37,6 +41,8 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     singleConfig,
     multipleConfigs,
     errors,
+    journeyDate,
+    serviceType,
     onCountChange,
     onToggleSameType,
     onSingleConfigChange,
@@ -45,18 +51,84 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     onRemoveVehicle,
     dictionary,
   }) => {
+    // Determine vehicle types based on service type and date
+    const isOlympic = journeyDate ? isOlympicPeriod(journeyDate) : false
+    const isCeremony = journeyDate ? isCeremonyDate(journeyDate) : false
+    const isCeremonyService = serviceType === "ceremony-disposition"
+    const isInterCluster = serviceType === "inter-cluster"
+    
+    let vehicleTypes: any[]
+    
+    if (isCeremony && isCeremonyService) {
+      // CEREMONY SERVICES: Use only the 3 vehicles from the ceremony price list
+      vehicleTypes = getCeremonyVehicleTypes().map(vehicle => ({
+        value: vehicle.value,
+        label: vehicle.label,
+        maxPassengers: vehicle.maxPassengers,
+        maxLuggage: vehicle.maxLuggage,
+        description: vehicle.description,
+        ceremonyPrice: vehicle.ceremonyPrice,
+        category: 'ceremony'
+      }))
+    } else if (isInterCluster && isOlympic) {
+      // INTER-CLUSTER: Only Sedan and Minivan as per official pricing table
+      vehicleTypes = [
+        {
+          value: 'olympic-sedan',
+          label: 'Sedan',
+          maxPassengers: 2,
+          maxLuggage: 2,
+          description: '2 passengers max',
+          category: 'standard'
+        },
+        {
+          value: 'olympic-minivan',
+          label: 'Mini Van',
+          maxPassengers: 6,
+          maxLuggage: 4,
+          description: '6 passengers (4 with luggage)',
+          category: 'standard'
+        }
+      ]
+    } else if (isOlympic) {
+      // During Olympic period, use Olympic vehicle types
+      const allowedTypes = getAllowedVehicleTypes(journeyDate)
+      vehicleTypes = Object.values(OLYMPIC_VEHICLE_TYPES)
+        .filter(vehicle => allowedTypes.includes(vehicle.id))
+        .map(vehicle => ({
+          value: vehicle.id,
+          label: vehicle.displayName,
+          maxPassengers: vehicle.maxPassengers,
+          maxLuggage: vehicle.maxLuggage,
+          description: vehicle.description,
+          category: vehicle.category
+        }))
+    } else {
+      // Standard period, use regular vehicle types
+      const allowedTypes = getAllowedVehicleTypes(journeyDate)
+      vehicleTypes = allVehicleTypes.filter(vehicle => allowedTypes.includes(vehicle.value))
+    }
+
     const getFieldError = (field: string) => {
       return errors.find((error) => error.field === `vehicles.${field}`)?.message
     }
 
-    // Helper function to get vehicle limits
+    // Helper function to get vehicle limits (supports both standard and Olympic vehicles)
     const getVehicleLimits = (vehicleType: string) => {
       const vehicle = vehicleTypes.find(v => v.value === vehicleType)
       if (!vehicle) return { maxPassengers: 8, maxLuggage: 8 }
       
-      // Se ha bagagli piccoli, il totale è bagagli normali + bagagli piccoli
-      const totalLuggage = vehicle.maxSmallLuggage ? vehicle.maxLuggage + vehicle.maxSmallLuggage : vehicle.maxLuggage
-      return { maxPassengers: vehicle.maxPassengers, maxLuggage: totalLuggage }
+      // For Olympic vehicles, use direct values; for standard vehicles, calculate totals
+      if (isOlympic) {
+        return { 
+          maxPassengers: vehicle.maxPassengers, 
+          maxLuggage: vehicle.maxLuggage 
+        }
+      } else {
+        // Se ha bagagli piccoli, il totale è bagagli normali + bagagli piccoli
+        const totalLuggage = vehicle.maxSmallLuggage ? vehicle.maxLuggage + vehicle.maxSmallLuggage : vehicle.maxLuggage
+        return { maxPassengers: vehicle.maxPassengers, maxLuggage: totalLuggage }
+      }
     }
 
     // Helper function to get vehicle object
@@ -64,22 +136,28 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
       return vehicleTypes.find(v => v.value === vehicleType)
     }
 
-    // Helper function to get luggage message
+    // Helper function to get luggage message (supports both standard and Olympic vehicles)
     const getLuggageMessage = (vehicleType: string, isShort = false) => {
       const vehicle = getVehicle(vehicleType)
       if (!vehicle) return ""
       
-      if (vehicle.maxSmallLuggage) {
-        // Sedan: messaggio specifico con grandi e piccoli bagagli
-        const template = isShort ? dictionary.maxSedanLuggageShort : dictionary.maxSedanLuggage
-        return template
-          .replace('{maxLuggage}', vehicle.maxLuggage.toString())
-          .replace('{maxSmallLuggage}', vehicle.maxSmallLuggage.toString())
-      } else {
-        // Altri veicoli: messaggio standard
+      if (isOlympic) {
+        // Olympic vehicles: simple message with max luggage
         const template = isShort ? dictionary.maxLuggageShort : dictionary.maxLuggage
-        const totalLuggage = getVehicleLimits(vehicleType).maxLuggage
-        return template.replace('{max}', totalLuggage.toString())
+        return template.replace('{max}', vehicle.maxLuggage.toString())
+      } else {
+        if (vehicle.maxSmallLuggage) {
+          // Sedan: messaggio specifico con grandi e piccoli bagagli
+          const template = isShort ? dictionary.maxSedanLuggageShort : dictionary.maxSedanLuggage
+          return template
+            .replace('{maxLuggage}', vehicle.maxLuggage.toString())
+            .replace('{maxSmallLuggage}', vehicle.maxSmallLuggage.toString())
+        } else {
+          // Altri veicoli: messaggio standard
+          const template = isShort ? dictionary.maxLuggageShort : dictionary.maxLuggage
+          const totalLuggage = getVehicleLimits(vehicleType).maxLuggage
+          return template.replace('{max}', totalLuggage.toString())
+        }
       }
     }
 
@@ -151,6 +229,17 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   {vehicleTypes.map((vehicle) => (
                     <SelectItem key={vehicle.value} value={vehicle.value}>
                       <div className="flex items-center">
+                        {/* Category icons */}
+                        {vehicle.category === 'electric' && (
+                          <Zap className="w-4 h-4 mr-2 text-green-600" />
+                        )}
+                        {vehicle.category === 'luxury' && (
+                          <span className="mr-2 text-xs">💎</span>
+                        )}
+                        {vehicle.category === 'ceremony' && (
+                          <span className="mr-2 text-xs">🏆</span>
+                        )}
+                        
                         {vehicle.label} ({vehicle.maxPassengers} <User2 className="w-4 h-4 mx-1" />{" "}
                         {vehicle.maxSmallLuggage ? (
                           <span className="flex items-center">
@@ -162,6 +251,18 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                             {vehicle.maxLuggage} <Luggage className="w-4 h-4 ml-1" />
                           </span>
                         )})
+                        
+                        {/* Description and ceremony price */}
+                        {vehicle.description && (
+                          <span className="text-xs text-gray-500 ml-2">
+                            {vehicle.description}
+                          </span>
+                        )}
+                        {vehicle.ceremonyPrice && (
+                          <span className="text-xs text-blue-600 ml-2 font-medium">
+                            €{vehicle.ceremonyPrice}
+                          </span>
+                        )}
                       </div>
                     </SelectItem>
                   ))}
@@ -312,6 +413,17 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         {vehicleTypes.map((vehicle) => (
                           <SelectItem key={vehicle.value} value={vehicle.value}>
                             <div className="flex items-center">
+                              {/* Category icons */}
+                              {vehicle.category === 'electric' && (
+                                <Zap className="w-4 h-4 mr-2 text-green-600" />
+                              )}
+                              {vehicle.category === 'luxury' && (
+                                <span className="mr-2 text-xs">💎</span>
+                              )}
+                              {vehicle.category === 'ceremony' && (
+                                <span className="mr-2 text-xs">🏆</span>
+                              )}
+                              
                               {vehicle.label} ({vehicle.maxPassengers} <User2 className="w-4 h-4 mx-1" />{" "}
                               {vehicle.maxSmallLuggage ? (
                                 <span className="flex items-center">
@@ -323,6 +435,18 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                                   {vehicle.maxLuggage} <Luggage className="w-4 h-4 ml-1" />
                                 </span>
                               )})
+                              
+                              {/* Description and ceremony price */}
+                              {vehicle.description && (
+                                <span className="text-xs text-gray-500 ml-2">
+                                  {vehicle.description}
+                                </span>
+                              )}
+                              {vehicle.ceremonyPrice && (
+                                <span className="text-xs text-blue-600 ml-2 font-medium">
+                                  €{vehicle.ceremonyPrice}
+                                </span>
+                              )}
                             </div>
                           </SelectItem>
                         ))}

@@ -147,7 +147,14 @@
       "pageTitle": "Booking - Restricted Area",
       "pageDescription": "Booking form",
       "formTitle": "Book your transfer",
-      "formSubtitle": "Fill out the form to request a quote",
+      "formSubtitle": "Fill out the form to book the service",
+      "date": {
+        "title": "Service Date",
+        "dateLabel": "Select service date",
+        "selectDate": "Choose a date",
+        "dateImportance": "The date is fundamental: prices and service availability depend on it. Please select the date first to proceed.",
+        "dateSelected": "Date selected! You can now proceed with the trip configuration."
+      },
       "serviceType": {
         "title": "Service Type",
         "transfer": "Transfer",
@@ -194,6 +201,8 @@
         "hourlyRate": "Rate:",
         "flightLabel": "Flight/train number",
         "flightPlaceholder": "E.g. AZ123",
+        "departureCityLabel": "Departure city",
+        "departureCityPlaceholder": "E.g. Milan (for connections, last stopover)",
         "meetGreetLabel": "Meet & Greet Service"
       },
       "vehicles": {
