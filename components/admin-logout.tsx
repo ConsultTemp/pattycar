@@ -12,7 +12,7 @@ export default function AdminLogout({ lang }: { lang: string }) {
       await fetch("/api/admin-logout", {
         method: "POST",
       })
-      router.push(`/${lang}/on-location`)
+      router.push(`/${lang}/onlocation`)
     } catch (error) {
       console.error("Errore durante il logout", error)
     }

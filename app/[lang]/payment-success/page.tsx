@@ -13,7 +13,7 @@ function PaymentSuccessContent() {
         </p>
         <div className="space-y-3">
           <Link
-            href="/it/on-location/booking"
+            href="/it/onlocation/booking"
             className="block w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors"
           >
             Nuova Prenotazione

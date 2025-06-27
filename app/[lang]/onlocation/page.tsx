@@ -10,7 +10,7 @@ export default async function AdminPage({ params }: { params: { lang: Locale } }
   const isAuthenticated = await verifySession()
 
   if (isAuthenticated) {
-    redirect(`/${lang}/on-location/booking`)
+    redirect(`/${lang}/onlocation/booking`)
   }
 
   return <AdminLoginForm lang={lang} />

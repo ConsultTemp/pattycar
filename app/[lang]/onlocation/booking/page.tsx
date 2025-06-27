@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { verifySession } from "@/lib/auth-config"
 import { getDictionary } from "@/lib/dictionary"
 import type { Locale } from "@/i18n-config"
-import BookingForm from "@/app/[lang]/on-location/components/booking-form"
+import BookingForm from "@/app/[lang]/onlocation/components/booking-form"
 
 export default async function AdminBookingPage({ params }: { params: { lang: Locale } }) {
   const lang = params.lang || "it"
@@ -12,7 +12,7 @@ export default async function AdminBookingPage({ params }: { params: { lang: Loc
   const isAuthenticated = await verifySession()
 
   if (!isAuthenticated) {
-    redirect(`/${lang}/on-location`)
+    redirect(`/${lang}/onlocation`)
   }
 
   return (
