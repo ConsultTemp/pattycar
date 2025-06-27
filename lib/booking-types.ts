@@ -13,12 +13,6 @@ export interface Customer {
 
 export interface Journey {
   date?: Date
-  time: string
-  minutes: string
-  timeAmPm: string
-  endTime?: string
-  endMinutes?: string
-  endTimeAmPm?: string
   pickup: {
     address: string
     placeId: string
@@ -35,6 +29,13 @@ export interface Journey {
     locationId?: string // ID from LOCATION_REGISTRY if selected from listino
     isCustom?: boolean // true if user chose custom input instead of listino
   }
+  time?: string
+  minutes?: string
+  timeAmPm?: string
+  endTime?: string
+  endMinutes?: string
+  endTimeAmPm?: string
+  serviceDuration?: string // For Olympic disposition: "4", "6", "8" hours
   distance?: {
     km: number
     text: string

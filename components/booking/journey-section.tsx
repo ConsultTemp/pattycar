@@ -16,6 +16,7 @@ import { PlacesAutocomplete } from "@/components/places-autocomplete"
 import { LocationSelector } from "@/components/location-selector"
 import type { Journey, ValidationError, BookingOptions, ServiceType } from "@/lib/booking-types"
 import { useEffect, useState } from "react"
+import { isOlympicPeriod } from "@/lib/olympic-pricing"
 
 interface JourneySectionProps {
   journey: Journey
@@ -29,7 +30,51 @@ interface JourneySectionProps {
 
 export function JourneySection({ journey, errors, onChange, serviceType, options, onOptionsChange, dictionary }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
-  const [is24HourFormat, setIs24HourFormat] = useState(false)
+  const [is24HourFormat, setIs24HourFormat] = useState(true)
+
+  // Check if we're in Olympic period for special disposition logic
+  const isOlympicPeriod_local = journey.date ? isOlympicPeriod(journey.date) : false
+  const isDispositionService = serviceType === "disposizione" || serviceType === "ceremony-disposition"
+  const useOlympicDurationLogic = isOlympicPeriod_local && isDispositionService
+
+  // Auto-calculate end time when start time or duration changes (Olympic logic)
+  useEffect(() => {
+    if (useOlympicDurationLogic && journey.time && journey.minutes && journey.serviceDuration) {
+      const startHour = parseInt(journey.time)
+      const startMinutes = parseInt(journey.minutes) 
+      const durationHours = parseInt(journey.serviceDuration)
+      
+      // Calculate total minutes
+      let totalStartMinutes = startHour * 60 + startMinutes
+      if (!is24HourFormat && journey.timeAmPm === "PM" && startHour !== 12) {
+        totalStartMinutes += 12 * 60 // Add 12 hours for PM
+      }
+      if (!is24HourFormat && journey.timeAmPm === "AM" && startHour === 12) {
+        totalStartMinutes -= 12 * 60 // Subtract 12 hours for 12 AM
+      }
+      
+      const totalEndMinutes = totalStartMinutes + (durationHours * 60)
+      
+      // Convert back to hour/minute format
+      const endHour24 = Math.floor(totalEndMinutes / 60) % 24
+      const endMinutes = totalEndMinutes % 60
+      
+      if (is24HourFormat) {
+        onChange({
+          endTime: endHour24.toString(),
+          endMinutes: endMinutes.toString().padStart(2, '0'),
+          endTimeAmPm: undefined
+        })
+      } else {
+        const { hour12, ampm } = convertTo12Hour(endHour24)
+        onChange({
+          endTime: hour12,
+          endMinutes: endMinutes.toString().padStart(2, '0'),
+          endTimeAmPm: ampm
+        })
+      }
+    }
+  }, [journey.time, journey.minutes, journey.timeAmPm, journey.serviceDuration, is24HourFormat, useOlympicDurationLogic, onChange])
 
   // Helper functions for time conversion
   const convertTo24Hour = (hour: string, minutes: string, ampm?: string): { hour24: number, totalMinutes: number } => {
@@ -295,8 +340,8 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
           }}
           placeholder={
             serviceType === "transfer" || serviceType === "inter-cluster"
-              ? "Seleziona punto di partenza" 
-              : "Seleziona punto di incontro"
+              ? dictionary.pickupPlaceholder 
+              : dictionary.meetingPlaceholder
           }
           customPlaceholder={
             serviceType === "transfer" || serviceType === "inter-cluster"
@@ -517,79 +562,110 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
             {/* End Time - Only for Disposition */}
             {(serviceType === "disposizione" || serviceType === "ceremony-disposition") && (
               <div className="space-y-2">
-                <Label htmlFor="endTime">{dictionary.endTimeLabel}</Label>
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                  <Input
-                    id="endTime"
-                    type="number"
-                    min={is24HourFormat ? "0" : "1"}
-                    max={is24HourFormat ? "23" : "12"}
-                    value={journey.endTime || ""}
-                    onChange={(e) => {
-                      const value = e.target.value
-                      const min = is24HourFormat ? 0 : 1
-                      const max = is24HourFormat ? 23 : 12
-                      // Permetti campo vuoto o valori validi
-                      if (value === "" || (parseInt(value) >= min && parseInt(value) <= max)) {
-                        onChange({ endTime: value })
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const value = parseInt(e.target.value)
-                      const min = is24HourFormat ? 0 : 1
-                      const max = is24HourFormat ? 23 : 12
-                      // Se il valore è fuori range, correggi
-                      if (value < min) onChange({ endTime: min.toString() })
-                      if (value > max) onChange({ endTime: max.toString() })
-                    }}
-                    placeholder={is24HourFormat ? "HH" : "HH"}
-                    className="w-20 text-center"
-                    disabled={isEndTimeDisabled()}
-                  />
-                  <span className="flex-shrink-0">:</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={journey.endMinutes || ""}
-                    onChange={(e) => {
-                      const value = e.target.value
-                      // Permetti campo vuoto o valori validi (0-59)
-                      if (value === "" || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
-                        onChange({ endMinutes: value })
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const value = parseInt(e.target.value)
-                      // Se il valore è fuori range, correggi
-                      if (value < 0) onChange({ endMinutes: "0" })
-                      if (value > 59) onChange({ endMinutes: "59" })
-                    }}
-                    placeholder="MM"
-                    className="w-20 text-center"
-                    disabled={isEndTimeDisabled()}
-                  />
-                  {!is24HourFormat && (
+                {useOlympicDurationLogic ? (
+                  /* Olympic Logic: Duration Selection */
+                  <>
+                    <Label htmlFor="serviceDuration">Durata servizio</Label>
                     <Select
-                      value={journey.endTimeAmPm || "AM"}
-                      onValueChange={(value) => onChange({ endTimeAmPm: value })}
-                      disabled={isEndTimeDisabled()}
+                      value={journey.serviceDuration || ""}
+                      onValueChange={(value) => onChange({ serviceDuration: value })}
                     >
-                      <SelectTrigger className="w-20 flex-shrink-0">
-                        <SelectValue />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleziona durata" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="AM">AM</SelectItem>
-                        <SelectItem value="PM">PM</SelectItem>
+                        <SelectItem value="4">4 ore</SelectItem>
+                        <SelectItem value="6">6 ore</SelectItem>
+                        <SelectItem value="8">8 ore</SelectItem>
                       </SelectContent>
                     </Select>
-                  )}
-                </div>
-                {!isEndTimeValid() && (
-                  <p className="text-sm text-red-500">{dictionary.endTimeInvalid}</p>
+                    {journey.serviceDuration && journey.time && journey.minutes && (
+                      <div className="text-sm text-gray-600 mt-2">
+                        <p>
+                          <strong>Fine calcolata:</strong> {journey.endTime}:{journey.endMinutes}
+                          {!is24HourFormat && ` ${journey.endTimeAmPm}`}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Standard Logic: Manual End Time */
+                  <>
+                    <Label htmlFor="endTime">{dictionary.endTimeLabel}</Label>
+                    <div className="flex items-center space-x-3">
+                      <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <Input
+                        id="endTime"
+                        type="number"
+                        min={is24HourFormat ? "0" : "1"}
+                        max={is24HourFormat ? "23" : "12"}
+                        value={journey.endTime || ""}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          const min = is24HourFormat ? 0 : 1
+                          const max = is24HourFormat ? 23 : 12
+                          // Permetti campo vuoto o valori validi
+                          if (value === "" || (parseInt(value) >= min && parseInt(value) <= max)) {
+                            onChange({ endTime: value })
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const value = parseInt(e.target.value)
+                          const min = is24HourFormat ? 0 : 1
+                          const max = is24HourFormat ? 23 : 12
+                          // Se il valore è fuori range, correggi
+                          if (value < min) onChange({ endTime: min.toString() })
+                          if (value > max) onChange({ endTime: max.toString() })
+                        }}
+                        placeholder={is24HourFormat ? "HH" : "HH"}
+                        className="w-20 text-center"
+                        disabled={isEndTimeDisabled()}
+                      />
+                      <span className="flex-shrink-0">:</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={journey.endMinutes || ""}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          // Permetti campo vuoto o valori validi (0-59)
+                          if (value === "" || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
+                            onChange({ endMinutes: value })
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const value = parseInt(e.target.value)
+                          // Se il valore è fuori range, correggi
+                          if (value < 0) onChange({ endMinutes: "0" })
+                          if (value > 59) onChange({ endMinutes: "59" })
+                        }}
+                        placeholder="MM"
+                        className="w-20 text-center"
+                        disabled={isEndTimeDisabled()}
+                      />
+                      {!is24HourFormat && (
+                        <Select
+                          value={journey.endTimeAmPm || "AM"}
+                          onValueChange={(value) => onChange({ endTimeAmPm: value })}
+                          disabled={isEndTimeDisabled()}
+                        >
+                          <SelectTrigger className="w-20 flex-shrink-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AM">AM</SelectItem>
+                            <SelectItem value="PM">PM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                    {!isEndTimeValid() && (
+                      <p className="text-sm text-red-500">{dictionary.endTimeInvalid}</p>
+                    )}
+                    {isEndTimeDisabled() && <p className="text-sm text-gray-500">{dictionary.selectStartTime}</p>}
+                  </>
                 )}
-                {isEndTimeDisabled() && <p className="text-sm text-gray-500">{dictionary.selectStartTime}</p>}
               </div>
             )}
           </div>
@@ -599,38 +675,61 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
         {(serviceType === "disposizione" || serviceType === "ceremony-disposition") &&
           journey.time &&
           journey.minutes &&
-          journey.endTime &&
-          journey.endMinutes &&
-          (is24HourFormat || (journey.timeAmPm && journey.endTimeAmPm)) &&
-          isEndTimeValid() && (
+          (is24HourFormat || journey.timeAmPm) &&
+          (
+            useOlympicDurationLogic 
+              ? (journey.serviceDuration && journey.endTime && journey.endMinutes) 
+              : (journey.endTime && journey.endMinutes && (is24HourFormat || journey.endTimeAmPm) && isEndTimeValid())
+          ) && (
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="h-4 w-4 text-green-600" />
                 <span className="font-medium text-green-900">{dictionary.serviceDuration}</span>
               </div>
               <div className="text-sm text-green-700">
-                {(() => {
-                  const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
-                  const endTime = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
-                  const durationMinutes = endTime.totalMinutes - startTime.totalMinutes
-                  const hours = Math.floor(durationMinutes / 60)
-                  const minutes = durationMinutes % 60
-                  const billingHours = Math.ceil(durationMinutes / 60)
+                {useOlympicDurationLogic ? (
+                  /* Olympic Logic: Use selected duration */
+                  <div className="space-y-1">
+                    <p>
+                      <strong>Durata selezionata:</strong> {journey.serviceDuration}h
+                    </p>
+                    <p>
+                      <strong>Inizio:</strong> {journey.time}:{journey.minutes}
+                      {!is24HourFormat && ` ${journey.timeAmPm}`}
+                    </p>
+                    <p>
+                      <strong>Fine:</strong> {journey.endTime}:{journey.endMinutes}
+                      {!is24HourFormat && ` ${journey.endTimeAmPm}`}
+                    </p>
+                    <p>
+                      <strong>{dictionary.hourlyRate}</strong>
+                    </p>
+                  </div>
+                ) : (
+                  /* Standard Logic: Calculate duration from times */
+                  (() => {
+                    const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
+                    const endTime = convertTo24Hour(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm)
+                    const durationMinutes = endTime.totalMinutes - startTime.totalMinutes
+                    const hours = Math.floor(durationMinutes / 60)
+                    const minutes = durationMinutes % 60
+                    const billingHours = Math.ceil(durationMinutes / 60)
 
-                  return (
-                    <div className="space-y-1">
-                      <p>
-                        <strong>{dictionary.effectiveDuration}</strong> {hours}h {minutes}m
-                      </p>
-                      <p>
-                        <strong>{dictionary.billableHours}</strong> {billingHours}h (arrotondato per eccesso)
-                      </p>
-                      <p>
-                        <strong>{dictionary.hourlyRate}</strong>
-                      </p>
-                    </div>
-                  )
-                })()}
+                    return (
+                      <div className="space-y-1">
+                        <p>
+                          <strong>{dictionary.effectiveDuration}</strong> {hours}h {minutes}m
+                        </p>
+                        <p>
+                          <strong>{dictionary.billableHours}</strong> {billingHours}h (arrotondato per eccesso)
+                        </p>
+                        <p>
+                          <strong>{dictionary.hourlyRate}</strong>
+                        </p>
+                      </div>
+                    )
+                  })()
+                )}
               </div>
             </div>
           )}

@@ -228,40 +228,45 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                 <SelectContent>
                   {vehicleTypes.map((vehicle) => (
                     <SelectItem key={vehicle.value} value={vehicle.value}>
-                      <div className="flex items-center">
-                        {/* Category icons */}
-                        {vehicle.category === 'electric' && (
-                          <Zap className="w-4 h-4 mr-2 text-green-600" />
-                        )}
-                        {vehicle.category === 'luxury' && (
-                          <span className="mr-2 text-xs">💎</span>
-                        )}
-                        {vehicle.category === 'ceremony' && (
-                          <span className="mr-2 text-xs">🏆</span>
-                        )}
-                        
-                        {vehicle.label} ({vehicle.maxPassengers} <User2 className="w-4 h-4 mx-1" />{" "}
-                        {vehicle.maxSmallLuggage ? (
-                          <span className="flex items-center">
-                            {vehicle.maxLuggage} <Luggage className="w-4 h-4 mx-1" />
-                            + {vehicle.maxSmallLuggage} <Backpack className="w-4 h-4 mx-1" />
+                      <div className="flex flex-col gap-1 py-1">
+                        <div className="flex items-center gap-2">
+                          {/* Category icon */}
+                          {vehicle.category === 'ceremony' && (
+                            <span className="text-xs">🏆</span>
+                          )}
+                          {vehicle.category === 'electric' && (
+                            <Zap className="w-3 h-3 text-green-600" />
+                          )}
+                          {vehicle.category === 'luxury' && (
+                            <span className="text-xs">💎</span>
+                          )}
+                          
+                          <span className="font-medium">{vehicle.label}</span>
+                          <span className="text-xs text-gray-500">
+                            ({vehicle.maxPassengers} <User2 className="w-3 h-3 inline" />
+                            {vehicle.maxSmallLuggage ? (
+                              <span>
+                                {" "}{vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" />
+                                + {vehicle.maxSmallLuggage} <Backpack className="w-3 h-3 inline" />
+                              </span>
+                            ) : (
+                              <span> {vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" /></span>
+                            )})
                           </span>
-                        ) : (
-                          <span className="flex items-center">
-                            {vehicle.maxLuggage} <Luggage className="w-4 h-4 ml-1" />
-                          </span>
-                        )})
+                          
+                          {/* Ceremony price */}
+                          {vehicle.ceremonyPrice && (
+                            <span className="text-xs text-blue-600 font-medium ml-auto">
+                              €{vehicle.ceremonyPrice}
+                            </span>
+                          )}
+                        </div>
                         
-                        {/* Description and ceremony price */}
+                        {/* Description on separate line if exists */}
                         {vehicle.description && (
-                          <span className="text-xs text-gray-500 ml-2">
+                          <div className="text-xs text-gray-500 pl-0">
                             {vehicle.description}
-                          </span>
-                        )}
-                        {vehicle.ceremonyPrice && (
-                          <span className="text-xs text-blue-600 ml-2 font-medium">
-                            €{vehicle.ceremonyPrice}
-                          </span>
+                          </div>
                         )}
                       </div>
                     </SelectItem>
@@ -412,40 +417,45 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                       <SelectContent>
                         {vehicleTypes.map((vehicle) => (
                           <SelectItem key={vehicle.value} value={vehicle.value}>
-                            <div className="flex items-center">
-                              {/* Category icons */}
-                              {vehicle.category === 'electric' && (
-                                <Zap className="w-4 h-4 mr-2 text-green-600" />
-                              )}
-                              {vehicle.category === 'luxury' && (
-                                <span className="mr-2 text-xs">💎</span>
-                              )}
-                              {vehicle.category === 'ceremony' && (
-                                <span className="mr-2 text-xs">🏆</span>
-                              )}
-                              
-                              {vehicle.label} ({vehicle.maxPassengers} <User2 className="w-4 h-4 mx-1" />{" "}
-                              {vehicle.maxSmallLuggage ? (
-                                <span className="flex items-center">
-                                  {vehicle.maxLuggage} <Luggage className="w-4 h-4 mx-1" />
-                                  + {vehicle.maxSmallLuggage} <Backpack className="w-4 h-4 mx-1" />
+                            <div className="flex flex-col gap-1 py-1">
+                              <div className="flex items-center gap-2">
+                                {/* Category icon */}
+                                {vehicle.category === 'ceremony' && (
+                                  <span className="text-xs">🏆</span>
+                                )}
+                                {vehicle.category === 'electric' && (
+                                  <Zap className="w-3 h-3 text-green-600" />
+                                )}
+                                {vehicle.category === 'luxury' && (
+                                  <span className="text-xs">💎</span>
+                                )}
+                                
+                                <span className="font-medium">{vehicle.label}</span>
+                                <span className="text-xs text-gray-500">
+                                  ({vehicle.maxPassengers} <User2 className="w-3 h-3 inline" />
+                                  {vehicle.maxSmallLuggage ? (
+                                    <span>
+                                      {" "}{vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" />
+                                      + {vehicle.maxSmallLuggage} <Backpack className="w-3 h-3 inline" />
+                                    </span>
+                                  ) : (
+                                    <span> {vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" /></span>
+                                  )})
                                 </span>
-                              ) : (
-                                <span className="flex items-center">
-                                  {vehicle.maxLuggage} <Luggage className="w-4 h-4 ml-1" />
-                                </span>
-                              )})
+                                
+                                {/* Ceremony price */}
+                                {vehicle.ceremonyPrice && (
+                                  <span className="text-xs text-blue-600 font-medium ml-auto">
+                                    €{vehicle.ceremonyPrice}
+                                  </span>
+                                )}
+                              </div>
                               
-                              {/* Description and ceremony price */}
+                              {/* Description on separate line if exists */}
                               {vehicle.description && (
-                                <span className="text-xs text-gray-500 ml-2">
+                                <div className="text-xs text-gray-500 pl-0">
                                   {vehicle.description}
-                                </span>
-                              )}
-                              {vehicle.ceremonyPrice && (
-                                <span className="text-xs text-blue-600 ml-2 font-medium">
-                                  €{vehicle.ceremonyPrice}
-                                </span>
+                                </div>
                               )}
                             </div>
                           </SelectItem>

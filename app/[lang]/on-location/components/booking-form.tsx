@@ -452,6 +452,18 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           />
         </div>
 
+        {/* Meet & Greet Section - Only available during Olympic period */}
+        {state.journey.date && isOlympicPeriod(state.journey.date) && (
+          <MeetGreetSection
+            config={state.options.meetGreetConfig}
+            journey={state.journey}
+            errors={getFieldErrors("meetGreetConfig").map(e => e.message)}
+            onChange={handleMeetGreetConfigChange}
+            pricing={pricing}
+            dictionary={dictionary.meetGreet || {}}
+          />
+        )}
+
         {/* Vehicle Configuration - Only enabled when date is selected */}
         <div className={!state.journey.date ? "opacity-50 pointer-events-none" : ""}>
           <VehicleConfigSection
@@ -479,18 +491,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             isCalculating={isCalculating}
             errors={[]}
             dictionary={dictionary.pricing}
-          />
-        )}
-
-        {/* Meet & Greet Section - Only available during Olympic period */}
-        {state.journey.date && isOlympicPeriod(state.journey.date) && (
-          <MeetGreetSection
-            config={state.options.meetGreetConfig}
-            journey={state.journey}
-            errors={getFieldErrors("meetGreetConfig").map(e => e.message)}
-            onChange={handleMeetGreetConfigChange}
-            pricing={pricing}
-            dictionary={dictionary.meetGreet || {}}
           />
         )}
 
