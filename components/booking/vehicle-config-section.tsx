@@ -16,6 +16,7 @@ interface VehicleConfigSectionProps {
   singleConfig: VehicleConfig
   multipleConfigs: VehicleConfig[]
   errors: ValidationError[]
+  hasAttemptedSubmit: boolean
   journeyDate?: Date // Add journey date to filter vehicle types
   serviceType?: string // Add service type to determine ceremony vehicles
   onCountChange: (count: number) => void
@@ -41,6 +42,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     singleConfig,
     multipleConfigs,
     errors,
+    hasAttemptedSubmit,
     journeyDate,
     serviceType,
     onCountChange,
@@ -112,7 +114,23 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     }
 
     const getFieldError = (field: string) => {
-      return errors.find((error) => error.field === `vehicles.${field}`)?.message
+      const error = errors.find((error) => error.field === `vehicles.${field}`)
+      if (!error) return undefined
+      
+      // Return translated messages instead of raw Zod messages
+      if (field === "count") {
+        return dictionary.countRequired
+      } else if (field.includes("type")) {
+        return dictionary.typeRequired
+      } else if (field.includes("passengers")) {
+        return dictionary.passengersRequired
+      } else {
+        return error.message
+      }
+    }
+
+    const hasFieldError = (field: string) => {
+      return hasAttemptedSubmit && !!getFieldError(field)
     }
 
     // Helper function to get vehicle limits (supports both standard and Olympic vehicles)
@@ -171,7 +189,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
         <div>
           <label className="block text-sm text-gray-600 mb-1">{dictionary.countLabel}</label>
           <Select value={vehicleCount.toString()} onValueChange={(value) => onCountChange(Number.parseInt(value))}>
-            <SelectTrigger className={getFieldError("count") ? "border-red-500" : ""}>
+            <SelectTrigger className={hasFieldError("count") ? "border-red-500" : ""}>
               <SelectValue placeholder={dictionary.selectCount} />
             </SelectTrigger>
             <SelectContent>
@@ -182,7 +200,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
               ))}
             </SelectContent>
           </Select>
-          {getFieldError("count") && (
+          {hasFieldError("count") && (
             <p className="text-red-500 text-sm mt-1" role="alert">
               {getFieldError("count")}
             </p>
@@ -224,7 +242,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   onSingleConfigChange(newConfig)
                 }}
               >
-                <SelectTrigger className={getFieldError("config.type") ? "border-red-500" : ""}>
+                <SelectTrigger className={hasFieldError("config.type") ? "border-red-500" : ""}>
                   <SelectValue placeholder={dictionary.selectType} />
                 </SelectTrigger>
                 <SelectContent>
@@ -306,7 +324,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   }
                 }}
                 placeholder={singleConfig.type ? "Es. 2" : dictionary.selectVehiclePlaceholder}
-                className={getFieldError("config.passengers") ? "border-red-500" : ""}
+                className={hasFieldError("config.passengers") ? "border-red-500" : ""}
               />
               {!singleConfig.type ? (
                 <p className="text-xs text-gray-500 mt-1">
@@ -339,7 +357,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   onSingleConfigChange({ luggage: validValue })
                 }}
                 placeholder={singleConfig.type ? "Es. 2" : dictionary.selectVehiclePlaceholder}
-                className={getFieldError("config.luggage") ? "border-red-500" : ""}
+                className={hasFieldError("config.luggage") ? "border-red-500" : ""}
               />
               {!singleConfig.type ? (
                 <p className="text-xs text-gray-500 mt-1">
@@ -410,7 +428,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         onMultipleConfigChange(index, newConfig)
                       }}
                     >
-                      <SelectTrigger className={getFieldError(`configs.${index}.type`) ? "border-red-500" : ""}>
+                      <SelectTrigger className={hasFieldError(`configs.${index}.type`) ? "border-red-500" : ""}>
                         <SelectValue placeholder={dictionary.selectType} />
                       </SelectTrigger>
                       <SelectContent>
@@ -492,7 +510,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         }
                       }}
                       placeholder={config.type ? "Es. 2" : dictionary.selectVehiclePlaceholderShort}
-                      className={getFieldError(`configs.${index}.passengers`) ? "border-red-500" : ""}
+                      className={hasFieldError(`configs.${index}.passengers`) ? "border-red-500" : ""}
                     />
                     {!config.type ? (
                       <p className="text-xs text-gray-500 mt-1">
@@ -525,7 +543,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         onMultipleConfigChange(index, { luggage: validValue })
                       }}
                       placeholder={config.type ? "Es. 2" : dictionary.selectVehiclePlaceholderShort}
-                      className={getFieldError(`configs.${index}.luggage`) ? "border-red-500" : ""}
+                      className={hasFieldError(`configs.${index}.luggage`) ? "border-red-500" : ""}
                     />
                     {!config.type ? (
                       <p className="text-xs text-gray-500 mt-1">

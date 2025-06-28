@@ -60,6 +60,7 @@ export const initialBookingState: BookingState = {
     errors: [],
     pricing: null,
     isCalculatingPrice: false,
+    hasAttemptedSubmit: false,
   },
 }
 
@@ -255,6 +256,12 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       return {
         ...state,
         ui: { ...state.ui, errors: [] },
+      }
+
+    case "SET_ATTEMPTED_SUBMIT":
+      return {
+        ...state,
+        ui: { ...state.ui, hasAttemptedSubmit: action.payload },
       }
 
     default:

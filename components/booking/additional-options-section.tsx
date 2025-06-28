@@ -9,13 +9,29 @@ import Link from "next/link"
 interface AdditionalOptionsSectionProps {
   options: BookingOptions
   errors: ValidationError[]
+  hasAttemptedSubmit: boolean
   onChange: (options: Partial<BookingOptions>) => void
   dictionary: any
 }
 
-export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ options, errors, onChange, dictionary }) => {
+export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ options, errors, hasAttemptedSubmit, onChange, dictionary }) => {
   const getFieldError = (field: string) => {
-    return errors.find((error) => error.field === `options.${field}`)?.message
+    const error = errors.find((error) => error.field === `options.${field}`)
+    if (!error) return undefined
+    
+    // Return translated messages instead of raw Zod messages
+    switch (field) {
+      case "billingInfo":
+        return dictionary.billingRequired
+      case "privacyAccepted":
+        return dictionary.privacyRequired
+      default:
+        return error.message
+    }
+  }
+
+  const hasFieldError = (field: string) => {
+    return hasAttemptedSubmit && !!errors.find((error) => error.field === `options.${field}`)
   }
 
   return (
@@ -23,8 +39,8 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
       <h3 className="text-lg font-semibold">{dictionary.title}</h3>
 
       <div>
-        <label htmlFor="billingInfo" className="block text-sm text-gray-600 mb-1">
-          {dictionary.billingLabel}
+        <label htmlFor="billingInfo" className={`block text-sm mb-1 ${hasFieldError("billingInfo") ? "text-red-500" : "text-gray-600"}`}>
+          {dictionary.billingLabel} *
         </label>
         <Textarea
           id="billingInfo"
@@ -32,10 +48,10 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
           onChange={(e) => onChange({ billingInfo: e.target.value })}
           rows={3}
           placeholder={dictionary.billingPlaceholder}
-          className={getFieldError("billingInfo") ? "border-red-500" : ""}
+          className={hasFieldError("billingInfo") ? "border-red-500" : ""}
         />
         <p className="text-xs text-gray-500 mt-1">{dictionary.billingHelperText}</p>
-        {getFieldError("billingInfo") && (
+        {hasFieldError("billingInfo") && (
           <p className="text-red-500 text-sm mt-1" role="alert">
             {getFieldError("billingInfo")}
           </p>
@@ -61,9 +77,9 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
             id="privacyAccepted"
             checked={options.privacyAccepted}
             onCheckedChange={(checked) => onChange({ privacyAccepted: checked as boolean })}
-            className={getFieldError("privacyAccepted") ? "border-red-500" : ""}
+            className={hasFieldError("privacyAccepted") ? "border-red-500" : ""}
           />
-          <label htmlFor="privacyAccepted" className="text-sm text-gray-600">
+          <label htmlFor="privacyAccepted" className={`text-sm ${hasFieldError("privacyAccepted") ? "text-red-500" : "text-gray-600"}`}>
             {dictionary.privacyLabel}{" "}
             <Link className="text-yellow-500 underline" href="/privacy">
               Privacy Policy
@@ -71,7 +87,7 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
             *
           </label>
         </div>
-        {getFieldError("privacyAccepted") && (
+        {hasFieldError("privacyAccepted") && (
           <p className="text-red-500 text-sm ml-6" role="alert">
             {getFieldError("privacyAccepted")}
           </p>

@@ -14,13 +14,27 @@ import type { ValidationError } from "@/lib/booking-types"
 interface DateSectionProps {
   date?: Date
   errors: ValidationError[]
+  hasAttemptedSubmit: boolean
   onChange: (date: Date | undefined) => void
   dictionary: any
 }
 
-export function DateSection({ date, errors, onChange, dictionary }: DateSectionProps) {
+export function DateSection({ date, errors, hasAttemptedSubmit, onChange, dictionary }: DateSectionProps) {
   const getFieldError = (field: string) => {
-    return errors.find((error) => error.field.includes(field))?.message
+    const error = errors.find((error) => error.field.includes(field))
+    if (!error) return undefined
+    
+    // Return translated messages instead of raw Zod messages
+    switch (field) {
+      case "date":
+        return dictionary.dateRequired
+      default:
+        return error.message
+    }
+  }
+
+  const hasFieldError = (field: string) => {
+    return hasAttemptedSubmit && !!getFieldError(field)
   }
 
   const handleDateChange = (selectedDate: Date | undefined) => {
@@ -46,14 +60,14 @@ export function DateSection({ date, errors, onChange, dictionary }: DateSectionP
 
         {/* Date picker */}
         <div className="space-y-2">
-          <Label htmlFor="date">{dictionary.dateLabel} *</Label>
+          <Label htmlFor="date" className={hasFieldError("date") ? "text-red-500" : ""}>{dictionary.dateLabel} *</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={`w-full justify-start text-left font-normal ${
                   !date && "text-muted-foreground"
-                } ${getFieldError("date") ? "border-red-500" : ""}`}
+                } ${hasFieldError("date") ? "border-red-500" : ""}`}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, "PPP", { locale: it }) : dictionary.selectDate}
@@ -69,7 +83,7 @@ export function DateSection({ date, errors, onChange, dictionary }: DateSectionP
               />
             </PopoverContent>
           </Popover>
-          {getFieldError("date") && (
+          {hasFieldError("date") && (
             <p className="text-red-500 text-sm mt-1" role="alert">
               {getFieldError("date")}
             </p>

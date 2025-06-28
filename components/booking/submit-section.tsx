@@ -15,8 +15,6 @@ interface SubmitSectionProps {
 }
 
 export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, pricing, submitError, onSubmit, dictionary }) => {
-  const canSubmit = isValid && pricing && !isSubmitting
-
   return (
     <div className="text-center space-y-4">
       {/* Contact Information */}
@@ -32,9 +30,9 @@ export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, 
       <Button
         type="button"
         onClick={onSubmit}
-        disabled={!canSubmit}
+        disabled={isSubmitting}
         className={`px-8 py-3 flex items-center justify-center mx-auto text-white ${
-          !canSubmit ? "opacity-70 cursor-not-allowed" : ""
+          isSubmitting ? "opacity-70 cursor-not-allowed" : ""
         }`}
         size="lg"
       >
@@ -56,10 +54,6 @@ export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, 
         <p className="text-red-600 text-sm" role="alert">
           {submitError}
         </p>
-      )}
-
-      {!isValid && (
-        <p className="text-gray-500 text-sm">{dictionary.validationMessage}</p>
       )}
     </div>
   )

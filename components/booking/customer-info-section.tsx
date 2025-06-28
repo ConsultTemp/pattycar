@@ -12,6 +12,7 @@ import type { Customer, ValidationError } from "@/lib/booking-types"
 interface CustomerInfoSectionProps {
   customer: Customer
   errors: ValidationError[]
+  hasAttemptedSubmit: boolean
   onChange: (customer: Partial<Customer>) => void
   dictionary: any
 }
@@ -264,11 +265,28 @@ const countryCodes = [
   { value: "+263", label: "🇿🇼 Zimbabwe (+263)", country: "Zimbabwe" }
 ];
 
-export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, errors, onChange, dictionary }) => {
+export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, errors, hasAttemptedSubmit, onChange, dictionary }) => {
   const [open, setOpen] = useState(false)
 
   const getFieldError = (field: string) => {
-    return errors.find((error) => error.field === `customer.${field}`)?.message
+    const error = errors.find((error) => error.field === `customer.${field}`)
+    if (!error) return undefined
+    
+    // Return translated messages instead of raw Zod messages
+    switch (field) {
+      case "name":
+        return dictionary.nameRequired
+      case "email":
+        return dictionary.emailRequired
+      case "phone":
+        return dictionary.phoneRequired
+      default:
+        return error.message
+    }
+  }
+
+  const hasFieldError = (field: string) => {
+    return hasAttemptedSubmit && !!getFieldError(field)
   }
 
   const selectedCountry = countryCodes.find((country) => country.value === customer.phonePrefix)
@@ -285,7 +303,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
       <h3 className="text-lg font-semibold">{dictionary.title}</h3>
 
       <div className="md:col-span-2">
-        <label htmlFor="name" className="block text-sm text-gray-600 mb-1">
+        <label htmlFor="name" className={`block text-sm mb-1 ${hasFieldError("name") ? "text-red-500" : "text-gray-600"}`}>
           {dictionary.nameLabel}
         </label>
         <Input
@@ -293,11 +311,11 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
           id="name"
           value={customer.name}
           onChange={(e) => onChange({ name: e.target.value })}
-          className={getFieldError("name") ? "border-red-500" : ""}
+          className={hasFieldError("name") ? "border-red-500" : ""}
           aria-describedby={getFieldError("name") ? "name-error" : undefined}
         />
         <p className="text-xs text-gray-500 mt-1">{dictionary.nameHelperText}</p>
-        {getFieldError("name") && (
+        {hasFieldError("name") && (
           <p id="name-error" className="text-red-500 text-sm mt-1" role="alert">
             {getFieldError("name")}
           </p>
@@ -306,7 +324,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="email" className="block text-sm text-gray-600 mb-1">
+          <label htmlFor="email" className={`block text-sm mb-1 ${hasFieldError("email") ? "text-red-500" : "text-gray-600"}`}>
             {dictionary.emailLabel}
           </label>
           <Input
@@ -314,10 +332,10 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
             id="email"
             value={customer.email}
             onChange={(e) => onChange({ email: e.target.value })}
-            className={getFieldError("email") ? "border-red-500" : ""}
+            className={hasFieldError("email") ? "border-red-500" : ""}
             aria-describedby={getFieldError("email") ? "email-error" : undefined}
           />
-          {getFieldError("email") && (
+          {hasFieldError("email") && (
             <p id="email-error" className="text-red-500 text-sm mt-1" role="alert">
               {getFieldError("email")}
             </p>
@@ -325,7 +343,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm text-gray-600 mb-1">
+          <label htmlFor="phone" className={`block text-sm mb-1 ${hasFieldError("phone") ? "text-red-500" : "text-gray-600"}`}>
             {dictionary.phoneLabel}
           </label>
           <div className="flex space-x-2">
@@ -374,7 +392,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
             <Input
               type="tel"
               id="phone"
-              className={`w-2/3 ${getFieldError("phone") ? "border-red-500" : ""}`}
+              className={`w-2/3 ${hasFieldError("phone") ? "border-red-500" : ""}`}
               value={customer.phone}
               onChange={(e) => {
                 console.log("🔍 DEBUG CustomerInfoSection - phone changed to:", e.target.value)
@@ -382,7 +400,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
               }}
             />
           </div>
-          {getFieldError("phone") && (
+          {hasFieldError("phone") && (
             <p className="text-red-500 text-sm mt-1" role="alert">
               {getFieldError("phone")}
             </p>

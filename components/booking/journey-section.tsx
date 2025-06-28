@@ -21,6 +21,7 @@ import { isOlympicPeriod } from "@/lib/olympic-pricing"
 interface JourneySectionProps {
   journey: Journey
   errors: ValidationError[]
+  hasAttemptedSubmit: boolean
   onChange: (journey: Partial<Journey>) => void
   serviceType: ServiceType
   options: BookingOptions
@@ -28,7 +29,7 @@ interface JourneySectionProps {
   dictionary: any
 }
 
-export function JourneySection({ journey, errors, onChange, serviceType, options, onOptionsChange, dictionary }: JourneySectionProps) {
+export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [is24HourFormat, setIs24HourFormat] = useState(true)
 
@@ -258,7 +259,22 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
   ])
 
   const getFieldError = (field: string) => {
-    return errors.find((error) => error.field.includes(field))?.message
+    const error = errors.find((error) => error.field.includes(field))
+    if (!error) return undefined
+    
+    // Return translated messages instead of raw Zod messages
+    switch (field) {
+      case "pickup":
+        return dictionary.pickupRequired
+      case "destination":
+        return dictionary.destinationRequired
+      default:
+        return error.message
+    }
+  }
+
+  const hasFieldError = (field: string) => {
+    return hasAttemptedSubmit && !!getFieldError(field)
   }
 
   const isEndTimeValid = () => {
@@ -348,7 +364,7 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
               ? dictionary.pickupPlaceholder 
               : dictionary.meetingPlaceholder
           }
-          error={getFieldError("pickup")}
+          error={hasFieldError("pickup") ? getFieldError("pickup") : undefined}
           journeyDate={journey.date}
           dictionary={dictionary}
         />
@@ -389,7 +405,7 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
               ? dictionary.destinationPlaceholder 
               : dictionary.dropoffPlaceholder
           }
-          error={getFieldError("destination")}
+          error={hasFieldError("destination") ? getFieldError("destination") : undefined}
           journeyDate={journey.date}
           dictionary={dictionary}
         />

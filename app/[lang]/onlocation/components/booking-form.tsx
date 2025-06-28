@@ -174,6 +174,9 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   }, [])
 
   const handleSubmit = useCallback(async () => {
+    // Mark that user has attempted to submit (for UI styling)
+    dispatch({ type: "SET_ATTEMPTED_SUBMIT", payload: true })
+    
     // Clear previous errors
     dispatch({ type: "CLEAR_ERRORS" })
 
@@ -181,6 +184,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     const errors = validateAll()
     if (errors.length > 0) {
       dispatch({ type: "SET_VALIDATION_ERRORS", payload: errors })
+      // Don't proceed with submission, but keep showing errors to user
       return
     }
 
@@ -311,6 +315,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         <CustomerInfoSection
           customer={state.customer}
           errors={getFieldErrors("customer")}
+          hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
           onChange={handleCustomerChange}
           dictionary={dictionary.customer}
         />
@@ -319,6 +324,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         <DateSection
           date={state.journey.date}
           errors={getFieldErrors("journey")}
+          hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
           onChange={(date) => handleJourneyChange({ date })}
           dictionary={dictionary.date}
         />
@@ -438,6 +444,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           <JourneySection
             journey={state.journey}
             errors={getFieldErrors("journey")}
+            hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
             onChange={handleJourneyChange}
             serviceType={state.serviceType}
             options={state.options}
@@ -466,6 +473,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             singleConfig={state.vehicles.singleConfig}
             multipleConfigs={state.vehicles.multipleConfigs}
             errors={getFieldErrors("vehicles")}
+            hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
             journeyDate={state.journey.date}
             serviceType={state.serviceType}
             onCountChange={handleVehicleCountChange}
@@ -493,6 +501,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           <AdditionalOptionsSection
             options={state.options}
             errors={getFieldErrors("options")}
+            hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
             onChange={handleOptionsChange}
             dictionary={dictionary.options}
           />

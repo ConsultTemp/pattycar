@@ -239,6 +239,7 @@ export interface BookingState {
     errors: ValidationError[]
     pricing: PricingResult | null
     isCalculatingPrice: boolean
+    hasAttemptedSubmit: boolean
   }
 }
 
@@ -259,4 +260,5 @@ export type BookingAction =
   | { type: "SET_CALCULATING_PRICE"; payload: boolean }
   | { type: "SET_VALIDATION_ERRORS"; payload: ValidationError[] }
   | { type: "SET_SUBMIT_STATUS"; payload: "idle" | "submitting" | "success" | "error" }
+  | { type: "SET_ATTEMPTED_SUBMIT"; payload: boolean }
   | { type: "CLEAR_ERRORS" }
