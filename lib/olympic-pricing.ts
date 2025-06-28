@@ -8,8 +8,9 @@ export interface OlympicVehicleType {
   maxPassengers: number
   maxPassengersWithLuggage: number
   maxLuggage: number
+  maxSmallLuggage?: number
   description: string
-  category: 'standard' | 'electric' | 'luxury'
+  category: 'standard' | 'luxury'
 }
 
 // Olympic Vehicle Types - More comprehensive than standard
@@ -18,22 +19,14 @@ export const OLYMPIC_VEHICLE_TYPES: Record<string, OlympicVehicleType> = {
     id: 'olympic-sedan',
     name: 'sedan',
     displayName: 'Sedan',
-    maxPassengers: 2,
-    maxPassengersWithLuggage: 2,
-    maxLuggage: 2,
-    description: '2 passengers max',
-    category: 'standard'
-  },
-  'olympic-suv': {
-    id: 'olympic-suv', 
-    name: 'suv',
-    displayName: 'SUV',
-    maxPassengers: 4,
+    maxPassengers: 3,
     maxPassengersWithLuggage: 3,
-    maxLuggage: 3,
-    description: '4 passengers (3 with luggage)',
+    maxLuggage: 2,
+    maxSmallLuggage: 1,
+    description: '3 passengers max',
     category: 'standard'
   },
+
   'olympic-minivan': {
     id: 'olympic-minivan',
     name: 'minivan',
@@ -43,16 +36,6 @@ export const OLYMPIC_VEHICLE_TYPES: Record<string, OlympicVehicleType> = {
     maxLuggage: 4,
     description: '6 passengers (4 with luggage)',
     category: 'standard'
-  },
-  'olympic-tesla': {
-    id: 'olympic-tesla',
-    name: 'tesla',
-    displayName: 'Electric Vehicle (Tesla)',
-    maxPassengers: 6,
-    maxPassengersWithLuggage: 4,
-    maxLuggage: 4,
-    description: '6 passengers (4 with luggage) - Electric',
-    category: 'electric'
   },
   'olympic-van': {
     id: 'olympic-van',
@@ -208,17 +191,13 @@ export interface OlympicRoute {
   toLocationId: string
   prices: {
     'olympic-sedan': number
-    'olympic-suv': number
     'olympic-minivan': number
-    'olympic-tesla': number
     'olympic-van': number
     'olympic-luxury': number
   }
   extraHourRates: {
     'olympic-sedan': number
-    'olympic-suv': number
     'olympic-minivan': number
-    'olympic-tesla': number
     'olympic-van': number
     'olympic-luxury': number
   }
@@ -234,17 +213,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'milano-city',
     prices: {
       'olympic-sedan': 220,
-      'olympic-suv': 220,
       'olympic-minivan': 255,
-      'olympic-tesla': 255,
       'olympic-van': 490,
       'olympic-luxury': 470
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -256,17 +231,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'livigno',
     prices: {
       'olympic-sedan': 1100,
-      'olympic-suv': 1100,
       'olympic-minivan': 1270,
-      'olympic-tesla': 1270,
       'olympic-van': 1780,
       'olympic-luxury': 1630
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -278,17 +249,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 990,
-      'olympic-suv': 990,
       'olympic-minivan': 1150,
-      'olympic-tesla': 1150,
       'olympic-van': 1540,
       'olympic-luxury': 1430
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -300,17 +267,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'verona',
     prices: {
       'olympic-sedan': 710,
-      'olympic-suv': 710,
       'olympic-minivan': 830,
-      'olympic-tesla': 830,
       'olympic-van': 1250,
       'olympic-luxury': 1130
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -324,17 +287,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'milano-city',
     prices: {
       'olympic-sedan': 135,
-      'olympic-suv': 135,
       'olympic-minivan': 150,
-      'olympic-tesla': 150,
       'olympic-van': 330,
       'olympic-luxury': 285
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -346,17 +305,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'livigno',
     prices: {
       'olympic-sedan': 1070,
-      'olympic-suv': 1070,
       'olympic-minivan': 1230,
-      'olympic-tesla': 1230,
       'olympic-van': 1590,
       'olympic-luxury': 1470
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -368,17 +323,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 920,
-      'olympic-suv': 920,
       'olympic-minivan': 1170,
-      'olympic-tesla': 1170,
       'olympic-van': 1390,
       'olympic-luxury': 1290
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -390,17 +341,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'verona',
     prices: {
       'olympic-sedan': 620,
-      'olympic-suv': 620,
       'olympic-minivan': 730,
-      'olympic-tesla': 730,
       'olympic-van': 990,
       'olympic-luxury': 920
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -414,17 +361,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'milano-city',
     prices: {
       'olympic-sedan': 240,
-      'olympic-suv': 240,
       'olympic-minivan': 270,
-      'olympic-tesla': 270,
       'olympic-van': 520,
       'olympic-luxury': 515
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -436,17 +379,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'livigno',
     prices: {
       'olympic-sedan': 950,
-      'olympic-suv': 950,
       'olympic-minivan': 1100,
-      'olympic-tesla': 1100,
       'olympic-van': 1590,
       'olympic-luxury': 1470
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -458,17 +397,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 830,
-      'olympic-suv': 830,
       'olympic-minivan': 960,
-      'olympic-tesla': 960,
       'olympic-van': 1390,
       'olympic-luxury': 1290
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -480,17 +415,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'verona',
     prices: {
       'olympic-sedan': 430,
-      'olympic-suv': 430,
       'olympic-minivan': 500,
-      'olympic-tesla': 500,
       'olympic-van': 990,
       'olympic-luxury': 920
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -504,17 +435,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'milano-city',
     prices: {
       'olympic-sedan': 125,
-      'olympic-suv': 125,
       'olympic-minivan': 150,
-      'olympic-tesla': 150,
       'olympic-van': 320,
       'olympic-luxury': 270
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -526,17 +453,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'livigno',
     prices: {
       'olympic-sedan': 1070,
-      'olympic-suv': 1070,
       'olympic-minivan': 1230,
-      'olympic-tesla': 1230,
       'olympic-van': 1590,
       'olympic-luxury': 1470
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -548,17 +471,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 920,
-      'olympic-suv': 920,
       'olympic-minivan': 1170,
-      'olympic-tesla': 1170,
       'olympic-van': 1390,
       'olympic-luxury': 1290
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -570,17 +489,13 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     toLocationId: 'verona',
     prices: {
       'olympic-sedan': 620,
-      'olympic-suv': 620,
       'olympic-minivan': 730,
-      'olympic-tesla': 730,
       'olympic-van': 990,
       'olympic-luxury': 920
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
     }
@@ -597,17 +512,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 920,
-      'olympic-suv': 920,
       'olympic-minivan': 1170,
-      'olympic-tesla': 1170,
       'olympic-van': 1170,
       'olympic-luxury': 1170
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -619,17 +530,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'livigno',
     prices: {
       'olympic-sedan': 1070,
-      'olympic-suv': 1070,
       'olympic-minivan': 1230,
-      'olympic-tesla': 1230,
       'olympic-van': 1230,
       'olympic-luxury': 1230
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -641,17 +548,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'cortina',
     prices: {
       'olympic-sedan': 1380,
-      'olympic-suv': 1380,
       'olympic-minivan': 1620,
-      'olympic-tesla': 1620,
       'olympic-van': 1620,
       'olympic-luxury': 1620
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -663,17 +566,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'verona',
     prices: {
       'olympic-sedan': 620,
-      'olympic-suv': 620,
       'olympic-minivan': 730,
-      'olympic-tesla': 730,
       'olympic-van': 730,
       'olympic-luxury': 730
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -687,17 +586,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 1600,
-      'olympic-suv': 1600,
       'olympic-minivan': 1840,
-      'olympic-tesla': 1840,
       'olympic-van': 1840,
       'olympic-luxury': 1840
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -709,17 +604,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'livigno',
     prices: {
       'olympic-sedan': 1340,
-      'olympic-suv': 1340,
       'olympic-minivan': 1550,
-      'olympic-tesla': 1550,
       'olympic-van': 1550,
       'olympic-luxury': 1550
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -731,17 +622,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'verona',
     prices: {
       'olympic-sedan': 950,
-      'olympic-suv': 950,
       'olympic-minivan': 1070,
-      'olympic-tesla': 1070,
       'olympic-van': 1070,
       'olympic-luxury': 1070
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -753,17 +640,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 460,
-      'olympic-suv': 460,
       'olympic-minivan': 530,
-      'olympic-tesla': 530,
       'olympic-van': 530,
       'olympic-luxury': 530
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -777,17 +660,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'tirano',
     prices: {
       'olympic-sedan': 870,
-      'olympic-suv': 870,
       'olympic-minivan': 1100,
-      'olympic-tesla': 1100,
       'olympic-van': 1100,
       'olympic-luxury': 1100
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -799,17 +678,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'anterselva',
     prices: {
       'olympic-sedan': 1380,
-      'olympic-suv': 1380,
       'olympic-minivan': 1620,
-      'olympic-tesla': 1620,
       'olympic-van': 1620,
       'olympic-luxury': 1620
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -821,17 +696,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'val-di-fiemme',
     prices: {
       'olympic-sedan': 1290,
-      'olympic-suv': 1290,
       'olympic-minivan': 1520,
-      'olympic-tesla': 1520,
       'olympic-van': 1520,
       'olympic-luxury': 1520
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -843,17 +714,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'venezia',
     prices: {
       'olympic-sedan': 1020,
-      'olympic-suv': 1020,
       'olympic-minivan': 1200,
-      'olympic-tesla': 1200,
       'olympic-van': 1200,
       'olympic-luxury': 1200
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -867,17 +734,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'anterselva',
     prices: {
       'olympic-sedan': 460,
-      'olympic-suv': 460,
       'olympic-minivan': 530,
-      'olympic-tesla': 530,
       'olympic-van': 530,
       'olympic-luxury': 530
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -889,17 +752,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'val-di-fiemme',
     prices: {
       'olympic-sedan': 590,
-      'olympic-suv': 590,
       'olympic-minivan': 640,
-      'olympic-tesla': 640,
       'olympic-van': 640,
       'olympic-luxury': 640
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }
@@ -911,17 +770,13 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     toLocationId: 'venezia',
     prices: {
       'olympic-sedan': 800,
-      'olympic-suv': 800,
       'olympic-minivan': 860,
-      'olympic-tesla': 860,
       'olympic-van': 860,
       'olympic-luxury': 860
     },
     extraHourRates: {
       'olympic-sedan': 94,
-      'olympic-suv': 94,
       'olympic-minivan': 108,
-      'olympic-tesla': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
     }

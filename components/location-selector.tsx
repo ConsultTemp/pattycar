@@ -30,6 +30,7 @@ interface LocationSelectorProps {
   error?: string
   className?: string
   journeyDate?: Date // Add journey date to show Olympic locations
+  dictionary?: any // Add dictionary for translations
 }
 
 export function LocationSelector({
@@ -40,7 +41,8 @@ export function LocationSelector({
   customPlaceholder,
   error,
   className,
-  journeyDate
+  journeyDate,
+  dictionary
 }: LocationSelectorProps) {
   const [isCustom, setIsCustom] = useState(value.isCustom || false)
   const [selectedLocationId, setSelectedLocationId] = useState(value.locationId || "")
@@ -152,7 +154,7 @@ export function LocationSelector({
           onCheckedChange={handleCustomChange}
         />
         <Label htmlFor={`custom-${label}`} className="text-sm font-medium cursor-pointer">
-          Inserisci posizione personalizzata
+          {dictionary?.customLocationPlaceholder || "Enter custom location"}
         </Label>
       </div>
 
@@ -167,7 +169,7 @@ export function LocationSelector({
               {/* Cities */}
               {groupedLocations.cities.length > 0 && (
                 <>
-                  <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">Città</div>
+                  <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">{dictionary?.locationCategories?.cities || "Cities"}</div>
                   {groupedLocations.cities.map((location) => (
                     <SelectItem key={location.id} value={location.id}>
                       <div className="flex items-center gap-2">
@@ -194,7 +196,7 @@ export function LocationSelector({
               {/* Airports */}
               {groupedLocations.airports.length > 0 && (
                 <>
-                  <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">Aeroporti</div>
+                  <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">{dictionary?.locationCategories?.airports || "Airports"}</div>
                   {groupedLocations.airports.map((location) => (
                     <SelectItem key={location.id} value={location.id}>
                       <div className="flex items-center gap-2">
@@ -220,7 +222,7 @@ export function LocationSelector({
               {/* Railway Stations */}
               {groupedLocations.stations.length > 0 && (
                 <>
-                  <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">Stazioni Ferroviarie</div>
+                  <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">{dictionary?.locationCategories?.stations || "Railway Stations"}</div>
                   {groupedLocations.stations.map((location) => (
                     <SelectItem key={location.id} value={location.id}>
                       <div className="flex items-center gap-2">
@@ -247,7 +249,7 @@ export function LocationSelector({
 
           {/* Help text for listino */}
           <p className="text-xs text-gray-500">
-            Seleziona una destinazione dal nostro listino per prezzi fissi. 
+            {dictionary?.selectDestinationFromList || "Select a destination from our list for fixed prices."}
             <span className="inline-flex items-center gap-1 ml-1">
               <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">GP</span>
               = GP Monza,
@@ -271,7 +273,7 @@ export function LocationSelector({
             className={error ? "border-red-500" : ""}
           />
           <p className="text-xs text-gray-500">
-            Inserisci qualsiasi indirizzo. Il prezzo sarà calcolato in base alla distanza.
+            {dictionary?.customLocationNote || "Enter any address. The price will be calculated based on distance."}
           </p>
         </div>
       )}

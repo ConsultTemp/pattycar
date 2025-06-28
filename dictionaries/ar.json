@@ -157,10 +157,36 @@
       },
       "serviceType": {
         "title": "نوع الخدمة",
-        "transfer": "نقل",
-        "disposition": "توزيع",
-        "transferDescription": "(السعر بناءً على المسافة)",
-        "dispositionDescription": "(السعر بناءً على المدة)"
+        "transfer": {
+          "label": "نقل",
+          "description": "نقل من نقطة إلى نقطة",
+          "olympicDescription": "نقل بأسعار أولمبية"
+        },
+        "disposition": {
+          "label": "توزيع",
+          "description": "خدمة مبنية على الوقت مع سائق",
+          "olympicDescription": "خدمة مبنية على الوقت بتعريفات أولمبية"
+        },
+        "otherServices": {
+          "label": "خدمات أخرى",
+          "description": "توزيع وإنتر-كلستر"
+        },
+        "ceremony": {
+          "label": "توزيع الحفل",
+          "description": "خدمة خاصة للحفلات الأولمبية"
+        },
+        "interCluster": {
+          "label": "إنتر-كلستر",
+          "description": "نقل بين الأماكن الأولمبية"
+        },
+        "badges": {
+          "olympics": "أولمبياد 2026",
+          "ceremony": "حفل",
+          "olympicPeriod": "فترة أولمبية"
+        },
+        "subServices": {
+          "title": "اختر نوع الخدمة"
+        }
       },
       "customer": {
         "title": "معلومات العميل",
@@ -190,7 +216,7 @@
         "priceNote": "السعر محسوب بناءً على مدة الخدمة، وليس المسافة",
         "dateLabel": "التاريخ",
         "selectDate": "اختر التاريخ",
-        "startTimeLabel": "وقت المغادرة",
+        "startTimeLabel": "وقت المغادرة / وقت الهبوط أو الوصول *",
         "startServiceLabel": "وقت البدء",
         "endTimeLabel": "وقت الانتهاء",
         "endTimeInvalid": "يجب أن يكون وقت الانتهاء بعد وقت البدء",
@@ -203,7 +229,19 @@
         "flightPlaceholder": "مثلاً AZ123",
         "departureCityLabel": "مدينة المغادرة",
         "departureCityPlaceholder": "مثلاً ميلانو (للرحلات المتصلة، المحطة الأخيرة)",
-        "meetGreetLabel": "خدمة الاستقبال والتوديع"
+        "meetGreetLabel": "خدمة الاستقبال والتوديع",
+        "customLocationPlaceholder": "أدخل موقع مخصص",
+        "selectDestinationFromList": "اختر وجهة من قائمتنا للأسعار الثابتة.",
+        "selectDestination": "اختر الوجهة",
+        "timeFormat": "تنسيق الوقت:",
+        "timeFormat12h": "12 ساعة (صباحاً/مساءً)",
+        "timeFormat24h": "24 ساعة (أوروبي)",
+        "customLocationNote": "أدخل أي عنوان. سيتم حساب السعر بناءً على المسافة.",
+        "locationCategories": {
+          "cities": "المدن",
+          "airports": "المطارات",
+          "stations": "محطات السكك الحديدية"
+        }
       },
       "vehicles": {
         "title": "تكوين المركبات",

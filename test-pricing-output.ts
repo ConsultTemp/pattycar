@@ -348,13 +348,13 @@ const olympicRouteTests = [
   { from: 'malpensa', to: 'verona', desc: 'Malpensa → Verona' }
 ]
 
-const olympicHeaders = ['Tratta', 'Sedan (Giorno)', 'Sedan (Notte)', 'SUV (Giorno)', 'SUV (Notte)', 'Van (Giorno)', 'Van (Notte)', 'Luxury (Giorno)', 'Luxury (Notte)']
+const olympicHeaders = ['Tratta', 'Sedan (Giorno)', 'Sedan (Notte)', 'Van (Giorno)', 'Van (Notte)', 'Luxury (Giorno)', 'Luxury (Notte)']
 const olympicRows: string[][] = []
 
 olympicRouteTests.forEach(test => {
   const route = findOlympicRoute(test.from, test.to)
   if (route) {
-    const vehicles = ['olympic-sedan', 'olympic-suv', 'olympic-van', 'olympic-luxury'] as const
+    const vehicles = ['olympic-sedan',  'olympic-van', 'olympic-luxury'] as const
     const prices: string[] = [test.desc]
     
     vehicles.forEach(vehicle => {
@@ -383,7 +383,6 @@ addSection("", "Prezzi Disposizione Olympics (tariffe orarie)")
 
 const olympicDispositionTests = [
   { vehicle: 'olympic-sedan', hours: 8, desc: 'Olympic Sedan - 8h' },
-  { vehicle: 'olympic-suv', hours: 8, desc: 'Olympic SUV - 8h' },
   { vehicle: 'olympic-van', hours: 8, desc: 'Olympic Van - 8h' }
 ] as const
 

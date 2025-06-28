@@ -489,7 +489,7 @@ export interface EventPricing {
 export const GP_MONZA_2025: EventPricing = {
   id: "gp-monza-2025",
   name: "GP Monza 2025",
-  startDate: "2025-09-03", // TESTING: Extended period for development
+  startDate: "2025-09-01", // TESTING: Extended period for development
   endDate: "2025-09-09", // Will include actual GP Monza dates (3-9 September)
   allowedVehicleTypes: ["sedan", "van", "minibus"], // NO luxury-sedan for GP Monza
   routes: [
@@ -590,7 +590,7 @@ export const MILANO_CORTINA_2026: EventPricing = {
   name: "Milano-Cortina 2026 Olympics",
   startDate: "2026-01-01", // Olympic period
   endDate: "2026-03-31", // Extended Olympic period
-  allowedVehicleTypes: ["olympic-sedan", "olympic-suv", "olympic-minivan", "olympic-tesla", "olympic-van", "olympic-luxury"], // Olympic vehicle types
+        allowedVehicleTypes: ["olympic-sedan", "olympic-minivan", "olympic-van", "olympic-luxury"], // Olympic vehicle types
   routes: [
     // Note: Olympic routes are handled by olympic-pricing.ts
     // This event mainly serves as configuration for disposition services

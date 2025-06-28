@@ -73,10 +73,9 @@ const mapVehicleTypeToEvent = (type: string): 'berlina' | 'monovolume' | 'minibu
 const mapOlympicVehicleToClassic = (olympicType: string): 'berlina' | 'monovolume' | 'minibus' => {
   switch (olympicType) {
     case 'olympic-sedan':
-    case 'olympic-suv':
+    
       return 'berlina'
     case 'olympic-minivan':
-    case 'olympic-tesla':
       return 'monovolume'
     case 'olympic-van':
     case 'olympic-luxury':

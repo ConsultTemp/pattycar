@@ -76,9 +76,10 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
         {
           value: 'olympic-sedan',
           label: 'Sedan',
-          maxPassengers: 2,
+          maxPassengers: 3,
           maxLuggage: 2,
-          description: '2 passengers max',
+          maxSmallLuggage: 1,
+          description: '3 passengers max',
           category: 'standard'
         },
         {
@@ -100,6 +101,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
           label: vehicle.displayName,
           maxPassengers: vehicle.maxPassengers,
           maxLuggage: vehicle.maxLuggage,
+          maxSmallLuggage: vehicle.maxSmallLuggage,
           description: vehicle.description,
           category: vehicle.category
         }))
@@ -233,9 +235,6 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                           {/* Category icon */}
                           {vehicle.category === 'ceremony' && (
                             <span className="text-xs">🏆</span>
-                          )}
-                          {vehicle.category === 'electric' && (
-                            <Zap className="w-3 h-3 text-green-600" />
                           )}
                           {vehicle.category === 'luxury' && (
                             <span className="text-xs">💎</span>
@@ -422,9 +421,6 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                                 {/* Category icon */}
                                 {vehicle.category === 'ceremony' && (
                                   <span className="text-xs">🏆</span>
-                                )}
-                                {vehicle.category === 'electric' && (
-                                  <Zap className="w-3 h-3 text-green-600" />
                                 )}
                                 {vehicle.category === 'luxury' && (
                                   <span className="text-xs">💎</span>

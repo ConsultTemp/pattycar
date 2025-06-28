@@ -350,6 +350,7 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
           }
           error={getFieldError("pickup")}
           journeyDate={journey.date}
+          dictionary={dictionary}
         />
 
         {/* Destination Address - Always shown */}
@@ -380,7 +381,7 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
           }}
           placeholder={
             serviceType === "transfer" || serviceType === "inter-cluster"
-              ? "Seleziona destinazione" 
+              ? dictionary.selectDestination || "Select destination"
               : "Seleziona punto di rientro"
           }
           customPlaceholder={
@@ -390,6 +391,7 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
           }
           error={getFieldError("destination")}
           journeyDate={journey.date}
+          dictionary={dictionary}
         />
 
         {/* Distance Info - Only for Transfer types */}
@@ -443,11 +445,11 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
           {/* Time Format Switch */}
           <div className="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <Label htmlFor="time-format" className="text-sm font-medium">
-              Formato orario:
+              {dictionary.timeFormat || "Time format:"}
             </Label>
             <div className="flex items-center space-x-2">
               <span className={`text-sm ${!is24HourFormat ? 'font-medium' : 'text-gray-500'}`} style={{color: !is24HourFormat ? '#b91c1c' : undefined}}>
-                12h (AM/PM)
+                {dictionary.timeFormat12h || "12h (AM/PM)"}
               </span>
               <div className="relative">
                 <Switch
@@ -482,7 +484,7 @@ export function JourneySection({ journey, errors, onChange, serviceType, options
                 }} />
               </div>
               <span className={`text-sm ${is24HourFormat ? 'font-medium' : 'text-gray-500'}`} style={{color: is24HourFormat ? '#b91c1c' : undefined}}>
-                24h (Italiano)
+                {dictionary.timeFormat24h || "24h (European)"}
               </span>
             </div>
           </div>

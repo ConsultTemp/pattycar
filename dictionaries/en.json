@@ -157,10 +157,36 @@
       },
       "serviceType": {
         "title": "Service Type",
-        "transfer": "Transfer",
-        "disposition": "Disposition",
-        "transferDescription": "(Price based on distance)",
-        "dispositionDescription": "(Price based on duration)"
+        "transfer": {
+          "label": "Transfer",
+          "description": "Point-to-point transfer",
+          "olympicDescription": "Transfer with Olympic prices"
+        },
+        "disposition": {
+          "label": "Disposition",
+          "description": "Time-based service with driver",
+          "olympicDescription": "Time-based service with Olympic rates"
+        },
+        "otherServices": {
+          "label": "Other Services",
+          "description": "Disposition and Inter-Cluster"
+        },
+        "ceremony": {
+          "label": "Ceremony Disposition",
+          "description": "Special service for Olympic ceremonies"
+        },
+        "interCluster": {
+          "label": "Inter-Cluster",
+          "description": "Transfer between Olympic venues"
+        },
+        "badges": {
+          "olympics": "OLYMPICS 2026",
+          "ceremony": "CEREMONY",
+          "olympicPeriod": "OLYMPIC PERIOD"
+        },
+        "subServices": {
+          "title": "Choose Service Type"
+        }
       },
       "customer": {
         "title": "Customer Information",
@@ -190,7 +216,7 @@
         "priceNote": "The price is calculated based on service duration, not distance",
         "dateLabel": "Date",
         "selectDate": "Select date",
-        "startTimeLabel": "Departure Time",
+        "startTimeLabel": "Departure Time / Landing or Arrival Time *",
         "startServiceLabel": "Start Time",
         "endTimeLabel": "End Time",
         "endTimeInvalid": "End time must be after start time",
@@ -203,7 +229,19 @@
         "flightPlaceholder": "E.g. AZ123",
         "departureCityLabel": "Departure city",
         "departureCityPlaceholder": "E.g. Milan (for connections, last stopover)",
-        "meetGreetLabel": "Meet & Greet Service"
+        "meetGreetLabel": "Meet & Greet Service",
+        "customLocationPlaceholder": "Enter custom location",
+        "selectDestinationFromList": "Select a destination from our list for fixed prices.",
+        "selectDestination": "Select destination",
+        "timeFormat": "Time format:",
+        "timeFormat12h": "12h (AM/PM)",
+        "timeFormat24h": "24h (European)",
+        "customLocationNote": "Enter any address. The price will be calculated based on distance.",
+        "locationCategories": {
+          "cities": "Cities",
+          "airports": "Airports",
+          "stations": "Railway Stations"
+        }
       },
       "vehicles": {
         "title": "Vehicle Configuration",
@@ -462,16 +500,16 @@
         "name": "Mercedes Benz Sprinter",
         "image": "/placeholder.svg?height=300&width=500&text=Mercedes+Sprinter",
         "passengers": 8,
-        "luggage": 8
-      },
-      {
-        "name": "Tesla Model S",
-        "image": "/placeholder.svg?height=300&width=500&text=Tesla+Model+S",
-        "passengers": 3,
-        "luggage": 2
-      },
-      {
-        "name": "Fiat Ducato",
+                "luggage": 8
+        },
+        {
+          "name": "Tesla Model S",
+          "image": "/placeholder.svg?height=300&width=500&text=Tesla+Model+S",
+          "passengers": 3,
+          "luggage": 2
+        },
+        {
+          "name": "Fiat Ducato",
         "image": "/placeholder.svg?height=300&width=500&text=Fiat+Ducato",
         "passengers": 8,
         "luggage": 8

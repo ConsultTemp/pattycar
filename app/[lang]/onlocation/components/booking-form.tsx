@@ -37,7 +37,7 @@ type ServiceTypeOption = {
 }
 
 // Get available service types based on date
-const getAvailableServiceTypes = (date?: Date): ServiceTypeOption[] => {
+const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOption[] => {
   if (!date) {
     return []
   }
@@ -47,14 +47,14 @@ const getAvailableServiceTypes = (date?: Date): ServiceTypeOption[] => {
     return [
       { 
         value: "transfer", 
-        label: "Transfer", 
-        description: "Trasferimento punto a punto",
+        label: dictionary?.serviceType?.transfer?.label || "Transfer", 
+        description: dictionary?.serviceType?.transfer?.description || "Point-to-point transfer",
         icon: "🚗"
       },
       { 
         value: "disposizione", 
-        label: "Disposizione", 
-        description: "Servizio a tempo con autista",
+        label: dictionary?.serviceType?.disposition?.label || "Disposition", 
+        description: dictionary?.serviceType?.disposition?.description || "Time-based service with driver",
         icon: "⏰"
       }
     ]
@@ -64,17 +64,17 @@ const getAvailableServiceTypes = (date?: Date): ServiceTypeOption[] => {
   const olympicServices: ServiceTypeOption[] = [
     { 
       value: "transfer", 
-      label: "Transfer", 
-      description: "Trasferimento con prezzi olimpici",
+      label: dictionary?.serviceType?.transfer?.label || "Transfer", 
+      description: dictionary?.serviceType?.transfer?.olympicDescription || "Transfer with Olympic prices",
       icon: "🚗",
-      badge: "OLIMPIADI 2026"
+      badge: dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"
     },
     { 
       value: "altri-servizi", 
-      label: "Altri Servizi", 
-      description: "Disposizione e Inter-Cluster",
+      label: dictionary?.serviceType?.otherServices?.label || "Other Services", 
+      description: dictionary?.serviceType?.otherServices?.description || "Disposition and Inter-Cluster",
       icon: "🏔️",
-      badge: "OLIMPIADI 2026"
+      badge: dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"
     }
   ]
 
@@ -83,10 +83,10 @@ const getAvailableServiceTypes = (date?: Date): ServiceTypeOption[] => {
     const ceremonyName = getCeremonyName(date)
     olympicServices.push({
       value: "ceremony-disposition",
-      label: ceremonyName || "Disposizione Cerimonia",
-      description: "Servizio speciale per cerimonie olimpiche",
+      label: ceremonyName || dictionary?.serviceType?.ceremony?.label || "Ceremony Disposition",
+      description: dictionary?.serviceType?.ceremony?.description || "Special service for Olympic ceremonies",
       icon: "🏆",
-      badge: "CERIMONIA"
+      badge: dictionary?.serviceType?.badges?.ceremony || "CEREMONY"
     })
   }
 
@@ -103,8 +103,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
   // Get available service types based on selected date - memoized to recalculate when date changes
   const availableServiceTypes = useMemo(() => {
-    return getAvailableServiceTypes(state.journey.date)
-  }, [state.journey.date])
+    return getAvailableServiceTypes(state.journey.date, dictionary)
+  }, [state.journey.date, dictionary])
   
   // Check if we're in Olympic period and "altri-servizi" is selected OR sub-services are active
   const isOlympicPeriod_local = state.journey.date ? isOlympicPeriod(state.journey.date) : false
@@ -129,7 +129,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     
     // If date changed, check if current service type is still available
     if (journey.date) {
-      const newAvailableServices = getAvailableServiceTypes(journey.date)
+      const newAvailableServices = getAvailableServiceTypes(journey.date, dictionary)
       const currentServiceAvailable = newAvailableServices.some(s => s.value === state.serviceType)
       if (!currentServiceAvailable) {
         dispatch({ type: "SET_SERVICE_TYPE", payload: newAvailableServices[0]?.value || "transfer" })
@@ -320,13 +320,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           date={state.journey.date}
           errors={getFieldErrors("journey")}
           onChange={(date) => handleJourneyChange({ date })}
-          dictionary={dictionary.date || {
-            title: "Data del servizio",
-            dateLabel: "Seleziona data",
-            selectDate: "Scegli una data",
-            dateImportance: "La data è fondamentale: da essa dipendono i prezzi e la disponibilità dei servizi. Seleziona prima la data per procedere.",
-            dateSelected: "Data selezionata! Ora puoi procedere con la configurazione del viaggio."
-          }}
+          dictionary={dictionary.date}
         />
 
         {/* Service Type Selection - Only enabled when date is selected */}
@@ -337,7 +331,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 {dictionary.serviceType.title}
                 {state.journey.date && isOlympicPeriod(state.journey.date) && (
                   <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded-full">
-                    🏔️ PERIODO OLIMPICO
+                    🏔️ {dictionary?.serviceType?.badges?.olympicPeriod || "OLYMPIC PERIOD"}
                   </span>
                 )}
               </CardTitle>
@@ -387,7 +381,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  🏔️ Scegli il Tipo di Servizio
+                  🏔️ {dictionary?.serviceType?.subServices?.title || "Choose Service Type"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -404,12 +398,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">⏰</span>
-                        <span className="font-medium">Disposizione</span>
+                        <span className="font-medium">{dictionary?.serviceType?.disposition?.label || "Disposition"}</span>
                         <span className="px-2 py-0.5 text-xs rounded-full bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                          OLIMPIADI 2026
+                          {dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">Servizio a tempo con tariffe olimpiche</p>
+                      <p className="text-sm text-gray-500">{dictionary?.serviceType?.disposition?.olympicDescription || "Time-based service with Olympic rates"}</p>
                     </div>
                   </label>
 
@@ -425,12 +419,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">🚠</span>
-                        <span className="font-medium">Inter-Cluster</span>
+                        <span className="font-medium">{dictionary?.serviceType?.interCluster?.label || "Inter-Cluster"}</span>
                         <span className="px-2 py-0.5 text-xs rounded-full bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                          OLIMPIADI 2026
+                          {dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">Transfer tra sedi olimpiche</p>
+                      <p className="text-sm text-gray-500">{dictionary?.serviceType?.interCluster?.description || "Transfer between Olympic venues"}</p>
                     </div>
                   </label>
                 </div>

@@ -330,7 +330,7 @@ const olympicRouteTests = [
 olympicRouteTests.forEach(test => {
   const route = findOlympicRoute(test.from, test.to)
   if (route) {
-    const vehicles = ['olympic-sedan', 'olympic-suv', 'olympic-van', 'olympic-luxury'] as const
+    const vehicles = ['olympic-sedan','olympic-van', 'olympic-luxury'] as const
     let row = `<tr><td class="route-name">${test.desc}</td>`
     
     vehicles.forEach(vehicle => {
