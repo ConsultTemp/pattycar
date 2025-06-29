@@ -311,8 +311,8 @@ console.log("-".repeat(60))
 
 // Test some key Olympic routes
 const olympicRouteTests = [
-  { from: 'malpensa', to: 'milano-city', desc: 'Malpensa → Milano City' },
-  { from: 'linate', to: 'milano-city', desc: 'Linate → Milano City' },
+  { from: 'malpensa', to: 'milano', desc: 'Malpensa → Milano City' },
+  { from: 'linate', to: 'milano', desc: 'Linate → Milano City' },
   { from: 'malpensa', to: 'livigno', desc: 'Malpensa → Livigno' },
   { from: 'linate', to: 'bormio', desc: 'Linate → Bormio' },
   { from: 'milano-centrale', to: 'cortina', desc: 'Milano Centrale → Cortina' },

@@ -318,6 +318,17 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     []
   )
 
+  // Helper function to map standard vehicle types to Olympic vehicle types
+  const mapToOlympicVehicleType = (standardType: string): keyof OlympicRoute['prices'] => {
+    const mapping: Record<string, keyof OlympicRoute['prices']> = {
+      'sedan': 'olympic-sedan',
+      'van': 'olympic-minivan', 
+      'minibus': 'olympic-van',
+      'luxury-sedan': 'olympic-luxury'
+    }
+    return mapping[standardType] || 'olympic-sedan'
+  }
+
   // NEW: Calculate Olympic transfer pricing
   const calculateOlympicPrice = useCallback(
     async (state: BookingState, olympicRoute: OlympicRoute): Promise<PricingResult | null> => {
@@ -327,15 +338,15 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       let vehicleBreakdowns: any[] = []
       
       if (vehicles.count === 1 || vehicles.sameType) {
-        // Single vehicle type
-        const vehicleType = vehicles.singleConfig.type as keyof typeof olympicRoute.prices
-        const pricePerVehicle = olympicRoute.prices[vehicleType] || 0
+        // Single vehicle type - MAP TO OLYMPIC TYPE
+        const olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
+        const pricePerVehicle = olympicRoute.prices[olympicVehicleType] || 0
         basePrice = pricePerVehicle * vehicles.count
       } else {
-        // Multiple different vehicles
+        // Multiple different vehicles - MAP TO OLYMPIC TYPES
         vehicles.multipleConfigs.forEach((config, index) => {
-          const vehicleType = config.type as keyof typeof olympicRoute.prices
-          const vehiclePrice = olympicRoute.prices[vehicleType] || 0
+          const olympicVehicleType = mapToOlympicVehicleType(config.type)
+          const vehiclePrice = olympicRoute.prices[olympicVehicleType] || 0
           basePrice += vehiclePrice
           
           vehicleBreakdowns.push({

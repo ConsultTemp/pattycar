@@ -341,8 +341,8 @@ const olympicVehicles = getAllowedVehicleTypes(olympicDate)
 
 // Olympic Transfer Routes
 const olympicRouteTests = [
-  { from: 'malpensa', to: 'milano-city', desc: 'Malpensa → Milano City' },
-  { from: 'linate', to: 'milano-city', desc: 'Linate → Milano City' },
+  { from: 'malpensa', to: 'milano', desc: 'Malpensa → Milano City' },
+  { from: 'linate', to: 'milano', desc: 'Linate → Milano City' },
   { from: 'malpensa', to: 'livigno', desc: 'Malpensa → Livigno' },
   { from: 'linate', to: 'bormio', desc: 'Linate → Bormio' },
   { from: 'malpensa', to: 'verona', desc: 'Malpensa → Verona' }
@@ -390,7 +390,7 @@ const olympicDispHeaders = ['Veicolo', 'Tariffa Oraria', 'Giorno (8h con IVA)', 
 const olympicDispRows: string[][] = []
 
 olympicDispositionTests.forEach(test => {
-  const route = findOlympicRoute('malpensa', 'milano-city')
+  const route = findOlympicRoute('malpensa', 'milano')
   if (route) {
     const hourlyRate = route.extraHourRates[test.vehicle] || 100
     const dayHours = 8

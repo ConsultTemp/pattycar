@@ -107,10 +107,10 @@ export const OLYMPIC_LOCATIONS: Record<string, OlympicLocation> = {
   },
   
   // Olympic Destinations
-  'milano-city': {
-    id: 'milano-city',
-    name: 'Milano City Center',
-    displayName: 'Milano City Center',
+  'milano': {
+    id: 'milano',
+    name: 'Milano',
+    displayName: 'Milano',
     coordinates: { lat: 45.4642, lng: 9.1900 },
     type: 'city',
     isOlympicDestination: true
@@ -208,9 +208,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
   // Malpensa Routes
   {
     from: 'Milano Malpensa MXP',
-    to: 'Milano City Center',
+    to: 'Milano',
     fromLocationId: 'malpensa',
-    toLocationId: 'milano-city',
+    toLocationId: 'milano',
     prices: {
       'olympic-sedan': 220,
       'olympic-minivan': 255,
@@ -282,9 +282,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
   // Linate Routes
   {
     from: 'Milano Linate LIN',
-    to: 'Milano City Center',
+    to: 'Milano',
     fromLocationId: 'linate',
-    toLocationId: 'milano-city',
+    toLocationId: 'milano',
     prices: {
       'olympic-sedan': 135,
       'olympic-minivan': 150,
@@ -356,9 +356,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
   // Bergamo Routes
   {
     from: 'Bergamo BGY',
-    to: 'Milano City Center',
+    to: 'Milano',
     fromLocationId: 'bergamo',
-    toLocationId: 'milano-city',
+    toLocationId: 'milano',
     prices: {
       'olympic-sedan': 240,
       'olympic-minivan': 270,
@@ -430,9 +430,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
   // Milano Centrale Routes
   {
     from: 'Milano Stazione Centrale',
-    to: 'Milano City Center',
+    to: 'Milano',
     fromLocationId: 'milano-centrale',
-    toLocationId: 'milano-city',
+    toLocationId: 'milano',
     prices: {
       'olympic-sedan': 125,
       'olympic-minivan': 150,
@@ -506,9 +506,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
 export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
   // Milano Center to Olympic Venues
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Bormio',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'bormio',
     prices: {
       'olympic-sedan': 920,
@@ -524,9 +524,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     }
   },
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Livigno',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'livigno',
     prices: {
       'olympic-sedan': 1070,
@@ -542,9 +542,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     }
   },
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Cortina d\'Ampezzo',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'cortina',
     prices: {
       'olympic-sedan': 1380,
@@ -560,9 +560,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     }
   },
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Verona',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'verona',
     prices: {
       'olympic-sedan': 620,
@@ -654,9 +654,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
   
   // Additional Milano Center routes from official table
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Tirano',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'tirano',
     prices: {
       'olympic-sedan': 870,
@@ -672,9 +672,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     }
   },
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Anterselva',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'anterselva',
     prices: {
       'olympic-sedan': 1380,
@@ -690,9 +690,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     }
   },
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Val di Fiemme',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'val-di-fiemme',
     prices: {
       'olympic-sedan': 1290,
@@ -708,9 +708,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     }
   },
   {
-    from: 'Milano City Center',
+    from: 'Milano',
     to: 'Venezia',
-    fromLocationId: 'milano-city',
+    fromLocationId: 'milano',
     toLocationId: 'venezia',
     prices: {
       'olympic-sedan': 1020,
@@ -816,7 +816,7 @@ export const OLYMPIC_CEREMONIES: Record<string, OlympicCeremony> = {
     venue: 'Stadio San Siro',
     venueLocationId: 'san-siro',
     baseCity: 'Milano',
-    baseCityLocationId: 'milano-city',
+    baseCityLocationId: 'milano',
     pricing: {
       dispositionBase: {
         'berlina': 1700,        // Berlina per max 3 pax
@@ -1186,7 +1186,7 @@ function mapVehicleToCeremonyOlympicType(ceremonyType: 'berlina' | 'monovolume' 
 // Helper to get coordinates for ceremony base cities
 function getCeremonyBaseCityCoordinates(baseCityLocationId: string): { lat: number; lng: number } | null {
   const cityCoordinates: Record<string, { lat: number; lng: number }> = {
-    'milano-city': { lat: 45.4642, lng: 9.1900 }, // Milano center
+    'milano': { lat: 45.4642, lng: 9.1900 }, // Milano center
     'verona': { lat: 45.4384, lng: 10.9916 } // Verona center
   }
   

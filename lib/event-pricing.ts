@@ -49,6 +49,10 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
       milanoCortina: {
         enabled: true,
         routes: ["milano-cortina"]
+      },
+      olympicVenue: {
+        enabled: true,
+        routes: ["olympics-transfers"]
       }
     }
   },
@@ -113,19 +117,7 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     }
   },
 
-  "milano-city": {
-    id: "milano-city",
-    name: "Milano City Center",
-    displayName: "Milano City Center",
-    coordinates: { lat: 45.4642, lng: 9.1900 },
-    type: "city",
-    services: {
-      olympicVenue: {
-        enabled: true,
-        routes: ["olympics-transfers"]
-      }
-    }
-  },
+
 
   // NEW: Inter-cluster Olympic destinations  
   "anterselva": {
