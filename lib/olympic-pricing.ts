@@ -1,6 +1,8 @@
 // Olympic Winter Games Milano-Cortina 2026 Configuration
 // Period: January - March 2026
 
+import { findLocationByGeography, shouldUseListinoPricing } from './locality-mapping'
+
 export interface OlympicVehicleType {
   id: string
   name: string
@@ -513,8 +515,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 920,
       'olympic-minivan': 1170,
-      'olympic-van': 1170,
-      'olympic-luxury': 1170
+      'olympic-van': 1590,
+      'olympic-luxury': 1430
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -531,8 +533,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1070,
       'olympic-minivan': 1230,
-      'olympic-van': 1230,
-      'olympic-luxury': 1230
+      'olympic-van': 1780,
+      'olympic-luxury': 1630
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -549,8 +551,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1380,
       'olympic-minivan': 1620,
-      'olympic-van': 1620,
-      'olympic-luxury': 1620
+      'olympic-van': 2280,
+      'olympic-luxury': 2000
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -587,8 +589,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1600,
       'olympic-minivan': 1840,
-      'olympic-van': 1840,
-      'olympic-luxury': 1840
+      'olympic-van': 2580,
+      'olympic-luxury': 2200
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -605,8 +607,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1340,
       'olympic-minivan': 1550,
-      'olympic-van': 1550,
-      'olympic-luxury': 1550
+      'olympic-van': 2170,
+      'olympic-luxury': 1850
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -623,8 +625,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 950,
       'olympic-minivan': 1070,
-      'olympic-van': 1070,
-      'olympic-luxury': 1070
+      'olympic-van': 1500,
+      'olympic-luxury': 1300
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -641,8 +643,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 460,
       'olympic-minivan': 530,
-      'olympic-van': 530,
-      'olympic-luxury': 530
+      'olympic-van': 740,
+      'olympic-luxury': 630
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -661,8 +663,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 870,
       'olympic-minivan': 1100,
-      'olympic-van': 1100,
-      'olympic-luxury': 1100
+      'olympic-van': 1540,
+      'olympic-luxury': 1320
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -715,8 +717,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1020,
       'olympic-minivan': 1200,
-      'olympic-van': 1200,
-      'olympic-luxury': 1200
+      'olympic-van': 1680,
+      'olympic-luxury': 1440
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -735,8 +737,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 460,
       'olympic-minivan': 530,
-      'olympic-van': 530,
-      'olympic-luxury': 530
+      'olympic-van': 740,
+      'olympic-luxury': 630
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -753,8 +755,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 590,
       'olympic-minivan': 640,
-      'olympic-van': 640,
-      'olympic-luxury': 640
+      'olympic-van': 896,
+      'olympic-luxury': 768
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -771,8 +773,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 800,
       'olympic-minivan': 860,
-      'olympic-van': 860,
-      'olympic-luxury': 860
+      'olympic-van': 1204,
+      'olympic-luxury': 1032
     },
     extraHourRates: {
       'olympic-sedan': 94,
@@ -913,45 +915,73 @@ export function isOlympicPeriod(date: Date): boolean {
 }
 
 export function findOlympicRoute(fromLocationId: string, toLocationId: string): OlympicRoute | null {
+  console.log(`🔍 SEARCHING OLYMPIC ROUTE: ${fromLocationId} → ${toLocationId}`)
+  
   // First try standard transfer routes (airport/station to destination)
   const transferRoute = OLYMPIC_TRANSFER_ROUTES.find(route => 
     route.fromLocationId === fromLocationId && route.toLocationId === toLocationId
   )
   
-  if (transferRoute) return transferRoute
+  if (transferRoute) {
+    console.log(`✅ FOUND TRANSFER ROUTE: ${transferRoute.from} → ${transferRoute.to}`)
+    return transferRoute
+  }
   
   // Try airport/station routes
   const airportStationRoute = OLYMPIC_AIRPORT_STATION_ROUTES.find(route => 
     route.fromLocationId === fromLocationId && route.toLocationId === toLocationId
   )
   
-  if (airportStationRoute) return airportStationRoute
+  if (airportStationRoute) {
+    console.log(`✅ FOUND AIRPORT/STATION ROUTE: ${airportStationRoute.from} → ${airportStationRoute.to}`)
+    return airportStationRoute
+  }
   
   // Then try inter-cluster routes (destination to destination)
+  console.log(`🔍 SEARCHING INTER-CLUSTER ROUTES for ${fromLocationId} → ${toLocationId}`)
+  console.log(`Available inter-cluster routes:`, OLYMPIC_INTER_CLUSTER_ROUTES.map(r => `${r.fromLocationId} → ${r.toLocationId}`))
+  
   const interClusterRoute = OLYMPIC_INTER_CLUSTER_ROUTES.find(route => 
     route.fromLocationId === fromLocationId && route.toLocationId === toLocationId
   )
   
-  if (interClusterRoute) return interClusterRoute
+  if (interClusterRoute) {
+    console.log(`✅ FOUND INTER-CLUSTER ROUTE: ${interClusterRoute.from} → ${interClusterRoute.to}`)
+    return interClusterRoute
+  }
   
   // Try reverse routes for all
+  console.log(`🔄 TRYING REVERSE ROUTES for ${toLocationId} → ${fromLocationId}`)
+  
   const reverseTransferRoute = OLYMPIC_TRANSFER_ROUTES.find(route => 
     route.fromLocationId === toLocationId && route.toLocationId === fromLocationId
   )
   
-  if (reverseTransferRoute) return reverseTransferRoute
+  if (reverseTransferRoute) {
+    console.log(`✅ FOUND REVERSE TRANSFER ROUTE: ${reverseTransferRoute.from} → ${reverseTransferRoute.to}`)
+    return reverseTransferRoute
+  }
   
   const reverseAirportStationRoute = OLYMPIC_AIRPORT_STATION_ROUTES.find(route => 
     route.fromLocationId === toLocationId && route.toLocationId === fromLocationId
   )
   
-  if (reverseAirportStationRoute) return reverseAirportStationRoute
+  if (reverseAirportStationRoute) {
+    console.log(`✅ FOUND REVERSE AIRPORT/STATION ROUTE: ${reverseAirportStationRoute.from} → ${reverseAirportStationRoute.to}`)
+    return reverseAirportStationRoute
+  }
   
   const reverseInterClusterRoute = OLYMPIC_INTER_CLUSTER_ROUTES.find(route => 
     route.fromLocationId === toLocationId && route.toLocationId === fromLocationId
   )
   
-  return reverseInterClusterRoute || null
+  if (reverseInterClusterRoute) {
+    console.log(`✅ FOUND REVERSE INTER-CLUSTER ROUTE: ${reverseInterClusterRoute.from} → ${reverseInterClusterRoute.to}`)
+    return reverseInterClusterRoute
+  }
+  
+  console.log(`❌ NO OLYMPIC ROUTE FOUND for ${fromLocationId} → ${toLocationId}`)
+  return null
 }
 
 export function findOlympicCeremony(date: Date): OlympicCeremony | null {
@@ -986,7 +1016,7 @@ export function getCeremonyVehicleTypes(): { value: string; label: string; maxPa
       ceremonyPrice: 1700
     },
     {
-      value: 'monovolume', 
+      value: 'minivan', 
       label: 'Monovolume',
       maxPassengers: 6,
       maxLuggage: 4, // Max 4 grandi con bagagli
@@ -1025,8 +1055,11 @@ export function mapVehicleToCeremonyType(vehicleType: string): 'berlina' | 'mono
   switch (vehicleType) {
     case 'sedan':
     case 'luxury-sedan':
+    case 'berlina':
       return 'berlina'
     case 'van':
+    case 'minivan':
+    case 'monovolume':
       return 'monovolume'
     case 'minibus':
       return 'minibus'
@@ -1095,7 +1128,7 @@ export function calculateCeremonyPrice(
   }
   
   // Helper function to find transfer price
-  const findTransferPrice = (fromLocationId?: string, toLocationId?: string): OlympicRoute | null => {
+  const findTransferPrice = (fromLocationId?: string, toLocationId?: string, fromCoords?: { lat: number; lng: number }, toCoords?: { lat: number; lng: number }): OlympicRoute | null => {
     if (!fromLocationId || !toLocationId) return null
     
     // Try direct route first
@@ -1109,41 +1142,206 @@ export function calculateCeremonyPrice(
     return transferPrice
   }
   
+  // Helper function to calculate custom transfer price based on distance
+  const calculateCustomTransferPrice = (fromCoords: { lat: number; lng: number }, toCoords: { lat: number; lng: number }, vehicleType: keyof OlympicRoute['prices']): number => {
+    const distanceKm = calculateDistanceKm(fromCoords, toCoords)
+    
+    // Olympic period km rates (higher than regular rates)
+    const olympicKmRates: Record<keyof OlympicRoute['prices'], number> = {
+      'olympic-sedan': 2.5,      // €2.50 per km
+      'olympic-minivan': 2.8,    // €2.80 per km  
+      'olympic-van': 3.2,        // €3.20 per km
+      'olympic-luxury': 3.0      // €3.00 per km
+    }
+    
+    // Minimum charge (same as regular transfers)
+    const minimumCharges: Record<keyof OlympicRoute['prices'], number> = {
+      'olympic-sedan': 80,
+      'olympic-minivan': 90,
+      'olympic-van': 120,
+      'olympic-luxury': 100
+    }
+    
+    const kmRate = olympicKmRates[vehicleType]
+    const calculatedPrice = distanceKm * kmRate
+    const minimumCharge = minimumCharges[vehicleType]
+    
+    console.log("🎪 CUSTOM TRANSFER CALCULATION:", {
+      distanceKm: Math.round(distanceKm * 100) / 100,
+      kmRate,
+      calculatedPrice: Math.round(calculatedPrice * 100) / 100,
+      minimumCharge,
+      finalPrice: Math.max(calculatedPrice, minimumCharge)
+    })
+    
+    return Math.max(calculatedPrice, minimumCharge)
+  }
+  
+  // Helper function to get location display name
+  const getLocationDisplayName = (locationId?: string): string => {
+    if (!locationId) return 'custom-location'
+    
+    // Find in Olympic locations
+    const olympicLocation = OLYMPIC_LOCATIONS[locationId]
+    if (olympicLocation) return olympicLocation.displayName
+    
+    // Fallback to locationId
+    return locationId
+  }
+
   // Check pickup transfer (from pickup to ceremony base city)
   if (needsTransfer(pickupLocationId, pickupCoordinates)) {
+    const ceremonyOlympicVehicle = mapVehicleToCeremonyOlympicType(ceremonyVehicleType)
+    let pickupTransferCost = 0
+    
+    // First try to find predefined route
     const pickupTransfer = findTransferPrice(pickupLocationId || 'custom-location', ceremony.baseCityLocationId)
     
     if (pickupTransfer) {
-      const ceremonyOlympicVehicle = mapVehicleToCeremonyOlympicType(ceremonyVehicleType)
-      const pickupTransferCost = pickupTransfer.prices[ceremonyOlympicVehicle] || 0
-      transferCost += pickupTransferCost
-      transferRoutes.push(`${pickupLocationId || 'custom-location'} → ${ceremony.baseCity}`)
+      // Use predefined route price
+      pickupTransferCost = pickupTransfer.prices[ceremonyOlympicVehicle] || 0
       
-      console.log("🎪 PICKUP TRANSFER FOUND:", {
+      console.log("🎪 PICKUP TRANSFER (PREDEFINED):", {
         from: pickupLocationId || 'custom-location',
         to: ceremony.baseCityLocationId,
         cost: pickupTransferCost,
         vehicleType: ceremonyOlympicVehicle
       })
+    } else if (pickupCoordinates) {
+      // No predefined route found, check if coordinates match a listino location within 10km
+      console.log("🔍 CHECKING PICKUP COORDINATES FOR LISTINO LOCATION:", pickupCoordinates)
+      
+      const locationMapping = findLocationByGeography(pickupCoordinates)
+      if (locationMapping.locationId && locationMapping.confidence > 0.7) {
+        // Found a location in listino within 10km radius, use predefined route
+        console.log(`✅ PICKUP COORDS MATCH LISTINO LOCATION: ${locationMapping.locationId} (${locationMapping.distance?.toFixed(1)}km, ${(locationMapping.confidence * 100).toFixed(1)}% confidence)`)
+        
+        const mappedTransfer = findTransferPrice(locationMapping.locationId, ceremony.baseCityLocationId)
+        if (mappedTransfer) {
+          pickupTransferCost = mappedTransfer.prices[ceremonyOlympicVehicle] || 0
+          console.log("🎪 PICKUP TRANSFER (LISTINO FROM COORDS):", {
+            from: locationMapping.locationId,
+            to: ceremony.baseCityLocationId,
+            cost: pickupTransferCost,
+            vehicleType: ceremonyOlympicVehicle
+          })
+        } else {
+          // Fallback to distance calculation
+          const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
+          if (baseCityCoords) {
+            pickupTransferCost = calculateCustomTransferPrice(pickupCoordinates, baseCityCoords, ceremonyOlympicVehicle)
+            console.log("🎪 PICKUP TRANSFER (COORDS FALLBACK TO KM):", {
+              from: 'custom-coordinates',
+              to: ceremony.baseCityLocationId,
+              cost: pickupTransferCost,
+              vehicleType: ceremonyOlympicVehicle
+            })
+          }
+        }
+      } else {
+        // No listino location found, calculate based on distance
+        const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
+        if (baseCityCoords) {
+          pickupTransferCost = calculateCustomTransferPrice(pickupCoordinates, baseCityCoords, ceremonyOlympicVehicle)
+          
+          console.log("🎪 PICKUP TRANSFER (CUSTOM COORDS):", {
+            from: 'custom-coordinates',
+            to: ceremony.baseCityLocationId,
+            cost: pickupTransferCost,
+            vehicleType: ceremonyOlympicVehicle
+          })
+        }
+      }
+    } else {
+      console.log("🎪 PICKUP TRANSFER NOT CALCULATED:", {
+        from: pickupLocationId || 'no-coordinates',
+        to: ceremony.baseCityLocationId,
+        reason: 'No predefined route and no coordinates provided'
+      })
+    }
+    
+    if (pickupTransferCost > 0) {
+      transferCost += pickupTransferCost
+      const pickupDisplayName = getLocationDisplayName(pickupLocationId) || 'Posizione Custom'
+      transferRoutes.push(`${pickupDisplayName} → ${ceremony.baseCity}`)
     }
   }
   
   // Check destination transfer (from ceremony base city to destination)  
   if (needsTransfer(destinationLocationId, destinationCoordinates)) {
+    const ceremonyOlympicVehicle = mapVehicleToCeremonyOlympicType(ceremonyVehicleType)
+    let destinationTransferCost = 0
+    
+    // First try to find predefined route
     const destinationTransfer = findTransferPrice(ceremony.baseCityLocationId, destinationLocationId || 'custom-location')
     
     if (destinationTransfer) {
-      const ceremonyOlympicVehicle = mapVehicleToCeremonyOlympicType(ceremonyVehicleType)
-      const destinationTransferCost = destinationTransfer.prices[ceremonyOlympicVehicle] || 0
-      transferCost += destinationTransferCost
-      transferRoutes.push(`${ceremony.baseCity} → ${destinationTransfer.to}`)
+      // Use predefined route price
+      destinationTransferCost = destinationTransfer.prices[ceremonyOlympicVehicle] || 0
       
-      console.log("🎪 DESTINATION TRANSFER FOUND:", {
+      console.log("🎪 DESTINATION TRANSFER (PREDEFINED):", {
         from: ceremony.baseCityLocationId,
         to: destinationLocationId || 'custom-location',
         cost: destinationTransferCost,
         vehicleType: ceremonyOlympicVehicle
       })
+    } else if (destinationCoordinates) {
+      // No predefined route found, check if coordinates match a listino location within 10km
+      console.log("🔍 CHECKING DESTINATION COORDINATES FOR LISTINO LOCATION:", destinationCoordinates)
+      
+      const locationMapping = findLocationByGeography(destinationCoordinates)
+      if (locationMapping.locationId && locationMapping.confidence > 0.7) {
+        // Found a location in listino within 10km radius, use predefined route
+        console.log(`✅ DESTINATION COORDS MATCH LISTINO LOCATION: ${locationMapping.locationId} (${locationMapping.distance?.toFixed(1)}km, ${(locationMapping.confidence * 100).toFixed(1)}% confidence)`)
+        
+        const mappedTransfer = findTransferPrice(ceremony.baseCityLocationId, locationMapping.locationId)
+        if (mappedTransfer) {
+          destinationTransferCost = mappedTransfer.prices[ceremonyOlympicVehicle] || 0
+          console.log("🎪 DESTINATION TRANSFER (LISTINO FROM COORDS):", {
+            from: ceremony.baseCityLocationId,
+            to: locationMapping.locationId,
+            cost: destinationTransferCost,
+            vehicleType: ceremonyOlympicVehicle
+          })
+        } else {
+          // Fallback to distance calculation
+          const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
+          if (baseCityCoords) {
+            destinationTransferCost = calculateCustomTransferPrice(baseCityCoords, destinationCoordinates, ceremonyOlympicVehicle)
+            console.log("🎪 DESTINATION TRANSFER (COORDS FALLBACK TO KM):", {
+              from: ceremony.baseCityLocationId,
+              to: 'custom-coordinates',
+              cost: destinationTransferCost,
+              vehicleType: ceremonyOlympicVehicle
+            })
+          }
+        }
+      } else {
+        // No listino location found, calculate based on distance
+        const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
+        if (baseCityCoords) {
+          destinationTransferCost = calculateCustomTransferPrice(baseCityCoords, destinationCoordinates, ceremonyOlympicVehicle)
+          
+          console.log("🎪 DESTINATION TRANSFER (CUSTOM COORDS):", {
+            from: ceremony.baseCityLocationId,
+            to: 'custom-coordinates',
+            cost: destinationTransferCost,
+            vehicleType: ceremonyOlympicVehicle
+          })
+        }
+      }
+    } else {
+      console.log("🎪 DESTINATION TRANSFER NOT CALCULATED:", {
+        from: ceremony.baseCityLocationId,
+        to: destinationLocationId || 'no-coordinates',
+        reason: 'No predefined route and no coordinates provided'
+      })
+    }
+    
+    if (destinationTransferCost > 0) {
+      transferCost += destinationTransferCost
+      const destinationDisplayName = getLocationDisplayName(destinationLocationId) || 'Posizione Custom'
+      transferRoutes.push(`${ceremony.baseCity} → ${destinationDisplayName}`)
     }
   }
   

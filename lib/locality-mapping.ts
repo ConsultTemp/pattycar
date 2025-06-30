@@ -46,10 +46,18 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
   
   // Località olimpiche aggiuntive
   {
-    googleNames: ['Anterselva', 'Antholz'],
+    googleNames: [
+      'Anterselva', 'Antholz',
+      'Anterselva di Mezzo', 'Anterselva di Sopra', 'Anterselva di Sotto',
+      'Antholz Mittertal', 'Antholz Obertal', 'Antholz Niedertal'
+    ],
     locationId: 'anterselva',
     priority: 80,
-    aliases: ['Anterselva BZ', 'Antholz BZ']
+    aliases: [
+      'Anterselva BZ', 'Antholz BZ', 
+      'Anterselva di Mezzo BZ', 'Anterselva di Sopra BZ', 'Anterselva di Sotto BZ',
+      'Antholz Mittertal BZ', 'Antholz Obertal BZ', 'Antholz Niedertal BZ'
+    ]
   },
   {
     googleNames: ['Predazzo', 'Tesero', 'Val di Fiemme'],
