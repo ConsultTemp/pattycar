@@ -231,7 +231,7 @@
         "endTimeInvalid": "L'ora di fine deve essere successiva all'ora di inizio",
         "durationRequired": "Durata servizio richiesta",
         "selectStartTime": "Seleziona prima l'ora di inizio",
-        "serviceDuration": "Durata Servizio",
+        "serviceDuration": "Tempo di attesa a destinazione prima del ritorno",
         "effectiveDuration": "Durata effettiva:",
         "billableHours": "Ore fatturabili:",
         "hourlyRate": "Il prezzo è calcolato su base oraria",

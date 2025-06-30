@@ -53,6 +53,38 @@ export const isNightTime = (hour: string, minutes: string, ampm: string): boolea
   return totalMinutes >= 1170 || totalMinutes <= 450
 }
 
+// Helper function to calculate distance between two coordinates in kilometers
+const calculateDistanceKm = (coord1: { lat: number; lng: number }, coord2: { lat: number; lng: number }): number => {
+  const R = 6371 // Radius of the Earth in kilometers
+  const dLat = (coord2.lat - coord1.lat) * Math.PI / 180
+  const dLng = (coord2.lng - coord1.lng) * Math.PI / 180
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) * 
+    Math.sin(dLng/2) * Math.sin(dLng/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  const distance = R * c // Distance in kilometers
+  return distance
+}
+
+// Milano center coordinates (Duomo area)
+const MILANO_CENTER_COORDINATES = { lat: 45.4642, lng: 9.1900 }
+const MILANO_RADIUS_KM = 10 // 10km radius from Milano center
+const MILANO_INTERNAL_TRANSFER_PRICE = 125 // Fixed price for Milano internal transfers
+
+// Function to check if both pickup and destination are within Milano metropolitan area
+const isInternalMilanoTransfer = (
+  pickupCoords?: { lat: number; lng: number },
+  destinationCoords?: { lat: number; lng: number }
+): boolean => {
+  if (!pickupCoords || !destinationCoords) return false
+  
+  const pickupDistance = calculateDistanceKm(MILANO_CENTER_COORDINATES, pickupCoords)
+  const destinationDistance = calculateDistanceKm(MILANO_CENTER_COORDINATES, destinationCoords)
+  
+  return pickupDistance <= MILANO_RADIUS_KM && destinationDistance <= MILANO_RADIUS_KM
+}
+
 // Funzione per calcolare il prezzo totale basato sulla distanza (transfer)
 export function calculateTotalPrice(
   distanceKm: number,
@@ -63,10 +95,32 @@ export function calculateTotalPrice(
   // Parametri opzionali per il supplemento notturno
   hour?: string,
   minutes?: string,
-  ampm?: string
+  ampm?: string,
+  // Parametri opzionali per le coordinate (per check Milano interno)
+  pickupCoords?: { lat: number; lng: number },
+  destinationCoords?: { lat: number; lng: number }
 ): { basePrice: number; totalPrice: number; breakdown: any } {
-  // Prezzo base basato sulla distanza
-  const basePrice = distanceKm * PRICE_PER_KM
+  // Check if this is an internal Milano transfer (both pickup and destination within 10km of Milano center)
+  const isMilanoInternal = isInternalMilanoTransfer(pickupCoords, destinationCoords)
+  
+  // Prezzo base
+  let basePrice: number
+  let isFixedPrice = false
+  
+  if (isMilanoInternal) {
+    // Fixed price for internal Milano transfers
+    basePrice = MILANO_INTERNAL_TRANSFER_PRICE
+    isFixedPrice = true
+    console.log("🏢 MILANO INTERNAL TRANSFER DETECTED:", {
+      pickup: pickupCoords,
+      destination: destinationCoords,
+      fixedPrice: basePrice,
+      distanceWouldBe: distanceKm + 'km'
+    })
+  } else {
+    // Distance-based pricing for other transfers
+    basePrice = distanceKm * PRICE_PER_KM
+  }
 
   // Applica i moltiplicatori
   const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicleType] || 1.0
@@ -92,7 +146,7 @@ export function calculateTotalPrice(
     totalPrice,
     breakdown: {
       distanceKm,
-      pricePerKm: PRICE_PER_KM,
+      pricePerKm: isFixedPrice ? 0 : PRICE_PER_KM,
       basePrice,
       vehicleMultiplier,
       passengerMultiplier,
@@ -104,6 +158,8 @@ export function calculateTotalPrice(
       subtotal,
       vatAmount,
       vatRate: VAT_RATE,
+      isMilanoInternal,
+      isFixedPrice,
     },
   }
 }
@@ -115,13 +171,36 @@ export function calculateMultipleVehiclesPrice(
   // Parametri opzionali per il supplemento notturno
   hour?: string,
   minutes?: string,
-  ampm?: string
+  ampm?: string,
+  // Parametri opzionali per le coordinate (per check Milano interno)
+  pickupCoords?: { lat: number; lng: number },
+  destinationCoords?: { lat: number; lng: number }
 ): { basePrice: number; totalPrice: number; breakdown: any; vehicleBreakdowns: any[] } {
   let subtotal = 0
   const vehicleBreakdowns: any[] = []
 
+  // Check if this is an internal Milano transfer
+  const isMilanoInternal = isInternalMilanoTransfer(pickupCoords, destinationCoords)
+  
   // Calcola il prezzo base della tratta
-  const basePrice = distanceKm * PRICE_PER_KM
+  let basePrice: number
+  let isFixedPrice = false
+  
+  if (isMilanoInternal) {
+    // Fixed price for internal Milano transfers
+    basePrice = MILANO_INTERNAL_TRANSFER_PRICE
+    isFixedPrice = true
+    console.log("🏢 MILANO INTERNAL TRANSFER DETECTED (MULTIPLE VEHICLES):", {
+      pickup: pickupCoords,
+      destination: destinationCoords,
+      fixedPrice: basePrice,
+      distanceWouldBe: distanceKm + 'km',
+      vehicleCount: vehicles.length
+    })
+  } else {
+    // Distance-based pricing for other transfers
+    basePrice = distanceKm * PRICE_PER_KM
+  }
   
   // Verifica se è orario notturno
   const isNight = hour && minutes && ampm && isNightTime(hour, minutes, ampm)
@@ -166,13 +245,15 @@ export function calculateMultipleVehiclesPrice(
     totalPrice,
     breakdown: {
       distanceKm,
-      pricePerKm: PRICE_PER_KM,
+      pricePerKm: isFixedPrice ? 0 : PRICE_PER_KM,
       basePrice,
       totalVehicles: vehicles.length,
       nightSurchargeRate: isNight ? NIGHT_SURCHARGE_RATE : 0,
       subtotal,
       vatAmount,
       vatRate: VAT_RATE,
+      isMilanoInternal,
+      isFixedPrice,
     },
     vehicleBreakdowns,
   }

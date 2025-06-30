@@ -153,7 +153,7 @@
         "dateLabel": "Select service date *",
         "dateRequired": "Date required",
         "selectDate": "Select date",
-        "dateImportance": "The date is fundamental: prices and service availability depend on it. Please select the date first to proceed.",
+        "dateImportance": "The date is fundamental: prices and service availability depend on it. Please select the date before to proceed.",
         "dateSelected": "Date selected! You can now proceed with the trip configuration."
       },
       "serviceType": {
@@ -231,7 +231,7 @@
         "endTimeInvalid": "End time must be after start time",
         "durationRequired": "Service duration required",
         "selectStartTime": "Select start time first",
-        "serviceDuration": "Service Duration",
+        "serviceDuration": "Waiting time at destination before return",
         "effectiveDuration": "Effective duration:",
         "billableHours": "Billable hours:",
         "hourlyRate": "Price is calculated on hourly basis",

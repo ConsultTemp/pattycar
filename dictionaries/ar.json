@@ -231,7 +231,7 @@
         "endTimeInvalid": "وقت النهاية يجب أن يكون بعد وقت البداية",
         "durationRequired": "مدة الخدمة مطلوبة",
         "selectStartTime": "اختر وقت البداية أولاً",
-        "serviceDuration": "مدة الخدمة",
+        "serviceDuration": "وقت الانتظار في الوجهة قبل العودة",
         "effectiveDuration": "المدة الفعلية:",
         "billableHours": "الساعات القابلة للفوترة:",
         "hourlyRate": "السعر محسوب على أساس ساعي",

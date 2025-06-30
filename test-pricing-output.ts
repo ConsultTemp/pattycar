@@ -461,7 +461,8 @@ meetGreetTests.forEach(test => {
       extraLuggage: scenario.extraLuggage,
       extraHours: 0,
       specialServices: {},
-      isNight: scenario.isNight
+      isNight: scenario.isNight,
+      serviceDate: undefined // No specific date for basic testing
     })
     
     const withoutVAT = calculateWithoutVAT(result.total, 22)

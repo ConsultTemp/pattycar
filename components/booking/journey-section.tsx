@@ -596,7 +596,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                 {useOlympicDurationLogic ? (
                   /* Olympic Logic: Duration Selection */
                   <>
-                    <Label htmlFor="serviceDuration" className={hasAttemptedSubmit && !journey.serviceDuration ? "text-red-500" : ""}>Durata servizio *</Label>
+                    <Label htmlFor="serviceDuration" className={hasAttemptedSubmit && !journey.serviceDuration ? "text-red-500" : ""}>{dictionary.serviceDuration} *</Label>
                     <Select
                       value={journey.serviceDuration || ""}
                       onValueChange={(value) => onChange({ serviceDuration: value })}
@@ -614,14 +614,6 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                       <p className="text-red-500 text-sm mt-1" role="alert">
                         {dictionary.durationRequired}
                       </p>
-                    )}
-                    {journey.serviceDuration && journey.time && journey.minutes && (
-                      <div className="text-sm text-gray-600 mt-2">
-                        <p>
-                          <strong>Fine calcolata:</strong> {journey.endTime}:{journey.endMinutes}
-                          {!is24HourFormat && ` ${journey.endTimeAmPm}`}
-                        </p>
-                      </div>
                     )}
                   </>
                 ) : (
@@ -732,7 +724,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                   /* Olympic Logic: Use selected duration */
                   <div className="space-y-1">
                     <p>
-                      <strong>Durata selezionata:</strong> {journey.serviceDuration}h
+                      <strong>Tempo selezionato:</strong> {journey.serviceDuration}h
                     </p>
                     <p>
                       <strong>Inizio:</strong> {journey.time}:{journey.minutes}

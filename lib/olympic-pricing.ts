@@ -178,8 +178,17 @@ export const OLYMPIC_LOCATIONS: Record<string, OlympicLocation> = {
   'venezia': {
     id: 'venezia',
     name: 'Venezia',
-    displayName: 'Venezia Hotel (incl. water taxi)',
+    displayName: 'Venezia Hotel',
     coordinates: { lat: 45.4408, lng: 12.3155 },
+    type: 'city',
+    isOlympicDestination: true
+  },
+  
+  'treviso': {
+    id: 'treviso',
+    name: 'Treviso',
+    displayName: 'Treviso',
+    coordinates: { lat: 45.6684, lng: 12.2431 },
     type: 'city',
     isOlympicDestination: true
   }
@@ -501,6 +510,282 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-van': 135,
       'olympic-luxury': 135
     }
+  },
+  
+  // Venezia VCE Routes
+  {
+    from: 'Venezia VCE',
+    to: 'Cortina',
+    fromLocationId: 'venezia',
+    toLocationId: 'cortina',
+    prices: {
+      'olympic-sedan': 590,
+      'olympic-minivan': 640,
+      'olympic-van': 896,
+      'olympic-luxury': 768
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia VCE',
+    to: 'Anterselva',
+    fromLocationId: 'venezia',
+    toLocationId: 'anterselva',
+    prices: {
+      'olympic-sedan': 760,
+      'olympic-minivan': 825,
+      'olympic-van': 1155,
+      'olympic-luxury': 990
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia VCE',
+    to: 'Anterselva (via A22)',
+    fromLocationId: 'venezia',
+    toLocationId: 'anterselva',
+    prices: {
+      'olympic-sedan': 1370,
+      'olympic-minivan': 1470,
+      'olympic-van': 2058,
+      'olympic-luxury': 1764
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia VCE',
+    to: 'Val di Fiemme',
+    fromLocationId: 'venezia',
+    toLocationId: 'val-di-fiemme',
+    prices: {
+      'olympic-sedan': 730,
+      'olympic-minivan': 780,
+      'olympic-van': 1092,
+      'olympic-luxury': 936
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia VCE',
+    to: 'Verona',
+    fromLocationId: 'venezia',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 510,
+      'olympic-minivan': 550,
+      'olympic-van': 770,
+      'olympic-luxury': 660
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  
+  // Treviso TSF Routes
+  {
+    from: 'Treviso TSF',
+    to: 'Cortina',
+    fromLocationId: 'treviso',
+    toLocationId: 'cortina',
+    prices: {
+      'olympic-sedan': 570,
+      'olympic-minivan': 620,
+      'olympic-van': 868,
+      'olympic-luxury': 744
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Treviso TSF',
+    to: 'Anterselva',
+    fromLocationId: 'treviso',
+    toLocationId: 'anterselva',
+    prices: {
+      'olympic-sedan': 760,
+      'olympic-minivan': 830,
+      'olympic-van': 1162,
+      'olympic-luxury': 996
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Treviso TSF',
+    to: 'Anterselva (via A22)',
+    fromLocationId: 'treviso',
+    toLocationId: 'anterselva',
+    prices: {
+      'olympic-sedan': 1360,
+      'olympic-minivan': 1470,
+      'olympic-van': 2058,
+      'olympic-luxury': 1764
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Treviso TSF',
+    to: 'Val di Fiemme',
+    fromLocationId: 'treviso',
+    toLocationId: 'val-di-fiemme',
+    prices: {
+      'olympic-sedan': 670,
+      'olympic-minivan': 710,
+      'olympic-van': 994,
+      'olympic-luxury': 852
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Treviso TSF',
+    to: 'Verona',
+    fromLocationId: 'treviso',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 510,
+      'olympic-minivan': 550,
+      'olympic-van': 770,
+      'olympic-luxury': 660
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  
+  // Venezia Santa Lucia Routes
+  {
+    from: 'Venezia Stazione Santa Lucia',
+    to: 'Cortina',
+    fromLocationId: 'venezia',
+    toLocationId: 'cortina',
+    prices: {
+      'olympic-sedan': 590,
+      'olympic-minivan': 650,
+      'olympic-van': 910,
+      'olympic-luxury': 780
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia Stazione Santa Lucia',
+    to: 'Anterselva',
+    fromLocationId: 'venezia',
+    toLocationId: 'anterselva',
+    prices: {
+      'olympic-sedan': 790,
+      'olympic-minivan': 860,
+      'olympic-van': 1204,
+      'olympic-luxury': 1032
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia Stazione Santa Lucia',
+    to: 'Anterselva (via A22)',
+    fromLocationId: 'venezia',
+    toLocationId: 'anterselva',
+    prices: {
+      'olympic-sedan': 1460,
+      'olympic-minivan': 1470,
+      'olympic-van': 2058,
+      'olympic-luxury': 1764
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia Stazione Santa Lucia',
+    to: 'Val di Fiemme',
+    fromLocationId: 'venezia',
+    toLocationId: 'val-di-fiemme',
+    prices: {
+      'olympic-sedan': 750,
+      'olympic-minivan': 740,
+      'olympic-van': 1036,
+      'olympic-luxury': 888
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Venezia Stazione Santa Lucia',
+    to: 'Verona',
+    fromLocationId: 'venezia',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 540,
+      'olympic-minivan': 590,
+      'olympic-van': 826,
+      'olympic-luxury': 708
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
   }
 ]
 
@@ -768,6 +1053,26 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
   {
     from: 'Cortina Center',
     to: 'Venezia',
+    fromLocationId: 'cortina',
+    toLocationId: 'venezia',
+    prices: {
+      'olympic-sedan': 800,
+      'olympic-minivan': 860,
+      'olympic-van': 1204,
+      'olympic-luxury': 1032
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 108,
+      'olympic-luxury': 108
+    }
+  },
+  
+  // Additional route from pricing table
+  {
+    from: 'Cortina',
+    to: 'Venezia Hotel (incl. water taxi)',
     fromLocationId: 'cortina',
     toLocationId: 'venezia',
     prices: {
@@ -1111,19 +1416,50 @@ export function calculateCeremonyPrice(
   
   // Helper function to check if location needs transfer
   const needsTransfer = (locationId?: string, coordinates?: { lat: number; lng: number }): boolean => {
+    // Get ceremony base city coordinates for distance calculation
+    const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
+    if (!baseCityCoords) return false
+    
     if (locationId) {
-      // For location IDs, check if different from ceremony base city
-      return locationId !== ceremony.baseCityLocationId
-    }
-    if (coordinates) {
-      // For custom coordinates, check distance from ceremony base city
-      // Get ceremony base city coordinates
-      const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
-      if (baseCityCoords) {
-        const distance = calculateDistanceKm(coordinates, baseCityCoords)
-        return distance > 50 // More than 50km from base city = needs transfer
+      // For location IDs, first try to get coordinates from OLYMPIC_LOCATIONS or LOCATION_REGISTRY
+      let locationCoords: { lat: number; lng: number } | null = null
+      
+      // Check OLYMPIC_LOCATIONS first
+      const olympicLocation = OLYMPIC_LOCATIONS[locationId]
+      if (olympicLocation) {
+        locationCoords = olympicLocation.coordinates
+      } else {
+        // Check LOCATION_REGISTRY from event-pricing
+        try {
+          const { getLocationById } = require('@/lib/event-pricing')
+          const location = getLocationById(locationId)
+          if (location) {
+            locationCoords = location.coordinates
+          }
+        } catch (error) {
+          console.log("Could not load event-pricing for location lookup:", error)
+        }
+      }
+      
+      if (locationCoords) {
+        // Use geographical distance check (10km radius around ceremony base city)
+        const distance = calculateDistanceKm(locationCoords, baseCityCoords)
+        console.log(`🎪 CEREMONY LOCATION DISTANCE CHECK: ${locationId} is ${distance.toFixed(1)}km from ${ceremony.baseCity}`)
+        return distance > 10 // More than 10km from base city = needs transfer
+      } else {
+        // Fallback: if can't find coordinates, use ID comparison
+        console.log(`⚠️ CEREMONY LOCATION: Could not find coordinates for ${locationId}, falling back to ID comparison`)
+        return locationId !== ceremony.baseCityLocationId
       }
     }
+    
+    if (coordinates) {
+      // For custom coordinates, check distance from ceremony base city (10km radius)
+      const distance = calculateDistanceKm(coordinates, baseCityCoords)
+      console.log(`🎪 CEREMONY CUSTOM COORDS DISTANCE CHECK: ${distance.toFixed(1)}km from ${ceremony.baseCity}`)
+      return distance > 10 // More than 10km from base city = needs transfer
+    }
+    
     return false
   }
   

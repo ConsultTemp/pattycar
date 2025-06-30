@@ -486,7 +486,8 @@ meetGreetTests.forEach(test => {
       extraLuggage: scenario.extraLuggage,
       extraHours: 0, // No extra hours for core testing
       specialServices: {},
-      isNight: false
+      isNight: false,
+      serviceDate: undefined // No specific date for basic testing
     })
     
     const withoutVAT = calculateWithoutVAT(result.total, 22) // Meet & Greet has 22% VAT

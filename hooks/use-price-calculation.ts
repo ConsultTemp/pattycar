@@ -366,7 +366,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           options.meetGreetConfig.infants,
           options.meetGreetConfig.extraLuggage,
           isNight,
-          options.meetGreetConfig.specialServices || {}
+          options.meetGreetConfig.specialServices || {},
+          journey.date // Pass service date for holiday surcharge
         )
         
         meetGreetPrice = meetGreetResult.price * vehicles.count
@@ -484,7 +485,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           options.meetGreetConfig.infants,
           options.meetGreetConfig.extraLuggage,
           isNight,
-          options.meetGreetConfig.specialServices || {}
+          options.meetGreetConfig.specialServices || {},
+          journey.date // Pass service date for holiday surcharge
         )
         
         meetGreetPrice = meetGreetResult.price * vehicles.count
@@ -574,7 +576,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           options.meetGreetConfig.infants,
           options.meetGreetConfig.extraLuggage,
           isNight,
-          options.meetGreetConfig.specialServices || {}
+          options.meetGreetConfig.specialServices || {},
+          journey.date // Pass service date for holiday surcharge
         )
         
         // Multiply Meet & Greet price by number of vehicles
@@ -682,7 +685,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         basePrice = subtotal
       }
 
-      // OLYMPIC DISPOSITION: Add transfer cost from Milano Centrale to disposition start point
+      // OLYMPIC DISPOSITION: Add transfer cost from Milano Centrale to disposition start point ONLY if outside Milano hinterland
       let transferCost = 0
       let transferRoute = ''
       if (journey.date && isOlympicPeriod(journey.date)) {
@@ -694,32 +697,55 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         
         // Find transfer route from Milano Centrale to disposition start point
         if (resolvedPickup.resolvedLocationId && resolvedPickup.resolvedLocationId !== 'milano-centrale') {
-          const transferRouteFromMilano = findOlympicRoute('milano-centrale', resolvedPickup.resolvedLocationId)
+          // Check if location is within Milano hinterland (10km)
+          const milanoCentroCoordinates = { lat: 45.4642, lng: 9.1900 } // Milano centro coordinates
+          const pickupCoordinates = resolvedPickup.resolvedCoordinates
           
-          if (transferRouteFromMilano) {
-            // Map vehicle type to Olympic vehicle type for transfer pricing
-            let olympicVehicleType: keyof typeof transferRouteFromMilano.prices = 'olympic-sedan'
+          let isInMilanoHinterland = false
+          if (pickupCoordinates) {
+            const distanceFromMilanoCenter = calculateDistanceKm(milanoCentroCoordinates, pickupCoordinates)
+            isInMilanoHinterland = distanceFromMilanoCenter <= 10
             
-            if (vehicles.count === 1 || vehicles.sameType) {
-              olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
-            } else {
-              // For multiple vehicles, use the first one for transfer calculation
-              olympicVehicleType = mapToOlympicVehicleType(vehicles.multipleConfigs[0].type)
-            }
-            
-            transferCost = transferRouteFromMilano.prices[olympicVehicleType] * vehicles.count
-            transferRoute = `${transferRouteFromMilano.from} → ${transferRouteFromMilano.to}`
-            subtotal += transferCost
-            
-            // Transfer cost is included in subtotal, no need for separate breakdown
-            
-            console.log("🚗 OLYMPIC DISPOSITION TRANSFER:", {
-              from: 'milano-centrale',
-              to: resolvedPickup.resolvedLocationId,
-              vehicleType: olympicVehicleType,
-              cost: transferCost,
-              route: transferRoute
+            console.log("🏙️ OLYMPIC DISPOSITION MILANO HINTERLAND CHECK:", {
+              pickupLocation: journey.pickup.address,
+              pickupLocationId: resolvedPickup.resolvedLocationId,
+              distanceFromMilanoCenter: distanceFromMilanoCenter.toFixed(1) + 'km',
+              isInHinterland: isInMilanoHinterland
             })
+          }
+          
+          if (!isInMilanoHinterland) {
+            // Outside Milano hinterland - calculate transfer cost
+            const transferRouteFromMilano = findOlympicRoute('milano-centrale', resolvedPickup.resolvedLocationId)
+            
+            if (transferRouteFromMilano) {
+              // Map vehicle type to Olympic vehicle type for transfer pricing
+              let olympicVehicleType: keyof typeof transferRouteFromMilano.prices = 'olympic-sedan'
+              
+              if (vehicles.count === 1 || vehicles.sameType) {
+                olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
+              } else {
+                // For multiple vehicles, use the first one for transfer calculation
+                olympicVehicleType = mapToOlympicVehicleType(vehicles.multipleConfigs[0].type)
+              }
+              
+              transferCost = transferRouteFromMilano.prices[olympicVehicleType] * vehicles.count
+              transferRoute = `${transferRouteFromMilano.from} → ${transferRouteFromMilano.to}`
+              subtotal += transferCost
+              
+              // Transfer cost is included in subtotal, no need for separate breakdown
+              
+              console.log("🚗 OLYMPIC DISPOSITION TRANSFER (OUTSIDE HINTERLAND):", {
+                from: 'milano-centrale',
+                to: resolvedPickup.resolvedLocationId,
+                vehicleType: olympicVehicleType,
+                cost: transferCost,
+                route: transferRoute
+              })
+            }
+          } else {
+            // Within Milano hinterland - NO transfer cost
+            console.log("✅ OLYMPIC DISPOSITION: Location within Milano hinterland (10km) - NO transfer cost applied")
           }
         }
       }
@@ -762,7 +788,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           options.meetGreetConfig.infants,
           options.meetGreetConfig.extraLuggage,
           isNight,
-          options.meetGreetConfig.specialServices || {}
+          options.meetGreetConfig.specialServices || {},
+          journey.date // Pass service date for holiday surcharge
         )
         
         // Multiply Meet & Greet price by number of vehicles
@@ -852,6 +879,13 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           
           // For transfers (NOT dispositions), try Olympic routes first
           if (serviceType !== "disposizione") {
+            console.log("🔍 RESOLVING LOCATIONS FOR OLYMPIC PRICING:", {
+              pickupLocationId: journey.pickup.locationId,
+              pickupAddress: journey.pickup.address,
+              destinationLocationId: journey.destination.locationId,
+              destinationAddress: journey.destination.address
+            })
+            
             const resolvedPickup = resolveLocationForPricing(
               journey.pickup.locationId, 
               journey.pickup.coordinates
@@ -861,16 +895,32 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               journey.destination.coordinates
             )
             
+            console.log("✅ RESOLVED LOCATIONS:", {
+              pickup: resolvedPickup,
+              destination: resolvedDestination
+            })
+            
             if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+              console.log("🏔️ SEARCHING OLYMPIC ROUTE:", {
+                from: resolvedPickup.resolvedLocationId,
+                to: resolvedDestination.resolvedLocationId
+              })
+              
               const olympicRoute = findOlympicRoute(
                 resolvedPickup.resolvedLocationId,
                 resolvedDestination.resolvedLocationId
               )
               
+              console.log("🎯 OLYMPIC ROUTE RESULT:", olympicRoute)
+              
               if (olympicRoute) {
                 console.log("🏔️ OLYMPIC TRANSFER ROUTE FOUND - Using calculateOlympicPrice")
                 return await calculateOlympicPrice(state, olympicRoute)
+              } else {
+                console.log("❌ NO OLYMPIC ROUTE FOUND - Will fallback to standard pricing")
               }
+            } else {
+              console.log("❌ MISSING RESOLVED LOCATION IDs - Cannot search Olympic routes")
             }
           } else {
             console.log("⏰ OLYMPIC DISPOSITION - Skipping Olympic route search, will use event pricing")
@@ -946,7 +996,9 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               vehicles.count,
               journey.time,
               journey.minutes,
-              journey.timeAmPm
+              journey.timeAmPm,
+              journey.pickup.coordinates,
+              journey.destination.coordinates
             )
           } else {
             standardPricing = calculateMultipleVehiclesPrice(
@@ -954,7 +1006,9 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               vehicles.multipleConfigs,
               journey.time,
               journey.minutes,
-              journey.timeAmPm
+              journey.timeAmPm,
+              journey.pickup.coordinates,
+              journey.destination.coordinates
             )
           }
         } else if (serviceType === "disposizione") {
@@ -985,7 +1039,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             )
           }
 
-          // STANDARD DISPOSITION: Add transfer cost from Milano Centrale to disposition start point
+          // STANDARD DISPOSITION: Add transfer cost from Milano Centrale to disposition start point ONLY if outside Milano hinterland
           if (standardPricing) {
             const resolvedPickup = resolveLocationForPricing(
               journey.pickup.locationId, 
@@ -1000,49 +1054,69 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               try {
                 // Get distance from Milano Centrale to disposition start point
                 const milanoCoordinates = { lat: 45.4868, lng: 9.2037 } // Milano Centrale coordinates
+                const milanoCentroCoordinates = { lat: 45.4642, lng: 9.1900 } // Milano centro coordinates for hinterland check
                 const pickupCoordinates = resolvedPickup.resolvedCoordinates
                 
                 if (pickupCoordinates) {
-                  // Calculate distance between Milano Centrale and pickup location
-                  const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
+                  // Check if pickup location is within Milano hinterland (10km from Milano center)
+                  const distanceFromMilanoCenter = calculateDistanceKm(milanoCentroCoordinates, pickupCoordinates)
                   
-                  // Use standard pricing for the transfer
-                  let vehicleType = 'sedan' // default
-                  let passengers = 1
-                  let luggage = 0
-                  
-                  if (vehicles.count === 1 || vehicles.sameType) {
-                    vehicleType = vehicles.singleConfig.type
-                    passengers = vehicles.singleConfig.passengers
-                    luggage = vehicles.singleConfig.luggage
-                  } else {
-                    // For multiple vehicles, use the first one for transfer calculation
-                    vehicleType = vehicles.multipleConfigs[0].type
-                    passengers = vehicles.multipleConfigs[0].passengers
-                    luggage = vehicles.multipleConfigs[0].luggage
-                  }
-                  
-                  // Calculate transfer price using standard pricing
-                  const transferPricing = calculateTotalPrice(
-                    distance,
-                    vehicleType,
-                    passengers,
-                    luggage,
-                    vehicles.count,
-                    journey.time,
-                    journey.minutes,
-                    journey.timeAmPm
-                  )
-                  
-                  transferCost = transferPricing.basePrice
-                  transferRoute = `Milano Centrale → ${journey.pickup.address}`
-                  
-                  console.log("🚗 STANDARD DISPOSITION TRANSFER:", {
-                    distance: distance.toFixed(1) + 'km',
-                    vehicleType,
-                    cost: transferCost,
-                    route: transferRoute
+                  console.log("🏙️ DISPOSITION MILANO HINTERLAND CHECK:", {
+                    pickupLocation: journey.pickup.address,
+                    pickupLocationId: resolvedPickup.resolvedLocationId,
+                    distanceFromMilanoCenter: distanceFromMilanoCenter.toFixed(1) + 'km',
+                    isInHinterland: distanceFromMilanoCenter <= 10
                   })
+                  
+                  if (distanceFromMilanoCenter <= 10) {
+                    // Within Milano hinterland - NO transfer cost
+                    console.log("✅ DISPOSITION: Location within Milano hinterland (10km) - NO transfer cost applied")
+                    transferCost = 0
+                    transferRoute = ''
+                  } else {
+                    // Outside Milano hinterland - calculate transfer cost
+                    const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
+                    
+                    // Use standard pricing for the transfer
+                    let vehicleType = 'sedan' // default
+                    let passengers = 1
+                    let luggage = 0
+                    
+                    if (vehicles.count === 1 || vehicles.sameType) {
+                      vehicleType = vehicles.singleConfig.type
+                      passengers = vehicles.singleConfig.passengers
+                      luggage = vehicles.singleConfig.luggage
+                    } else {
+                      // For multiple vehicles, use the first one for transfer calculation
+                      vehicleType = vehicles.multipleConfigs[0].type
+                      passengers = vehicles.multipleConfigs[0].passengers
+                      luggage = vehicles.multipleConfigs[0].luggage
+                    }
+                    
+                    // Calculate transfer price using standard pricing
+                    const transferPricing = calculateTotalPrice(
+                      distance,
+                      vehicleType,
+                      passengers,
+                      luggage,
+                      vehicles.count,
+                      journey.time,
+                      journey.minutes,
+                      journey.timeAmPm,
+                      milanoCoordinates, // Milano Centrale coordinates
+                      pickupCoordinates  // Pickup coordinates
+                    )
+                    
+                    transferCost = transferPricing.basePrice
+                    transferRoute = `Milano Centrale → ${journey.pickup.address}`
+                    
+                    console.log("🚗 STANDARD DISPOSITION TRANSFER (OUTSIDE HINTERLAND):", {
+                      distance: distance.toFixed(1) + 'km',
+                      vehicleType,
+                      cost: transferCost,
+                      route: transferRoute
+                    })
+                  }
                 }
               } catch (error) {
                 console.error("Error calculating transfer distance:", error)
@@ -1129,7 +1203,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               options.meetGreetConfig.infants,
               options.meetGreetConfig.extraLuggage,
               isNight,
-              options.meetGreetConfig.specialServices || {}
+              options.meetGreetConfig.specialServices || {},
+              journey.date // Pass service date for holiday surcharge
             )
             
             // Multiply Meet & Greet price by number of vehicles

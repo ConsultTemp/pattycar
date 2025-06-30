@@ -1,3 +1,5 @@
+import { findLocationByLocality, shouldUseListinoPricing } from './locality-mapping'
+
 // Unified Location Registry - All available locations with precise coordinates and services
 export interface Location {
   id: string
@@ -165,8 +167,22 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
   "venezia": {
     id: "venezia",
     name: "Venezia",
-    displayName: "Venezia Hotel (incl. water taxi)",
+    displayName: "Venezia Hotel",
     coordinates: { lat: 45.4408, lng: 12.3155 },
+    type: "city",
+    services: {
+      olympicVenue: {
+        enabled: true,
+        routes: ["olympics-inter-cluster"]
+      }
+    }
+  },
+  
+  "treviso": {
+    id: "treviso",
+    name: "Treviso",
+    displayName: "Treviso",
+    coordinates: { lat: 45.6684, lng: 12.2431 },
     type: "city",
     services: {
       olympicVenue: {
@@ -400,25 +416,60 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
   resolvedLocationId?: string
   resolvedCoordinates?: { lat: number; lng: number }
 } {
-  // If we have a location ID, use it directly
+  // If we have a location ID, try locality mapping first to map specific → base locations
   if (locationId) {
-    const location = getLocationById(locationId)
-    return {
-      resolvedLocationId: locationId,
-      resolvedCoordinates: location?.coordinates
+    console.log(`🔍 RESOLVING LOCATION: Trying locality mapping for "${locationId}"...`)
+    const localityResult = findLocationByLocality(locationId)
+    if (localityResult.locationId && localityResult.confidence > 0.7) {
+      const mappedLocation = getLocationById(localityResult.locationId)
+      if (mappedLocation) {
+        console.log(`✅ LOCALITY MAPPING SUCCESS: "${locationId}" → "${localityResult.locationId}" (${(localityResult.confidence * 100).toFixed(1)}% confidence)`)
+        return {
+          resolvedLocationId: localityResult.locationId,
+          resolvedCoordinates: mappedLocation.coordinates
+        }
+      }
     }
+    console.log(`❌ LOCALITY MAPPING FAILED for "${locationId}" (confidence: ${(localityResult.confidence * 100).toFixed(1)}%). Trying direct lookup...`)
+    
+    // Fallback: use direct lookup if locality mapping fails
+    const location = getLocationById(locationId)
+    if (location) {
+      console.log(`✅ DIRECT LOOKUP SUCCESS: "${locationId}" found in registry`)
+      return {
+        resolvedLocationId: locationId,
+        resolvedCoordinates: location.coordinates
+      }
+    }
+    console.log(`❌ DIRECT LOOKUP FAILED for "${locationId}"`)
   }
 
-  // If we have coordinates, try to find if they fall within any location's coverage area
+  // If we have coordinates, try geographic lookup first
   if (coordinates) {
+    // Try coordinate-based location matching first
     const matchingLocation = findLocationByCoordinates(coordinates, 1) // Use 1km default, coverageRadius will override for cities
     if (matchingLocation) {
+      console.log(`✅ COORDINATE MAPPING SUCCESS: ${coordinates.lat},${coordinates.lng} → "${matchingLocation.id}"`)
       return {
         resolvedLocationId: matchingLocation.id,
         resolvedCoordinates: matchingLocation.coordinates
       }
     }
     
+    // If coordinate lookup fails, try geography-based locality mapping
+    const geographicResult = shouldUseListinoPricing(null, [], coordinates, 0.7)
+    if (geographicResult.useListino && geographicResult.locationId) {
+      const mappedLocation = getLocationById(geographicResult.locationId)
+      if (mappedLocation) {
+        console.log(`✅ GEOGRAPHIC MAPPING SUCCESS: ${coordinates.lat},${coordinates.lng} → "${geographicResult.locationId}" (${(geographicResult.confidence * 100).toFixed(1)}% confidence)`)
+        return {
+          resolvedLocationId: geographicResult.locationId,
+          resolvedCoordinates: mappedLocation.coordinates
+        }
+      }
+    }
+    
+    console.log(`❌ COORDINATE MAPPING FAILED for ${coordinates.lat},${coordinates.lng}`)
     // No matching location found, return coordinates as-is
     return {
       resolvedLocationId: undefined,
@@ -427,6 +478,7 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
   }
 
   // No location or coordinates
+  console.log(`❌ NO LOCATION OR COORDINATES PROVIDED`)
   return {
     resolvedLocationId: undefined,
     resolvedCoordinates: undefined
@@ -1153,6 +1205,21 @@ export function isNightTime(timeStr: string): boolean {
   }
 }
 
+// Check if the date is a holiday (Sunday or January 6, 2026) - for Meet & Greet 30% surcharge
+export function isHolidayDate(date: Date): boolean {
+  // Check if it's Sunday (getDay() returns 0 for Sunday)
+  if (date.getDay() === 0) {
+    return true
+  }
+  
+  // Check if it's January 6, 2026 (Epiphany)
+  if (date.getFullYear() === 2026 && date.getMonth() === 0 && date.getDate() === 6) {
+    return true
+  }
+  
+  return false
+}
+
 // Updated calculateMeetGreetPrice function with new signature
 export function calculateMeetGreetPrice(
   service: MeetGreetService,
@@ -1164,6 +1231,7 @@ export function calculateMeetGreetPrice(
     extraHours: number
     specialServices: any
     isNight: boolean
+    serviceDate?: Date // NEW: Add optional service date for holiday surcharge
   }
 ): { total: number; breakdown: Array<{ description: string; amount: number }> } {
   const breakdown: Array<{ description: string; amount: number }> = []
@@ -1224,17 +1292,11 @@ export function calculateMeetGreetPrice(
     })
   }
 
-  // Night surcharge if applicable
-  if (config.isNight && service.nightSurchargePrice > 0) {
-    totalPrice += service.nightSurchargePrice
-    breakdown.push({
-      description: `Night surcharge (${service.nightSurchargeHours.start} - ${service.nightSurchargeHours.end})`,
-      amount: service.nightSurchargePrice
-    })
-  }
-
   // Special services
   if (config.specialServices) {
+    // Calculate number of passengers counting for special services (adults + children, excluding infants)
+    const passengersForSpecialServices = config.passengers + config.children
+    
     // TARMAC service
     if (config.specialServices.tarmac && service.specialServices?.tarmac) {
       totalPrice += service.specialServices.tarmac.price
@@ -1244,30 +1306,33 @@ export function calculateMeetGreetPrice(
       })
     }
 
-    // Standard Fast Track
+    // Standard Fast Track - multiply by number of passengers (excluding infants)
     if (config.specialServices.fastTrack && service.specialServices?.fastTrack) {
-      totalPrice += service.specialServices.fastTrack.price
+      const fastTrackTotal = service.specialServices.fastTrack.price * passengersForSpecialServices
+      totalPrice += fastTrackTotal
       breakdown.push({
-        description: 'Fast Track',
-        amount: service.specialServices.fastTrack.price
+        description: `Fast Track (×${passengersForSpecialServices} passengers)`,
+        amount: fastTrackTotal
       })
     }
 
-    // Standard VIP Lounge
+    // Standard VIP Lounge - multiply by number of passengers (excluding infants)
     if (config.specialServices.vipLounge && service.specialServices?.vipLounge) {
-      totalPrice += service.specialServices.vipLounge.price
+      const vipLoungeTotal = service.specialServices.vipLounge.price * passengersForSpecialServices
+      totalPrice += vipLoungeTotal
       breakdown.push({
-        description: 'VIP Lounge',
-        amount: service.specialServices.vipLounge.price
+        description: `VIP Lounge (×${passengersForSpecialServices} passengers)`,
+        amount: vipLoungeTotal
       })
     }
 
-    // Venice Combo (Fast Track + VIP Lounge)
-    if (config.specialServices.combo && service.specialServices?.combo) {
-      totalPrice += service.specialServices.combo.price
+    // Venice Combo (Fast Track + VIP Lounge) - multiply by number of passengers (excluding infants)
+    if (config.specialServices.veniceCombo && service.specialServices?.combo) {
+      const veniceComboTotal = service.specialServices.combo.price * passengersForSpecialServices
+      totalPrice += veniceComboTotal
       breakdown.push({
-        description: service.specialServices.combo.name,
-        amount: service.specialServices.combo.price
+        description: `${service.specialServices.combo.name} (×${passengersForSpecialServices} passengers)`,
+        amount: veniceComboTotal
       })
     }
 
@@ -1279,6 +1344,39 @@ export function calculateMeetGreetPrice(
         amount: 0 // Already included in base price for Venice railway
       })
     }
+  }
+
+  // Night surcharge if applicable - 30% of total services (applied AFTER all other services)
+  if (config.isNight) {
+    const nightSurchargePercentage = 0.30 // 30%
+    const nightSurchargeAmount = totalPrice * nightSurchargePercentage
+    totalPrice += nightSurchargeAmount
+    breakdown.push({
+      description: `Night surcharge 30% (${service.nightSurchargeHours.start} - ${service.nightSurchargeHours.end})`,
+      amount: nightSurchargeAmount
+    })
+  }
+
+  // Holiday surcharge if applicable - 30% of total services (applied AFTER all other services including night surcharge)
+  const isHoliday = config.serviceDate ? isHolidayDate(config.serviceDate) : false
+  if (isHoliday) {
+    const holidaySurchargePercentage = 0.30 // 30%
+    const holidaySurchargeAmount = totalPrice * holidaySurchargePercentage
+    totalPrice += holidaySurchargeAmount
+    
+    let holidayDescription = 'Holiday surcharge 30%'
+    if (config.serviceDate) {
+      if (config.serviceDate.getDay() === 0) {
+        holidayDescription += ' (Sunday service)'
+      } else if (config.serviceDate.getFullYear() === 2026 && config.serviceDate.getMonth() === 0 && config.serviceDate.getDate() === 6) {
+        holidayDescription += ' (January 6, 2026 - Epiphany)'
+      }
+    }
+    
+    breakdown.push({
+      description: holidayDescription,
+      amount: holidaySurchargeAmount
+    })
   }
 
   // VAT 22%
@@ -1304,7 +1402,8 @@ export function calculateMeetGreetPriceLegacy(
   infants: number,
   extraLuggage: number,
   isNight: boolean,
-  specialServices: any = {}
+  specialServices: any = {},
+  serviceDate?: Date // NEW: Add optional service date for holiday surcharge
 ): { price: number; breakdown: any } {
   const service = MEET_GREET_SERVICES[serviceId]
   
@@ -1319,7 +1418,8 @@ export function calculateMeetGreetPriceLegacy(
     extraLuggage,
     extraHours: 0,
     specialServices,
-    isNight
+    isNight,
+    serviceDate
   })
 
   // Convert to legacy format

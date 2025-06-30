@@ -98,9 +98,10 @@ export function MeetGreetSection({
       extraLuggage: config.extraLuggage,
       extraHours: config.extraHours,
       specialServices: config.specialServices,
-      isNight: isNightService
+      isNight: isNightService,
+      serviceDate: journey.date // Pass service date for holiday surcharge
     })
-  }, [selectedService, config, isNightService])
+  }, [selectedService, config, isNightService, journey.date])
 
   // Validation functions
   const getPassengerLimit = (serviceType?: string) => {
@@ -357,7 +358,7 @@ export function MeetGreetSection({
         
         <div className="text-sm text-green-600 mb-2">
           <CheckCircle2 className="h-4 w-4 inline mr-1" />
-          Includes {selectedService.includedLuggage} pieces of luggage
+          Includes {selectedService.includedLuggage} pieces of luggages per person
         </div>
 
         {/* Night luggage limit warning */}
@@ -436,6 +437,8 @@ export function MeetGreetSection({
     if (!selectedService?.specialServices) return null
 
     const services = selectedService.specialServices
+    // Calculate number of passengers counting for special services (adults + children, excluding infants)
+    const passengersForSpecialServices = config.passengers + config.children
 
     return (
       <div className="space-y-4">
@@ -484,7 +487,9 @@ export function MeetGreetSection({
                     className="text-black"
                   />
                   <span className="font-medium">{services.combo.name}</span>
-                  <Badge variant="secondary">€{services.combo.price}</Badge>
+                  <Badge variant="secondary">
+                    €{services.combo.price} × {passengersForSpecialServices} = €{services.combo.price * passengersForSpecialServices}
+                  </Badge>
                   <Badge variant="outline">Mandatory Together</Badge>
                 </div>
               </div>
@@ -492,7 +497,7 @@ export function MeetGreetSection({
                 Includes: {services.combo.includes.join(" + ")}
               </p>
               <p className="text-xs text-amber-600 mt-1">
-                At Venice Airport, Fast Track and VIP Lounge must be purchased together
+                At Venice Airport, Fast Track and VIP Lounge must be purchased together. Price is per passenger (excluding infants).
               </p>
             </div>
           )}
@@ -508,8 +513,13 @@ export function MeetGreetSection({
                   className="text-black"
                 />
                 <span className="font-medium">Fast Track</span>
-                <Badge variant="secondary">€{services.fastTrack.price}</Badge>
+                <Badge variant="secondary">
+                  €{services.fastTrack.price} × {passengersForSpecialServices} = €{services.fastTrack.price * passengersForSpecialServices}
+                </Badge>
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Price is per passenger (excluding infants)
+              </p>
             </div>
           )}
 
@@ -524,8 +534,13 @@ export function MeetGreetSection({
                   className="text-black"
                 />
                 <span className="font-medium">VIP Lounge</span>
-                <Badge variant="secondary">€{services.vipLounge.price}</Badge>
+                <Badge variant="secondary">
+                  €{services.vipLounge.price} × {passengersForSpecialServices} = €{services.vipLounge.price * passengersForSpecialServices}
+                </Badge>
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Price is per passenger (excluding infants)
+              </p>
             </div>
           )}
 

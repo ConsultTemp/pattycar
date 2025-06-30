@@ -17,11 +17,18 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
     priority: 100,
     aliases: ['MI', 'Milan City', 'Milano Centro', 'Centro Milano']
   },
-  
+  // Milano Centrale - NUOVO MAPPING SPECIFICO
+  {
+    googleNames: ['Milano Centrale', 'Stazione Centrale Milano', 'Milano Central Station', 'Centrale Milano'],
+    locationId: 'milano-centrale',
+    priority: 95,
+    aliases: ['Milano Centrale FS', 'Stazione Milano Centrale', 'Central Station Milan']
+  },
+
   // Località olimpiche principali
   {
     googleNames: ['Bormio'],
-    locationId: 'bormio', 
+    locationId: 'bormio',
     priority: 90,
     aliases: ['Bormio SO']
   },
@@ -43,27 +50,27 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
     priority: 80,
     aliases: ['VR', 'Verona VR']
   },
-  
+
   // Località olimpiche aggiuntive
   {
     googleNames: [
       'Anterselva', 'Antholz',
-      'Anterselva di Mezzo', 'Anterselva di Sopra', 'Anterselva di Sotto',
-      'Antholz Mittertal', 'Antholz Obertal', 'Antholz Niedertal'
+      'Anterselva di Mezzo', 'Anterselva di Sopra', 'Anterselva di Sotto', "Rasun Anterselva", "Rasun Antholz",
+      'Rasun', 'Antholz Mittertal', 'Antholz Obertal', 'Antholz Niedertal'
     ],
     locationId: 'anterselva',
     priority: 80,
     aliases: [
-      'Anterselva BZ', 'Antholz BZ', 
+      'Anterselva BZ', 'Antholz BZ',
       'Anterselva di Mezzo BZ', 'Anterselva di Sopra BZ', 'Anterselva di Sotto BZ',
       'Antholz Mittertal BZ', 'Antholz Obertal BZ', 'Antholz Niedertal BZ'
     ]
   },
   {
-    googleNames: ['Predazzo', 'Tesero', 'Val di Fiemme'],
+    googleNames: ['Predazzo', 'Tesero', 'Val di Fiemme', 'Fiemme', 'Cavalese', 'Ziano di Fiemme', 'Panchià', 'Daiano', 'Varena', 'Carano', 'Sover', 'Segonzano', 'Lona-Lases', 'Albiano', 'Roverè della Luna'],
     locationId: 'val-di-fiemme',
     priority: 80,
-    aliases: ['Predazzo TN', 'Tesero TN', 'Fiemme']
+    aliases: ['Predazzo TN', 'Predazzo, TN', 'Tesero TN', 'Tesero, TN', 'Fiemme', 'Val di Fiemme TN', 'Cavalese TN', 'Cavalese, TN', 'Ziano di Fiemme TN', 'Ziano di Fiemme, TN']
   },
   {
     googleNames: ['Tirano'],
@@ -77,7 +84,13 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
     priority: 80,
     aliases: ['VE', 'Venezia VE', 'Venice Italy']
   },
-  
+  {
+    googleNames: ['Treviso'],
+    locationId: 'treviso',
+    priority: 80,
+    aliases: ['TV', 'Treviso TV']
+  },
+
   // Aeroporti (mapping preciso) - PRIORITÀ MASSIMA per evitare conflitti geografici
   {
     googleNames: ['Segrate', 'Peschiera Borromeo'], // Zone vicine a Linate
@@ -98,15 +111,35 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
     aliases: ['Orio', 'BGY', 'Bergamo Orio']
   },
   
-  // Stazioni ferroviarie
+  // Olympic Period Additional Airports and Stations - All mapped to base cities
   {
-    googleNames: ['Verona'],
-    locationId: 'verona-porta-nuova',
-    priority: 70, // Lower priority than city to prefer city match
-    aliases: ['Verona Porta Nuova', 'Verona PN']
+    googleNames: ['Venezia Marco Polo', 'Marco Polo Airport', 'Venice Airport'],
+    locationId: 'venezia',
+    priority: 95,
+    aliases: ['VCE', 'Venezia VCE', 'Marco Polo', 'Venice Marco Polo']
   },
-  
-  // Area metropolitana Milano (comuni limitrofi che dovrebbero usare Milano)
+  {
+    googleNames: ['Treviso Airport', 'Antonio Canova Airport'],
+    locationId: 'treviso',
+    priority: 95,
+    aliases: ['TSF', 'Treviso TSF', 'Canova Airport']
+  },
+  {
+    googleNames: ['Venezia Santa Lucia', 'Santa Lucia Station', 'Venice Santa Lucia'],
+    locationId: 'venezia',
+    priority: 95,
+    aliases: ['Santa Lucia', 'Venezia SL', 'Venice Station', 'venezia-santa-lucia']
+  },
+
+  // Stazioni ferroviarie - MIGLIORATI
+  {
+    googleNames: ['Verona Porta Nuova', 'Stazione di Verona', 'Verona Station', 'Porta Nuova Verona'],
+    locationId: 'verona-porta-nuova',
+    priority: 85, // Increased priority
+    aliases: ['Verona PN', 'Stazione Verona', 'Verona Stazione']
+  },
+
+  // Area metropolitana Milano (comuni limitrofi che dovrebbero usare Milano) - PRIORITÀ AUMENTATA
   {
     googleNames: [
       'Rho', 'Pero', 'Sesto San Giovanni', 'Cinisello Balsamo', 'Bresso',
@@ -123,25 +156,91 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
       'Bollate', 'Arese', 'Garbagnate Milanese', 'Senago', 'Limbiate'
     ],
     locationId: 'milano',
-    priority: 60, // Lower priority to prefer exact Milano match
+    priority: 70, // Increased from 60 to 70
+    aliases: []
+  },
+  
+  // Area Venezia (comuni limitrofi e isole che dovrebbero usare Venezia) - PRIORITÀ MIGLIORATA PER MESTRE
+  {
+    googleNames: [
+      'Mestre', 'Marghera', 'Chirignago', 'Zelarino', 'Carpenedo', 'Bissuola',
+      'Favaro Veneto', 'Ca\' Noghera', 'Tessera', 'Campalto', 'San Giuliano',
+      'Murano', 'Burano', 'Torcello', 'Lido di Venezia', 'Pellestrina',
+      'Giudecca', 'San Giorgio Maggiore', 'Sacca Fisola', 'Santa Marta',
+      'Castello', 'Cannaregio', 'San Polo', 'Santa Croce', 'Dorsoduro',
+      'San Marco', 'Spinea', 'Mirano', 'Salzano', 'Noale', 'Scorzè',
+      'Martellago', 'Quarto d\'Altino', 'Musile di Piave', 'San Donà di Piave'
+    ],
+    locationId: 'venezia',
+    priority: 75, // Increased from 60 to 75 (especially for Mestre)
+    aliases: ['Mestre VE', 'Venezia Mestre']
+  },
+  
+  // Area Treviso (comuni limitrofi che dovrebbero usare Treviso)
+  {
+    googleNames: [
+      'Preganziol', 'Zero Branco', 'Morgano', 'Arcade', 'Spresiano',
+      'Villorba', 'Carbonera', 'Silea', 'Roncade', 'San Biagio di Callalta',
+      'Breda di Piave', 'Ponte di Piave', 'Salgareda', 'Chiarano',
+      'Cessalto', 'Meduna di Livenza', 'Motta di Livenza', 'Monastier di Treviso',
+      'Zenson di Piave', 'Fossalta di Piave', 'Noventa di Piave',
+      'San Donà di Piave', 'Musile di Piave', 'Jesolo', 'Eraclea',
+      'Torre di Mosto', 'Ceggia', 'Concordia Sagittaria'
+    ],
+    locationId: 'treviso',
+    priority: 70, // Increased from 60 to 70
     aliases: []
   }
 ]
 
-// Configurazione raggio geografico
-const GEOGRAPHICAL_SEARCH_RADIUS_KM = 10
-const GEOGRAPHICAL_CONFIDENCE_MULTIPLIER = 0.9 // Increased from 0.8 to 0.9
-const GEOGRAPHICAL_PRIORITY_BONUS = 0.25 // Increased from 0.2 to 0.25
+// Configurazione raggio geografico - MIGILORATA
+const GEOGRAPHICAL_SEARCH_RADIUS_KM = 15 // Increased from 10 to 15
+const GEOGRAPHICAL_CONFIDENCE_MULTIPLIER = 0.95 // Increased from 0.9 to 0.95
+const GEOGRAPHICAL_PRIORITY_BONUS = 0.3 // Increased from 0.25 to 0.3
 
-// Funzione per normalizzare il testo per il matching
+// Funzione per normalizzare il testo per il matching - MIGLIORATA
 function normalizeText(text: string): string {
   return text
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Remove accents
     .replace(/[''`]/g, '') // Remove apostrophes
-    .replace(/\s+/g, ' ')
+    .replace(/[,\.]/g, ' ') // Replace commas and dots with spaces
+    .replace(/\s+/g, ' ') // Normalize multiple spaces
     .trim()
+}
+
+// NEW: Funzione per estrarre città da indirizzi complessi
+function extractCityFromAddress(address: string): string | null {
+  const normalizedAddress = normalizeText(address)
+  
+  // Pattern per riconoscere città negli indirizzi
+  const cityPatterns = [
+    // Milano patterns
+    { pattern: /\b(milano|milan)\b/, city: 'Milano' },
+    { pattern: /\b(mi)\b/, city: 'Milano' }, // Abbreviation
+    
+    // Venezia patterns
+    { pattern: /\b(venezia|venice|mestre)\b/, city: 'Venezia' },
+    { pattern: /\b(ve)\b/, city: 'Venezia' }, // Abbreviation
+    
+    // Verona patterns
+    { pattern: /\b(verona)\b/, city: 'Verona' },
+    { pattern: /\b(vr)\b/, city: 'Verona' }, // Abbreviation
+    
+    // Treviso patterns
+    { pattern: /\b(treviso)\b/, city: 'Treviso' },
+    { pattern: /\b(tv)\b/, city: 'Treviso' }, // Abbreviation
+  ]
+  
+  for (const { pattern, city } of cityPatterns) {
+    if (pattern.test(normalizedAddress)) {
+      console.log(`🏙️ Extracted city "${city}" from address "${address}"`)
+      return city
+    }
+  }
+  
+  return null
 }
 
 // Calcola la distanza tra due coordinate in km (Haversine formula)
@@ -149,11 +248,11 @@ function calculateDistanceKm(coord1: { lat: number; lng: number }, coord2: { lat
   const R = 6371 // Radius of the Earth in kilometers
   const dLat = (coord2.lat - coord1.lat) * Math.PI / 180
   const dLng = (coord2.lng - coord1.lng) * Math.PI / 180
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) * 
-    Math.sin(dLng/2) * Math.sin(dLng/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   const distance = R * c // Distance in kilometers
   return distance
 }
@@ -162,15 +261,15 @@ function calculateDistanceKm(coord1: { lat: number; lng: number }, coord2: { lat
 function calculateSimilarity(str1: string, str2: string): number {
   const s1 = normalizeText(str1)
   const s2 = normalizeText(str2)
-  
+
   if (s1 === s2) return 1.0
-  
+
   const len1 = s1.length
   const len2 = s2.length
-  
+
   if (len1 === 0) return 0
   if (len2 === 0) return 0
-  
+
   // Levenshtein distance matrix
   const matrix = []
   for (let i = 0; i <= len2; i++) {
@@ -179,7 +278,7 @@ function calculateSimilarity(str1: string, str2: string): number {
   for (let j = 0; j <= len1; j++) {
     matrix[0][j] = j
   }
-  
+
   for (let i = 1; i <= len2; i++) {
     for (let j = 1; j <= len1; j++) {
       if (s2.charAt(i - 1) === s1.charAt(j - 1)) {
@@ -193,7 +292,7 @@ function calculateSimilarity(str1: string, str2: string): number {
       }
     }
   }
-  
+
   const distance = matrix[len2][len1]
   const maxLen = Math.max(len1, len2)
   return (maxLen - distance) / maxLen
@@ -212,22 +311,22 @@ function findLocationsByGeography(
 
   for (const location of allLocations) {
     if (!location.coordinates) continue
-    
+
     const distance = calculateDistanceKm(coordinates, location.coordinates)
-    
+
     if (distance <= GEOGRAPHICAL_SEARCH_RADIUS_KM) {
       // Calcola confidence basata sulla distanza
       const distanceConfidence = (GEOGRAPHICAL_SEARCH_RADIUS_KM - distance) / GEOGRAPHICAL_SEARCH_RADIUS_KM
       const finalConfidence = distanceConfidence * GEOGRAPHICAL_CONFIDENCE_MULTIPLIER
-      
+
       // Trova priorità da mapping se esiste
       const mapping = LOCALITY_MAPPINGS.find(m => m.locationId === location.id)
       const priority = mapping ? mapping.priority : 50 // Default priority
-      
+
       // Confidence finale include priorità della location
       const priorityBonus = (priority / 100) * GEOGRAPHICAL_PRIORITY_BONUS
       const totalConfidence = Math.min(finalConfidence + priorityBonus, 1.0)
-      
+
       nearbyLocations.push({
         location,
         distance,
@@ -239,16 +338,17 @@ function findLocationsByGeography(
   // Ordina per confidence (distanza + priorità)
   nearbyLocations.sort((a, b) => b.confidence - a.confidence)
 
-  console.log(`🌍 Found ${nearbyLocations.length} locations within ${GEOGRAPHICAL_SEARCH_RADIUS_KM}km:`, 
+  console.log(`🌍 Found ${nearbyLocations.length} locations within ${GEOGRAPHICAL_SEARCH_RADIUS_KM}km:`,
     nearbyLocations.map(l => `${l.location.id} (${l.distance.toFixed(1)}km, ${(l.confidence * 100).toFixed(1)}%)`))
 
   return nearbyLocations
 }
 
-// Trova il match migliore per una località Google
+// Trova il match migliore per una località Google - MIGLIORATA CON ESTRAZIONE CITTÀ
 export function findLocationByLocality(
-  googleLocality: string | null, 
-  addressComponents: any[] = []
+  googleLocality: string | null,
+  addressComponents: any[] = [],
+  skipExtraction: boolean = false // NEW: Flag per evitare ricorsione infinita
 ): {
   locationId: string | null
   location: Location | null
@@ -275,7 +375,26 @@ export function findLocationByLocality(
     matchedText: string
   } | null = null
 
-  // 1. Cerca match esatti
+  // NUOVO: Tenta prima l'estrazione di città dall'indirizzo (solo se non è già un'estrazione)
+  if (!skipExtraction) {
+    const extractedCity = extractCityFromAddress(googleLocality)
+    if (extractedCity && extractedCity !== googleLocality) { // Evita ricorsione se è la stessa città
+      console.log(`🏙️ Attempting match with extracted city: ${extractedCity}`)
+      
+      // Retry matching with extracted city (con flag per evitare ricorsione)
+      const cityMatch = findLocationByLocality(extractedCity, addressComponents, true)
+      if (cityMatch.confidence > 0) {
+        console.log(`✅ Successful match using extracted city with confidence: ${cityMatch.confidence}`)
+        return {
+          ...cityMatch,
+          confidence: Math.min(cityMatch.confidence * 0.9, 1.0), // Slightly reduce confidence for extracted matches
+          matchedText: `${cityMatch.matchedText} (extracted from: ${googleLocality})`
+        }
+      }
+    }
+  }
+
+  // 1. Cerca match esatti (unchanged)
   for (const mapping of LOCALITY_MAPPINGS) {
     // Check googleNames
     for (const name of mapping.googleNames) {
@@ -293,7 +412,7 @@ export function findLocationByLocality(
         }
       }
     }
-    
+
     // Check aliases
     if (mapping.aliases) {
       for (const alias of mapping.aliases) {
@@ -314,12 +433,12 @@ export function findLocationByLocality(
     }
   }
 
-  // 2. Se non trovato match esatto, cerca fuzzy match (solo se confidence > 0.7)
+  // 2. Se non trovato match esatto, cerca fuzzy match (SOGLIA ABBASSATA)
   if (!bestMatch) {
     for (const mapping of LOCALITY_MAPPINGS) {
       for (const name of mapping.googleNames) {
         const similarity = calculateSimilarity(googleLocality, name)
-        if (similarity >= 0.7 && similarity < 0.95) {
+        if (similarity >= 0.65 && similarity < 0.95) { // Lowered from 0.7 to 0.65
           console.log(`🔍 Fuzzy match found: "${googleLocality}" -> "${name}" (${mapping.locationId}) - similarity: ${similarity}`)
           const confidence = similarity * (mapping.priority / 100) * 0.8 // Lower confidence for fuzzy
           if (!bestMatch || confidence > bestMatch.confidence) {
@@ -338,7 +457,7 @@ export function findLocationByLocality(
   if (bestMatch) {
     const location = getAllLocations().find(loc => loc.id === bestMatch!.mapping.locationId)
     console.log(`🎯 Final match: "${googleLocality}" -> ${bestMatch.mapping.locationId} (confidence: ${bestMatch.confidence.toFixed(2)})`)
-    
+
     return {
       locationId: bestMatch.mapping.locationId,
       location: location || null,
@@ -379,11 +498,11 @@ export function findLocationByGeography(
   console.log(`🌍 Searching for locations within ${GEOGRAPHICAL_SEARCH_RADIUS_KM}km of:`, coordinates)
 
   const nearbyLocations = findLocationsByGeography(coordinates)
-  
+
   if (nearbyLocations.length > 0) {
     const best = nearbyLocations[0]
     console.log(`🎯 Best geographical match: ${best.location.id} (${best.distance.toFixed(1)}km away, ${(best.confidence * 100).toFixed(1)}% confidence)`)
-    
+
     return {
       locationId: best.location.id,
       location: best.location,
@@ -405,7 +524,7 @@ export function findLocationByGeography(
 // Estrae tutte le possibili località dai componenti indirizzo di Google
 export function extractLocalitiesFromComponents(addressComponents: any[]): string[] {
   const localities = []
-  
+
   for (const component of addressComponents) {
     if (component.types?.includes('locality')) {
       localities.push(component.longText)
@@ -415,12 +534,12 @@ export function extractLocalitiesFromComponents(addressComponents: any[]): strin
       localities.push(component.longText)
     }
   }
-  
+
   // Remove duplicates
   return [...new Set(localities)]
 }
 
-// UPDATED: Funzione principale con sistema a cascata (Località → Geografia)
+// UPDATED: Funzione principale con sistema a cascata (Località → Geografia) - MIGLIORATA
 export function shouldUseListinoPricing(
   googleLocality: string | null,
   addressComponents: any[] = [],
@@ -436,11 +555,22 @@ export function shouldUseListinoPricing(
   reason: string
 } {
   console.log('🎯 Checking if should use listino pricing for:', { googleLocality, coordinates })
-  
+
   // FASE 1: Tentativo di match per località
-  const localityMatch = findLocationByLocality(googleLocality, addressComponents)
-  
-  if (localityMatch.confidence >= minimumConfidence) {
+  const localityMatch = findLocationByLocality(googleLocality, addressComponents, false)
+
+  // SOGLIA DINAMICA: abbassa la soglia per località in area metropolitana
+  let effectiveMinimumConfidence = minimumConfidence
+  if (localityMatch.locationId && 
+      (localityMatch.locationId === 'milano' || 
+       localityMatch.locationId === 'venezia' || 
+       localityMatch.locationId === 'verona' ||
+       localityMatch.locationId === 'treviso')) {
+    effectiveMinimumConfidence = 0.6 // Lower threshold for metropolitan areas
+    console.log('🏙️ Metropolitan area detected - lowering confidence threshold to 60%')
+  }
+
+  if (localityMatch.confidence >= effectiveMinimumConfidence) {
     console.log('✅ LOCALITY MATCH SUCCESS - Using textual match')
     return {
       useListino: true,
@@ -456,8 +586,19 @@ export function shouldUseListinoPricing(
   if (coordinates) {
     console.log('🌍 LOCALITY MATCH FAILED - Trying geographical fallback')
     const geographyMatch = findLocationByGeography(coordinates)
-    
-    if (geographyMatch.confidence >= minimumConfidence) {
+
+    // SOGLIA GEOGRAFICA DINAMICA: più permissiva per aree metropolitane note
+    let effectiveGeographyThreshold = minimumConfidence
+    if (geographyMatch.locationId && 
+        (geographyMatch.locationId === 'milano' || 
+         geographyMatch.locationId === 'venezia' || 
+         geographyMatch.locationId === 'verona' ||
+         geographyMatch.locationId === 'treviso')) {
+      effectiveGeographyThreshold = 0.5 // Even lower for geography
+      console.log('🏙️ Metropolitan area geography - lowering threshold to 50%')
+    }
+
+    if (geographyMatch.confidence >= effectiveGeographyThreshold) {
       console.log('✅ GEOGRAPHY MATCH SUCCESS - Using geographical match')
       return {
         useListino: true,
@@ -471,10 +612,45 @@ export function shouldUseListinoPricing(
     }
   }
 
-  // FASE 3: Nessun match trovato
-  const reason = localityMatch.confidence > 0 
-    ? `Locality match found but confidence too low (${(localityMatch.confidence * 100).toFixed(1)}% < ${minimumConfidence * 100}%)${coordinates ? ' and no nearby locations' : ''}`
-    : coordinates 
+  // FASE 3: ULTIMO TENTATIVO - Match parziale su parole chiave
+  if (googleLocality && coordinates) {
+    console.log('🔍 FINAL ATTEMPT - Trying keyword-based geographical match')
+    
+    // Check for common city keywords in the locality name
+    const localityLower = normalizeText(googleLocality)
+    const cityKeywords = [
+      { keywords: ['milano', 'milan'], locationId: 'milano' },
+      { keywords: ['venezia', 'venice', 'mestre'], locationId: 'venezia' },
+      { keywords: ['verona'], locationId: 'verona' },
+      { keywords: ['treviso'], locationId: 'treviso' },
+    ]
+
+    for (const cityInfo of cityKeywords) {
+      if (cityInfo.keywords.some(keyword => localityLower.includes(keyword))) {
+        console.log(`🔑 Keyword "${cityInfo.keywords.join(',')}" found in "${googleLocality}"`)
+        
+        // Try geographical match for this specific city
+        const cityGeographyMatch = findLocationByGeography(coordinates)
+        if (cityGeographyMatch.locationId === cityInfo.locationId && cityGeographyMatch.confidence >= 0.3) {
+          console.log('✅ KEYWORD + GEOGRAPHY MATCH SUCCESS')
+          return {
+            useListino: true,
+            locationId: cityGeographyMatch.locationId,
+            location: cityGeographyMatch.location,
+            confidence: Math.max(cityGeographyMatch.confidence, 0.7), // Boost confidence
+            distance: cityGeographyMatch.distance,
+            matchType: 'geographical',
+            reason: `Found keyword-based geographical match for ${cityInfo.locationId} with enhanced confidence`
+          }
+        }
+      }
+    }
+  }
+
+  // FASE 4: Nessun match trovato
+  const reason = localityMatch.confidence > 0
+    ? `Locality match found but confidence too low (${(localityMatch.confidence * 100).toFixed(1)}% < ${effectiveMinimumConfidence * 100}%)${coordinates ? ' and no nearby locations' : ''}`
+    : coordinates
       ? 'No locality match and no nearby locations found'
       : 'No locality match found and no coordinates available'
 

@@ -285,7 +285,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <div>
                     <div className="font-medium">IVA</div>
-                    <div className="text-sm text-gray-600">{pricing.breakdown.vatRate * 100}%  €{formatPrice(pricing.breakdown.subtotal)}</div>
+                    <div className="text-sm text-gray-600">10%  €{formatPrice(pricing.breakdown.subtotal)}</div>
                   </div>
                   <div className="font-bold">€{formatPrice(pricing.breakdown.vatAmount)}</div>
                 </div>
