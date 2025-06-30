@@ -89,13 +89,38 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
   const isReadyForPricing = useCallback((state: BookingState): boolean => {
     const { journey, vehicles, serviceType } = state
 
-    // Basic validation
-    if (!journey.pickup.address || !journey.destination.address || vehicles.count === 0) {
-      return false
+    console.log("🔍 isReadyForPricing CHECK:", {
+      serviceType,
+      hasPickupAddress: !!journey.pickup.address,
+      hasDestinationAddress: !!journey.destination.address,
+      vehicleCount: vehicles.count,
+      hasTime: !!journey.time,
+      hasEndTime: !!journey.endTime,
+      hasDistance: !!journey.distance?.km,
+      hasDate: !!journey.date
+    })
+
+    // SPECIAL CASE: Olympic disposition - allow partial data during Olympic period
+    const isOlympicDisposition = journey.date && isOlympicPeriod(journey.date) && serviceType === "disposizione"
+    
+    if (isOlympicDisposition) {
+      console.log("🏅 OLYMPIC DISPOSITION - Using relaxed validation")
+      // For Olympic dispositions, we only need pickup address and vehicle count
+      if (!journey.pickup.address || vehicles.count === 0) {
+        console.log("❌ isReadyForPricing: olympic disposition - missing pickup or vehicles")
+        return false
+      }
+    } else {
+      // Basic validation for non-Olympic or non-disposition services
+      if (!journey.pickup.address || !journey.destination.address || vehicles.count === 0) {
+        console.log("❌ isReadyForPricing: basic validation failed")
+        return false
+      }
     }
 
     // Same pickup and destination check
     if (journey.pickup.address === journey.destination.address) {
+      console.log("❌ isReadyForPricing: same pickup and destination")
       return false
     }
 
@@ -103,31 +128,83 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     if (serviceType === "transfer") {
       // Transfer needs distance (unless using event pricing)
       if (!journey.distance?.km && !journey.date) {
+        console.log("❌ isReadyForPricing: transfer missing distance and date")
         return false
       }
     } else if (serviceType === "disposizione") {
       // Disposition needs start and end time
-      if (!journey.time || !journey.minutes || !journey.timeAmPm || !journey.endTime || !journey.endMinutes || !journey.endTimeAmPm) {
-        return false
-      }
-      // Check end time is after start time using 12h to 24h conversion
-      const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
-      const endTime = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
-      if (endTime.totalMinutes <= startTime.totalMinutes) {
-        return false
+      console.log("🕐 DISPOSITION TIME VALIDATION:", {
+        time: journey.time,
+        minutes: journey.minutes,
+        timeAmPm: journey.timeAmPm,
+        endTime: journey.endTime,
+        endMinutes: journey.endMinutes,
+        endTimeAmPm: journey.endTimeAmPm,
+        isOlympicDisposition
+      })
+      
+      if (isOlympicDisposition) {
+        // For Olympic dispositions, allow calculation even without complete time data
+        // We'll use default values in the calculation function
+        console.log("🏅 OLYMPIC DISPOSITION - Allowing incomplete time data")
+        
+        // Only check if BOTH start and end are present, then validate they're correct
+        const hasCompleteStartTime = journey.time && (journey.minutes !== undefined && journey.minutes !== null) && journey.timeAmPm
+        const hasCompleteEndTime = journey.endTime && (journey.endMinutes !== undefined && journey.endMinutes !== null) && journey.endTimeAmPm
+        
+        if (hasCompleteStartTime && hasCompleteEndTime) {
+          // If both are present, validate they're logical
+          const startTime = convertTo24Hour(journey.time!, journey.minutes!, journey.timeAmPm!)
+          const endTime = convertTo24Hour(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
+          if (endTime.totalMinutes <= startTime.totalMinutes) {
+            console.log("❌ isReadyForPricing: end time before start time")
+            return false
+          }
+        }
+      } else {
+        // Regular disposition validation - needs complete time data
+        if (!journey.time || journey.minutes === undefined || journey.minutes === null || !journey.timeAmPm || !journey.endTime || journey.endMinutes === undefined || journey.endMinutes === null || !journey.endTimeAmPm) {
+          console.log("❌ isReadyForPricing: disposition missing time data - details:", {
+            hasTime: !!journey.time,
+            hasMinutes: journey.minutes !== undefined && journey.minutes !== null,
+            hasTimeAmPm: !!journey.timeAmPm,
+            hasEndTime: !!journey.endTime,
+            hasEndMinutes: journey.endMinutes !== undefined && journey.endMinutes !== null,
+            hasEndTimeAmPm: !!journey.endTimeAmPm
+          })
+          return false
+        }
+        // Check end time is after start time using 12h to 24h conversion
+        const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
+        const endTime = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
+        if (endTime.totalMinutes <= startTime.totalMinutes) {
+          console.log("❌ isReadyForPricing: end time before start time")
+          return false
+        }
       }
     }
 
     // Vehicle configuration validation
     if (vehicles.count === 1 || vehicles.sameType) {
       const config = vehicles.singleConfig
-      return !!(config.type && config.passengers > 0)
+      const isValid = !!(config.type && config.passengers > 0)
+      if (!isValid) {
+        console.log("❌ isReadyForPricing: invalid single vehicle config")
+        return false
+      }
     } else {
-      return (
+      const isValid = (
         vehicles.multipleConfigs.length === vehicles.count &&
         vehicles.multipleConfigs.every((config) => config.type && config.passengers > 0)
       )
+      if (!isValid) {
+        console.log("❌ isReadyForPricing: invalid multiple vehicle config")
+        return false
+      }
     }
+
+    console.log("✅ isReadyForPricing: ready")
+    return true
   }, [])
 
   // NEW: Calculate Olympic ceremony pricing
@@ -527,6 +604,17 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
   // NEW: Calculate disposition pricing using active event special rates
   const calculateEventDispositionPrice = useCallback(
     async (state: BookingState, activeEvent: EventPricing): Promise<PricingResult | null> => {
+      console.log("💰 calculateEventDispositionPrice - START:", {
+        activeEvent: activeEvent.name,
+        serviceType: state.serviceType,
+        hasStartTime: !!state.journey.time,
+        hasEndTime: !!state.journey.endTime,
+        startTime: `${state.journey.time}:${state.journey.minutes} ${state.journey.timeAmPm}`,
+        endTime: `${state.journey.endTime}:${state.journey.endMinutes} ${state.journey.endTimeAmPm}`,
+        pickup: state.journey.pickup,
+        vehicles: state.vehicles
+      })
+
       const { vehicles, journey, options } = state
       
       // Calculate duration in hours
@@ -534,6 +622,13 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       const endTimeConverted = convertTo24Hour(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
       const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
       const durationHours = Math.ceil(durationMinutes / 60)
+      
+      console.log("⏱️ DURATION CALCULATION:", {
+        startTimeConverted,
+        endTimeConverted,
+        durationMinutes,
+        durationHours
+      })
 
       let basePrice = 0
       let subtotal = 0
@@ -549,6 +644,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         const pricePerVehicle = durationHours * eventDisposition.hourly
         basePrice = pricePerVehicle * vehicles.count
         subtotal = basePrice
+        
+        // Don't add custom breakdown - let the standard system handle it
       } else {
         // Multiple different vehicles
         vehicles.multipleConfigs.forEach((config, index) => {
@@ -571,6 +668,48 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         basePrice = subtotal
       }
 
+      // OLYMPIC DISPOSITION: Add transfer cost from Milano Centrale to disposition start point
+      let transferCost = 0
+      let transferRoute = ''
+      if (journey.date && isOlympicPeriod(journey.date)) {
+        // Resolve pickup location for transfer calculation
+        const resolvedPickup = resolveLocationForPricing(
+          journey.pickup.locationId, 
+          journey.pickup.coordinates
+        )
+        
+        // Find transfer route from Milano Centrale to disposition start point
+        if (resolvedPickup.resolvedLocationId && resolvedPickup.resolvedLocationId !== 'milano-centrale') {
+          const transferRouteFromMilano = findOlympicRoute('milano-centrale', resolvedPickup.resolvedLocationId)
+          
+          if (transferRouteFromMilano) {
+            // Map vehicle type to Olympic vehicle type for transfer pricing
+            let olympicVehicleType: keyof typeof transferRouteFromMilano.prices = 'olympic-sedan'
+            
+            if (vehicles.count === 1 || vehicles.sameType) {
+              olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
+            } else {
+              // For multiple vehicles, use the first one for transfer calculation
+              olympicVehicleType = mapToOlympicVehicleType(vehicles.multipleConfigs[0].type)
+            }
+            
+            transferCost = transferRouteFromMilano.prices[olympicVehicleType] * vehicles.count
+            transferRoute = `${transferRouteFromMilano.from} → ${transferRouteFromMilano.to}`
+            subtotal += transferCost
+            
+            // Transfer cost is included in subtotal, no need for separate breakdown
+            
+            console.log("🚗 OLYMPIC DISPOSITION TRANSFER:", {
+              from: 'milano-centrale',
+              to: resolvedPickup.resolvedLocationId,
+              vehicleType: olympicVehicleType,
+              cost: transferCost,
+              route: transferRoute
+            })
+          }
+        }
+      }
+
       // Apply night surcharge if applicable
       let nightSurcharge = 0
       if (journey.time && journey.minutes && journey.timeAmPm && 
@@ -582,6 +721,17 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       // Apply VAT
       const vatAmount = subtotal * (activeEvent.extras.vatRate / 100)
       let totalPrice = subtotal + vatAmount
+
+      console.log("💵 FINAL CALCULATION - calculateEventDispositionPrice:", {
+        basePrice,
+        transferCost,
+        nightSurcharge,
+        subtotal,
+        vatAmount,
+        totalPrice,
+        transferRoute,
+        activeEvent: activeEvent.name
+      })
 
       // Calculate Meet & Greet if enabled
       let meetGreetPrice = 0
@@ -611,6 +761,14 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         totalPrice += meetGreetPrice
       }
 
+      console.log("🎯 RETURNING RESULT - calculateEventDispositionPrice:", {
+        basePrice,
+        totalPrice,
+        meetGreetPrice,
+        eventRoute: `${activeEvent.name} - Disposition`,
+        isEventPricing: true
+      })
+
       return {
         basePrice,
         totalPrice,
@@ -620,7 +778,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           name: `${activeEvent.name} - Disposition`,
           from: "Disposition Service",
           to: `${durationHours} hours`,
-          notes: `Special ${activeEvent.name} rates - ${durationHours}h duration`
+          notes: `Special ${activeEvent.name} rates - ${durationHours}h duration${transferRoute ? ` + Transfer: ${transferRoute}` : ''}`
         },
         isEventPricing: true,
         breakdown: {
@@ -645,7 +803,16 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
 
   const calculatePrice = useCallback(
     async (state: BookingState): Promise<PricingResult | null> => {
+      console.log("🔍 CALCULATE_PRICE - START:", {
+        isReady: isReadyForPricing(state),
+        serviceType: state.serviceType,
+        date: state.journey.date,
+        pickup: state.journey.pickup,
+        hasEndTime: !!state.journey.endTime
+      })
+
       if (!isReadyForPricing(state)) {
+        console.log("❌ CALCULATE_PRICE - NOT READY FOR PRICING")
         return null
       }
 
@@ -654,6 +821,10 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       try {
         // Check for Olympic pricing first (highest priority)
         if (journey.date && isOlympicPeriod(journey.date)) {
+          console.log("🏔️ OLYMPIC PERIOD DETECTED:", {
+            date: journey.date,
+            serviceType: serviceType
+          })
           
           // Check for Olympic ceremony dates
           const ceremony = findOlympicCeremony(journey.date)
@@ -662,33 +833,45 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             return result
           }
           
-          // For transfers, try Olympic routes first
-          const resolvedPickup = resolveLocationForPricing(
-            journey.pickup.locationId, 
-            journey.pickup.coordinates
-          )
-          const resolvedDestination = resolveLocationForPricing(
-            journey.destination.locationId, 
-            journey.destination.coordinates
-          )
-          
-          if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
-            const olympicRoute = findOlympicRoute(
-              resolvedPickup.resolvedLocationId,
-              resolvedDestination.resolvedLocationId
+          // For transfers (NOT dispositions), try Olympic routes first
+          if (serviceType !== "disposizione") {
+            const resolvedPickup = resolveLocationForPricing(
+              journey.pickup.locationId, 
+              journey.pickup.coordinates
+            )
+            const resolvedDestination = resolveLocationForPricing(
+              journey.destination.locationId, 
+              journey.destination.coordinates
             )
             
-            if (olympicRoute) {
-              return await calculateOlympicPrice(state, olympicRoute)
+            if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+              const olympicRoute = findOlympicRoute(
+                resolvedPickup.resolvedLocationId,
+                resolvedDestination.resolvedLocationId
+              )
+              
+              if (olympicRoute) {
+                console.log("🏔️ OLYMPIC TRANSFER ROUTE FOUND - Using calculateOlympicPrice")
+                return await calculateOlympicPrice(state, olympicRoute)
+              }
             }
+          } else {
+            console.log("⏰ OLYMPIC DISPOSITION - Skipping Olympic route search, will use event pricing")
           }
         }
 
         // Check for regular event pricing
         const activeEvent = journey.date ? getActiveEvent(journey.date) : null
+        console.log("📅 ACTIVE EVENT CHECK:", {
+          activeEvent: activeEvent?.name,
+          serviceType: serviceType,
+          willCalculateDisposition: activeEvent && serviceType === "disposizione"
+        })
+        
         if (activeEvent) {
           
           if (serviceType === "disposizione") {
+            console.log("⏰ CALLING calculateEventDispositionPrice")
             // Use special event disposition pricing
             return await calculateEventDispositionPrice(state, activeEvent)
           }
@@ -849,6 +1032,11 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           }
         }
 
+        console.log("🔚 CALCULATE_PRICE - RETURNING:", {
+          result: standardPricing ? "standardPricing" : "null",
+          totalPrice: standardPricing?.totalPrice,
+          basePrice: standardPricing?.basePrice
+        })
         return standardPricing
       } catch (error) {
         console.error("Price calculation error:", error)
