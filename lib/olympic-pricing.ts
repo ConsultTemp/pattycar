@@ -567,8 +567,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 620,
       'olympic-minivan': 730,
-      'olympic-van': 730,
-      'olympic-luxury': 730
+      'olympic-van': 990,
+      'olympic-luxury': 920
     },
     extraHourRates: {
       'olympic-sedan': 94,
