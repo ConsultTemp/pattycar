@@ -29,8 +29,39 @@ export const LUGGAGE_MULTIPLIERS = {
 // Prezzo base per km
 export const PRICE_PER_KM = 5.0
 
-// Prezzo base per ora (disposizioni)
-export const PRICE_PER_HOUR = 100
+// Prezzo base per ora (disposizioni) - TUTTI I TIPI POSSIBILI
+export const PRICE_PER_HOUR_BY_VEHICLE = {
+  'sedan': 94,
+  'van': 108, 
+  'minibus': 135,
+  'luxury-sedan': 135,
+  // Altri possibili nomi che potrebbero arrivare
+  'minivan': 108,
+  'luxury': 135,
+  'berlina': 94,
+  'monovolume': 108
+}
+
+// Funzione per ottenere il prezzo orario corretto per tipo di veicolo
+export function getHourlyRate(vehicleType: string): number {
+  console.log(`🚗 GETTING HOURLY RATE FOR: "${vehicleType}"`)
+  console.log(`🚗 Available types:`, Object.keys(PRICE_PER_HOUR_BY_VEHICLE))
+  
+  const rate = PRICE_PER_HOUR_BY_VEHICLE[vehicleType as keyof typeof PRICE_PER_HOUR_BY_VEHICLE]
+  
+  if (rate) {
+    console.log(`✅ FOUND RATE: ${vehicleType} = €${rate}/hour`)
+    console.log(`🎯 RETURNING RATE: ${rate}`)
+    return rate
+  }
+  
+  console.log(`❌ NO RATE FOUND FOR: ${vehicleType}, using default 94`)
+  console.log(`🎯 RETURNING DEFAULT: 94`)
+  return 94
+}
+
+// Backward compatibility - deprecated, use getHourlyRate() instead
+export const PRICE_PER_HOUR = 94 // Default price (sedan)
 
 // IVA
 export const VAT_RATE = 0.1 // 10%
@@ -278,8 +309,9 @@ export function calculateDispositionPrice(
   const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
   const durationHours = Math.ceil(durationMinutes / 60)
 
-  // Prezzo base basato sulla durata
-  const basePrice = durationHours * PRICE_PER_HOUR
+  // Prezzo base basato sulla durata e tipo di veicolo
+  const hourlyRate = getHourlyRate(vehicleType)
+  const basePrice = durationHours * hourlyRate
 
   // Applica i moltiplicatori
   const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicleType] || 1.0
@@ -305,7 +337,7 @@ export function calculateDispositionPrice(
     totalPrice,
     breakdown: {
       durationHours,
-      pricePerHour: PRICE_PER_HOUR,
+      pricePerHour: hourlyRate,
       basePrice,
       vehicleMultiplier,
       passengerMultiplier,
@@ -340,14 +372,14 @@ export function calculateMultipleVehiclesDispositionPrice(
   const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
   const durationHours = Math.ceil(durationMinutes / 60)
 
-  // Calcola il prezzo base della durata
-  const basePrice = durationHours * PRICE_PER_HOUR
-  
   // Verifica se è orario notturno (basato sull'orario di inizio)
   const isNight = isNightTime(startTime, startMinutes, startTimeAmPm)
 
-  // Calcola il prezzo per ogni veicolo
+  // Calcola il prezzo per ogni veicolo usando il suo prezzo orario specifico
   vehicles.forEach((vehicle, index) => {
+    const hourlyRate = getHourlyRate(vehicle.type)
+    const basePrice = durationHours * hourlyRate
+    
     const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicle.type] || 1.0
     const passengerMultiplier = PASSENGER_MULTIPLIERS.getMultiplier(vehicle.passengers)
     const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(vehicle.luggage)
@@ -369,7 +401,8 @@ export function calculateMultipleVehiclesDispositionPrice(
       type: vehicle.type,
       passengers: vehicle.passengers,
       luggage: vehicle.luggage,
-      basePrice,
+      hourlyRate: hourlyRate,
+      basePrice: basePrice,
       vehicleMultiplier,
       passengerMultiplier,
       luggageMultiplier,
@@ -382,12 +415,12 @@ export function calculateMultipleVehiclesDispositionPrice(
   const totalPrice = Math.round((subtotal + vatAmount) * 100) / 100
 
   return {
-    basePrice,
+    basePrice: 0, // N/A for multiple vehicles with different rates
     totalPrice,
     breakdown: {
       durationHours,
-      pricePerHour: PRICE_PER_HOUR,
-      basePrice,
+      pricePerHour: 0, // N/A for multiple vehicles with different rates  
+      basePrice: 0, // N/A for multiple vehicles with different rates
       totalVehicles: vehicles.length,
       nightSurchargeRate: isNight ? NIGHT_SURCHARGE_RATE : 0,
       subtotal,
@@ -421,31 +454,36 @@ export async function getDistanceBetweenPlaces(origin: string, destination: stri
   }
 }
 
-// NCC Pricing Configuration - Basato su distanza e tempo
+// NCC Pricing Configuration - Basato su distanza e tempo - NOMI INGLESI STANDARDIZZATI
 export const NCC_VEHICLE_CONFIG = {
-  berlina: {
+  sedan: {
     basePrice: 50,      // €50 prezzo base
     pricePerKm: 1.6,    // €1.6 per km
     pricePerMin: 0.55,  // €0.55 per minuto
   },
-  monovolume: {
+  minivan: {
     basePrice: 70,      // €70 prezzo base
     pricePerKm: 1.9,    // €1.9 per km
     pricePerMin: 0.75,  // €0.75 per minuto
   },
-  minibus: {
+  van: {
     basePrice: 90,      // €90 prezzo base
     pricePerKm: 2.1,    // €2.1 per km
     pricePerMin: 0.90,  // €0.90 per minuto
   },
 } as const
 
-// Mapping dei tipi di veicolo dal sistema ai tipi NCC
+// Mapping dei tipi di veicolo dal sistema ai tipi NCC - NOMI INGLESI STANDARDIZZATI
 const VEHICLE_TYPE_MAPPING: Record<string, keyof typeof NCC_VEHICLE_CONFIG> = {
-  sedan: 'berlina',
-  'luxury-sedan': 'berlina',
-  van: 'monovolume',
-  minibus: 'minibus',
+  sedan: 'sedan',
+  'luxury-sedan': 'sedan',
+  luxury: 'sedan', 
+  van: 'van',
+  minivan: 'minivan',
+  minibus: 'van', // minibus → van per consistenza
+  // Legacy Italian names mapping to English
+  berlina: 'sedan',
+  monovolume: 'minivan',
 }
 
 /**
@@ -481,7 +519,7 @@ export function calculateNCCPrice(
   }
 } {
   // Mappa il tipo di veicolo al tipo NCC
-  const nccVehicleType = VEHICLE_TYPE_MAPPING[vehicleType] || 'berlina'
+  const nccVehicleType = VEHICLE_TYPE_MAPPING[vehicleType] || 'sedan'
   const config = NCC_VEHICLE_CONFIG[nccVehicleType]
 
   // Calcoli per singolo veicolo

@@ -72,11 +72,11 @@ export function LocationSelector({
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false)
   const [googleError, setGoogleError] = useState<string | null>(null)
   
-  // Ref per prevenire la chiusura quando si clicca su un'opzione
-  const isSelectingRef = useRef(false)
+  // Simplified refs for better control
+  const isSelectingOptionRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const lastSelectedValueRef = useRef<string>("")
-  const isTypingRef = useRef(false) // NEW: Track if user is actively typing
+  const inputRef = useRef<HTMLInputElement>(null)
+  const lastPropValueRef = useRef<string>("")
 
   // Debounce dell'input per evitare troppe chiamate API
   const debouncedInputValue = useDebounce(inputValue, 500)
@@ -134,15 +134,19 @@ export function LocationSelector({
     return false
   })
 
-  // Effetto per cercare su Google quando cambia l'input con debounce
+  // Sync input with external value changes - SIMPLIFIED
   useEffect(() => {
-    // Non cercare se stiamo selezionando un'opzione
-    if (isSelectingRef.current) {
-      return
+    // Only sync if we're not currently selecting an option AND the prop value actually changed
+    if (!isSelectingOptionRef.current && value.address !== lastPropValueRef.current) {
+      setInputValue(value.address || "")
+      lastPropValueRef.current = value.address || ""
     }
-    
-    // Non cercare se il valore è quello che abbiamo appena selezionato
-    if (debouncedInputValue === lastSelectedValueRef.current) {
+  }, [value.address])
+
+  // Search Google Places when input changes - IMPROVED
+  useEffect(() => {
+    // Don't search if we're selecting an option
+    if (isSelectingOptionRef.current) {
       return
     }
     
@@ -154,7 +158,7 @@ export function LocationSelector({
     }
   }, [debouncedInputValue])
 
-  // Effetto per gestire i click fuori dal componente
+  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -205,114 +209,134 @@ export function LocationSelector({
     }
   }, [])
 
-  // Handle listino location selection
+  // Handle listino location selection - IMPROVED
   const handleListinoLocationSelect = (location: Location) => {
-    isSelectingRef.current = true
-    isTypingRef.current = false // Clear typing flag
-    lastSelectedValueRef.current = location.displayName
+    console.log('🎯 Selecting listino location:', location.displayName)
     
+    // Prevent any interference during selection
+    isSelectingOptionRef.current = true
+    
+    // Update input and parent state
     setInputValue(location.displayName)
-        onChange({
-          address: location.displayName,
-          placeId: `location_${location.id}`,
-          coordinates: location.coordinates,
-          locationId: location.id,
-          isCustom: false
-        })
-    setIsOpen(false)
+    lastPropValueRef.current = location.displayName
     
+    onChange({
+      address: location.displayName,
+      placeId: `location_${location.id}`,
+      coordinates: location.coordinates,
+      locationId: location.id,
+      isCustom: false
+    })
+    
+    // Close dropdown and clear Google results
+    setIsOpen(false)
+    setGooglePlaces([])
+    setGoogleError(null)
+    
+    // Clear selection flag after a short delay
     setTimeout(() => {
-      isSelectingRef.current = false
-    }, 300)
+      isSelectingOptionRef.current = false
+    }, 200)
   }
 
-  // Handle Google Places selection - WITH LOCALITY MAPPING
+  // Handle Google Places selection - IMPROVED
   const handleGooglePlaceSelect = (place: Place) => {
-    isSelectingRef.current = true
-    isTypingRef.current = false // Clear typing flag
-    lastSelectedValueRef.current = place.description
+    console.log('🎯 Selecting Google place:', place.description)
     
-    console.log('🎯 Selected Google place:', place)
+    // Prevent any interference during selection
+    isSelectingOptionRef.current = true
     
     // Check se questo indirizzo Google dovrebbe usare il listino
     const listinoCheck = shouldUseListinoPricing(
       place.extracted_locality || null,
       place.address_components || [],
       place.coordinates || null,
-      0.60 // 60% confidence threshold (lowered for metropolitan area matches)
+      0.60 // 60% confidence threshold
     )
 
     console.log('📊 Listino check result:', listinoCheck)
 
+    // Update input
+    setInputValue(place.description)
+    lastPropValueRef.current = place.description
+
     if (listinoCheck.useListino && listinoCheck.location) {
-      // USA IL LISTINO - location mappata (testuale O geografica)
+      // USA IL LISTINO - location mappata
       console.log('✅ Using listino pricing for:', place.description, '-> mapped to:', listinoCheck.locationId)
       
-      setInputValue(place.description) // Mantieni l'indirizzo originale che ha digitato l'utente
       onChange({
         address: place.description,
         placeId: place.place_id,
         coordinates: place.coordinates || listinoCheck.location.coordinates,
-        locationId: listinoCheck.locationId!, // Use the mapped location ID
-        isCustom: false // FALSE perché usa listino!
+        locationId: listinoCheck.locationId!,
+        isCustom: false
       })
     } else {
       // USA LA DISTANZA - indirizzo custom
       console.log('📏 Using distance calculation for:', place.description)
       
-      setInputValue(place.description)
       onChange({
         address: place.description,
         placeId: place.place_id,
-        coordinates: place.coordinates, // Will be geocoded later if needed
+        coordinates: place.coordinates,
         locationId: undefined,
         isCustom: true
       })
     }
     
+    // Close dropdown and clear results
     setIsOpen(false)
     setGooglePlaces([])
     setGoogleError(null)
-    setIsLoadingGoogle(false)
     
+    // Clear selection flag after a short delay
     setTimeout(() => {
-      isSelectingRef.current = false
-    }, 300)
+      isSelectingOptionRef.current = false
+    }, 200)
   }
 
-  // Handle input change
+  // Handle input change - SIMPLIFIED
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     
-    if (!isSelectingRef.current) {
-      // Set typing flag
-      isTypingRef.current = true
-      
-      if (newValue !== lastSelectedValueRef.current) {
-        lastSelectedValueRef.current = ""
-      }
-      
-      setInputValue(newValue)
-      
-      // Only call onChange to clear previous selection, not to set new values during typing
-      if (value.locationId || value.placeId) {
-      onChange({
-          address: newValue,
-          placeId: "",
-          coordinates: undefined,
-          locationId: undefined,
-          isCustom: true
-        })
-      }
-      
-      setGoogleError(null)
+    // Don't update if we're currently selecting an option
+    if (isSelectingOptionRef.current) {
+      return
+    }
+    
+    // Always update input value immediately for responsive UI
+    setInputValue(newValue)
+    
+    // Clear any previous Google error
+    setGoogleError(null)
 
-      if (newValue.length >= 1) {
-        setIsOpen(true)
-      } else {
-        setGooglePlaces([])
-        setIsOpen(false)
-      }
+    // Update parent state
+    if (!newValue.trim()) {
+      // If input is empty, clear the selection
+      onChange({
+        address: "",
+        placeId: "",
+        coordinates: undefined,
+        locationId: undefined,
+        isCustom: true
+      })
+    } else if (newValue !== value.address) {
+      // If input has content and is different from current selection, mark as custom
+      onChange({
+        address: newValue,
+        placeId: "",
+        coordinates: undefined,
+        locationId: undefined,
+        isCustom: true
+      })
+    }
+
+    // Open dropdown if there's content
+    if (newValue.length >= 1) {
+      setIsOpen(true)
+    } else {
+      setGooglePlaces([])
+      setIsOpen(false)
     }
   }
 
@@ -323,33 +347,19 @@ export function LocationSelector({
     }
   }
 
-  // Handle input blur
+  // Handle input blur - SIMPLIFIED
   const handleInputBlur = () => {
-    if (!isSelectingRef.current) {
-      // If user was typing and blurs, trigger onChange with current value
-      if (isTypingRef.current && inputValue) {
-    onChange({
-          address: inputValue,
-          placeId: "",
-          coordinates: undefined,
-      locationId: undefined,
-      isCustom: true
-    })
-        isTypingRef.current = false
+    // Close dropdown after a short delay to allow for option selection
+    setTimeout(() => {
+      if (!isSelectingOptionRef.current) {
+        setIsOpen(false)
       }
-      
-      setTimeout(() => {
-        if (!isSelectingRef.current) {
-          setIsOpen(false)
-        }
-      }, 150)
-    }
+    }, 200)
   }
 
-  // Handle option mousedown
+  // Handle option mousedown - prevent blur
   const handleOptionMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
-    isSelectingRef.current = true
   }
 
   // Icon for location type
@@ -375,31 +385,6 @@ export function LocationSelector({
     return listinoCheck
   }
 
-  // Sync with external changes - ONLY when user is not typing
-  useEffect(() => {
-    // Don't overwrite input while user is actively typing
-    if (!isTypingRef.current && !isSelectingRef.current) {
-      setInputValue(value.address || "")
-    }
-  }, [value.address])
-
-  // NEW: Handle end of typing - call onChange when user stops typing
-  useEffect(() => {
-    if (isTypingRef.current && debouncedInputValue && !isSelectingRef.current) {
-      // User has stopped typing, now update the parent with current typed value
-      onChange({
-        address: debouncedInputValue,
-        placeId: "",
-        coordinates: undefined,
-        locationId: undefined,
-        isCustom: true
-      })
-      
-      // Clear typing flag
-      isTypingRef.current = false
-    }
-  }, [debouncedInputValue, onChange])
-
   const hasResults = filteredListinoLocations.length > 0 || googlePlaces.length > 0
   const showNoResults = isOpen && inputValue.length >= 3 && !hasResults && !isLoadingGoogle && !googleError
 
@@ -410,6 +395,7 @@ export function LocationSelector({
       <div className={`relative w-full ${className}`} ref={containerRef}>
         <div className="relative">
           <Input
+            ref={inputRef}
             type="text"
             value={inputValue}
             onChange={handleInputChange}
@@ -425,9 +411,9 @@ export function LocationSelector({
               <AlertCircle className="h-4 w-4 text-red-500" />
             ) : (
               <MapPin className="h-4 w-4 text-gray-400" />
-                          )}
-                        </div>
-                      </div>
+            )}
+          </div>
+        </div>
 
         {/* Error message */}
         {googleError && <div className="mt-1 text-sm text-red-600">{googleError}</div>}
@@ -452,7 +438,7 @@ export function LocationSelector({
                     onClick={() => handleListinoLocationSelect(location)}
                   >
                     <div className="flex items-start space-x-3">
-                        {getLocationIcon(location.type)}
+                      {getLocationIcon(location.type)}
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-900">{location.displayName}</div>
                         <div className="flex items-center gap-1 mt-1">
@@ -469,11 +455,11 @@ export function LocationSelector({
                       </div>
                     </div>
                   </button>
-                  ))}
-                </>
-              )}
+                ))}
+              </>
+            )}
 
-            {/* Google Places Results - WITH INTELLIGENT LISTINO DETECTION */}
+            {/* Google Places Results */}
             {googlePlaces.length > 0 && (
               <>
                 {filteredListinoLocations.length > 0 && (
@@ -504,10 +490,10 @@ export function LocationSelector({
                     </button>
                   )
                 })}
-                </>
-              )}
-        </div>
-      )}
+              </>
+            )}
+          </div>
+        )}
 
         {/* No results message */}
         {showNoResults && (

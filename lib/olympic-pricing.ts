@@ -1138,10 +1138,11 @@ export const OLYMPIC_CEREMONIES: Record<string, OlympicCeremony> = {
     },
     description: 'Disposizione per Cerimonia di Apertura - Stadio San Siro, Milano',
     notes: [
-      'La disposizione si intende su Milano (partenza e ritorno in Milano)',
+      'La disposizione si intende con partenza da Milano',
       'Comprende la disponibilità del mezzo da 2 ore prima dell\'inizio della cerimonia',
-      'Include l\'attesa in loco e il transfer finale in città',
-      'Nel caso il mezzo dovesse partire da una località differente da Milano, occorrerà valutare l\'extra tratta'
+      'Include l\'attesa in loco durante la cerimonia',
+      'Nel caso il mezzo dovesse partire da una località differente da Milano, occorrerà valutare l\'extra tratta',
+      'Il servizio NON include il transfer di ritorno'
     ]
   },
   'closing-ceremony': {
@@ -1166,10 +1167,11 @@ export const OLYMPIC_CEREMONIES: Record<string, OlympicCeremony> = {
     },
     description: 'Disposizione per Cerimonia di Chiusura - Arena di Verona',
     notes: [
-      'La disposizione si intende su Verona (partenza e ritorno in Verona)',
+      'La disposizione si intende con partenza da Verona',
       'Comprende la disponibilità del mezzo da 2 ore prima dell\'inizio della cerimonia',
-      'Include l\'attesa in loco e il transfer finale in città',
-      'Nel caso il mezzo dovesse partire da una località differente da Verona, occorrerà valutare l\'extra tratta'
+      'Include l\'attesa in loco durante la cerimonia',
+      'Nel caso il mezzo dovesse partire da una località differente da Verona, occorrerà valutare l\'extra tratta',
+      'Il servizio NON include il transfer di ritorno'
     ]
   }
 }
@@ -1398,10 +1400,10 @@ export function calculateCeremonyPrice(
   
   // CEREMONY DISPOSITION = FIXED PRICE (no extra hours for standard ceremony service)
   // Base disposition price includes the complete ceremony service:
-  // - Transfer from/to base city
   // - 2h availability before ceremony
   // - Waiting during ceremony
-  // - Return transfer
+  // - Service at ceremony venue
+  // Note: Return transfer is NOT included - only outbound transfer if needed
   const basePrice = ceremony.pricing.dispositionBase[ceremonyVehicleType]
   
   // NO EXTRA HOURS for standard ceremony disposition service
@@ -1603,90 +1605,18 @@ export function calculateCeremonyPrice(
     }
   }
   
-  // Check destination transfer (from ceremony base city to destination)  
-  if (needsTransfer(destinationLocationId, destinationCoordinates)) {
-    const ceremonyOlympicVehicle = mapVehicleToCeremonyOlympicType(ceremonyVehicleType)
-    let destinationTransferCost = 0
-    
-    // First try to find predefined route
-    const destinationTransfer = findTransferPrice(ceremony.baseCityLocationId, destinationLocationId || 'custom-location')
-    
-    if (destinationTransfer) {
-      // Use predefined route price
-      destinationTransferCost = destinationTransfer.prices[ceremonyOlympicVehicle] || 0
-      
-      console.log("🎪 DESTINATION TRANSFER (PREDEFINED):", {
-        from: ceremony.baseCityLocationId,
-        to: destinationLocationId || 'custom-location',
-        cost: destinationTransferCost,
-        vehicleType: ceremonyOlympicVehicle
-      })
-    } else if (destinationCoordinates) {
-      // No predefined route found, check if coordinates match a listino location within 10km
-      console.log("🔍 CHECKING DESTINATION COORDINATES FOR LISTINO LOCATION:", destinationCoordinates)
-      
-      const locationMapping = findLocationByGeography(destinationCoordinates)
-      if (locationMapping.locationId && locationMapping.confidence > 0.7) {
-        // Found a location in listino within 10km radius, use predefined route
-        console.log(`✅ DESTINATION COORDS MATCH LISTINO LOCATION: ${locationMapping.locationId} (${locationMapping.distance?.toFixed(1)}km, ${(locationMapping.confidence * 100).toFixed(1)}% confidence)`)
-        
-        const mappedTransfer = findTransferPrice(ceremony.baseCityLocationId, locationMapping.locationId)
-        if (mappedTransfer) {
-          destinationTransferCost = mappedTransfer.prices[ceremonyOlympicVehicle] || 0
-          console.log("🎪 DESTINATION TRANSFER (LISTINO FROM COORDS):", {
-            from: ceremony.baseCityLocationId,
-            to: locationMapping.locationId,
-            cost: destinationTransferCost,
-            vehicleType: ceremonyOlympicVehicle
-          })
-        } else {
-          // Fallback to distance calculation
-          const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
-          if (baseCityCoords) {
-            destinationTransferCost = calculateCustomTransferPrice(baseCityCoords, destinationCoordinates, ceremonyOlympicVehicle)
-            console.log("🎪 DESTINATION TRANSFER (COORDS FALLBACK TO KM):", {
-              from: ceremony.baseCityLocationId,
-              to: 'custom-coordinates',
-              cost: destinationTransferCost,
-              vehicleType: ceremonyOlympicVehicle
-            })
-          }
-        }
-      } else {
-        // No listino location found, calculate based on distance
-        const baseCityCoords = getCeremonyBaseCityCoordinates(ceremony.baseCityLocationId)
-        if (baseCityCoords) {
-          destinationTransferCost = calculateCustomTransferPrice(baseCityCoords, destinationCoordinates, ceremonyOlympicVehicle)
-          
-          console.log("🎪 DESTINATION TRANSFER (CUSTOM COORDS):", {
-            from: ceremony.baseCityLocationId,
-            to: 'custom-coordinates',
-            cost: destinationTransferCost,
-            vehicleType: ceremonyOlympicVehicle
-          })
-        }
-      }
-    } else {
-      console.log("🎪 DESTINATION TRANSFER NOT CALCULATED:", {
-        from: ceremony.baseCityLocationId,
-        to: destinationLocationId || 'no-coordinates',
-        reason: 'No predefined route and no coordinates provided'
-      })
-    }
-    
-    if (destinationTransferCost > 0) {
-      transferCost += destinationTransferCost
-      const destinationDisplayName = getLocationDisplayName(destinationLocationId) || 'Posizione Custom'
-      transferRoutes.push(`${ceremony.baseCity} → ${destinationDisplayName}`)
-    }
-  }
+  // Note: Destination transfer (return) is NOT calculated for ceremony dispositions
+  // The ceremony disposition price includes only:
+  // 1. Base ceremony service at venue
+  // 2. Optional pickup transfer (if outside base city)
+  // No return transfer is included in the price
   
   // Combine transfer routes for display
   transferRoute = transferRoutes.join(' + ')
   
   console.log("🎪 CEREMONY TOTAL TRANSFERS:", {
     pickupNeedsTransfer: needsTransfer(pickupLocationId, pickupCoordinates),
-    destinationNeedsTransfer: needsTransfer(destinationLocationId, destinationCoordinates),
+    destinationTransferIncluded: false, // Return transfer is not included for ceremony dispositions
     totalTransferCost: transferCost,
     transferRoutes: transferRoutes
   })

@@ -97,8 +97,9 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                 <p className="font-medium text-yellow-800">ℹ️ Pricing Cerimonia:</p>
                 <p className="text-yellow-700">
                   • <strong>PREZZO FISSO</strong> per servizio completo di cerimonia<br/>
-                  • Include: disponibilità da 2h prima + attesa + ritorno<br/>
+                  • Include: disponibilità da 2h prima + attesa durante cerimonia<br/>
                   • Transfer extra solo se partenza da città diversa<br/>
+                  • <strong>NON include transfer di ritorno</strong><br/>
                   • <em>Non si applicano ore aggiuntive per il servizio standard</em>
                 </p>
               </div>
@@ -153,7 +154,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                   <div>
                     <div className="font-medium">Disposizione cerimonia base</div>
                     <div className="text-sm text-gray-600">
-                      Servizio completo cerimonia (include 2h prima + attesa + ritorno in città base)
+                      Servizio completo cerimonia (include 2h prima + attesa durante cerimonia )
                     </div>
                   </div>
                   <div className="font-bold">€{formatPrice(pricing.vehicleBreakdowns?.reduce((sum: number, vb: any) => sum + (vb.ceremonyBasePrice || 0), 0) || pricing.breakdown.basePrice || 0)}</div>

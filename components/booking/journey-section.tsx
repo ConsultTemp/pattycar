@@ -38,6 +38,16 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
   const isDispositionService = serviceType === "disposizione" || serviceType === "ceremony-disposition"
   const useOlympicDurationLogic = isOlympicPeriod_local && isDispositionService
 
+  // Set default minutes to "00" if not already set
+  useEffect(() => {
+    if (!journey.minutes) {
+      onChange({ minutes: "00" })
+    }
+    if ((serviceType === "disposizione" || serviceType === "ceremony-disposition") && !journey.endMinutes) {
+      onChange({ endMinutes: "00" })
+    }
+  }, [journey.minutes, journey.endMinutes, serviceType, onChange])
+
   // Auto-calculate end time when start time or duration changes (Olympic logic)
   useEffect(() => {
     if (useOlympicDurationLogic && journey.time && journey.minutes && journey.serviceDuration) {
@@ -79,23 +89,33 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
 
   // Helper functions for time conversion
   const convertTo24Hour = (hour: string, minutes: string, ampm?: string): { hour24: number, totalMinutes: number } => {
+    const mins = parseInt(minutes) || 0
+    
     if (is24HourFormat) {
+      // In formato 24h: 0-23 dove 0=mezzanotte, 12=mezzogiorno, 23=23:00
       const hour24 = parseInt(hour) || 0
-      const mins = parseInt(minutes) || 0
       return { hour24, totalMinutes: hour24 * 60 + mins }
     } else {
+      // In formato 12h: 1-12 + AM/PM
       let hour24 = parseInt(hour) || 0
-      if (ampm === "PM" && hour24 !== 12) hour24 += 12
-      if (ampm === "AM" && hour24 === 12) hour24 = 0
-      const mins = parseInt(minutes) || 0
+      if (ampm === "PM" && hour24 !== 12) {
+        hour24 += 12  // 1 PM = 13, 2 PM = 14, ... 11 PM = 23
+      } else if (ampm === "AM" && hour24 === 12) {
+        hour24 = 0    // 12 AM = mezzanotte (00)
+      }
+      // 12 PM rimane 12 (mezzogiorno)
       return { hour24, totalMinutes: hour24 * 60 + mins }
     }
   }
 
   const convertTo12Hour = (hour24: number): { hour12: string, ampm: string } => {
+    // 0 = 12 AM (mezzanotte)
     if (hour24 === 0) return { hour12: "12", ampm: "AM" }
+    // 1-11 = 1-11 AM  
     if (hour24 < 12) return { hour12: hour24.toString(), ampm: "AM" }
+    // 12 = 12 PM (mezzogiorno)
     if (hour24 === 12) return { hour12: "12", ampm: "PM" }
+    // 13-23 = 1-11 PM
     return { hour12: (hour24 - 12).toString(), ampm: "PM" }
   }
 
@@ -110,7 +130,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
         const converted = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
         onChange({
           time: converted.hour24.toString().padStart(2, '0'),
-          minutes: journey.minutes.padStart(2, '0'),
+          minutes: (journey.minutes || "00").padStart(2, '0'),
           timeAmPm: undefined
         })
       } else if (!new24HourFormat && !journey.timeAmPm) {
@@ -132,7 +152,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
         const converted = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
         onChange({
           endTime: converted.hour24.toString().padStart(2, '0'),
-          endMinutes: journey.endMinutes.padStart(2, '0'),
+          endMinutes: (journey.endMinutes || "00").padStart(2, '0'),
           endTimeAmPm: undefined
         })
       } else if (!new24HourFormat && !journey.endTimeAmPm) {
@@ -517,7 +537,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
           <div className={`grid gap-6 ${(serviceType === "disposizione" || serviceType === "ceremony-disposition") ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
             {/* Start Time */}
             <div className="space-y-2">
-              <Label htmlFor="time" className={hasFieldError("time") || (hasAttemptedSubmit && (!journey.time || !journey.minutes)) ? "text-red-500" : ""}>{(serviceType === "transfer" || serviceType === "inter-cluster") ? dictionary.startTimeLabel : dictionary.startServiceLabel}</Label>
+              <Label htmlFor="time" className={hasFieldError("time") || (hasAttemptedSubmit && !journey.time) ? "text-red-500" : ""}>{(serviceType === "transfer" || serviceType === "inter-cluster") ? dictionary.startTimeLabel : dictionary.startServiceLabel}</Label>
               <div className="flex items-center space-x-3">
                 <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
                 <Input
@@ -536,37 +556,58 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                     }
                   }}
                   onBlur={(e) => {
-                    const value = parseInt(e.target.value)
+                    const value = e.target.value
+                    if (value === "") return
+                    
+                    const numValue = parseInt(value)
                     const min = is24HourFormat ? 0 : 1
                     const max = is24HourFormat ? 23 : 12
-                    // Se il valore è fuori range, correggi
-                    if (value < min) onChange({ time: min.toString() })
-                    if (value > max) onChange({ time: max.toString() })
+                    
+                    // Correggi se fuori range
+                    if (numValue < min) {
+                      onChange({ time: min.toString() })
+                    } else if (numValue > max) {
+                      onChange({ time: max.toString() })
+                    } else if (is24HourFormat && numValue >= 0 && numValue <= 23) {
+                      // In formato 24h, formatta sempre con 2 cifre (00, 01, 02, ..., 23)
+                      onChange({ time: numValue.toString().padStart(2, '0') })
+                    }
                   }}
-                  placeholder={is24HourFormat ? "HH" : "HH"}
-                  className={`w-20 text-center ${hasFieldError("time") || (hasAttemptedSubmit && (!journey.time || !journey.minutes)) ? "border-red-500" : ""}`}
+                  placeholder={is24HourFormat ? "00" : "12"}
+                  className={`w-20 text-center ${hasFieldError("time") || (hasAttemptedSubmit && !journey.time) ? "border-red-500" : ""}`}
                 />
                 <span className="flex-shrink-0">:</span>
                 <Input
                   type="number"
                   min="0"
                   max="59"
-                  value={journey.minutes}
+                  value={journey.minutes === "00" ? "" : (journey.minutes || "")}
                   onChange={(e) => {
                     const value = e.target.value
                     // Permetti campo vuoto o valori validi (0-59)
-                    if (value === "" || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
+                    if (value === "") {
+                      onChange({ minutes: "00" })
+                    } else if (parseInt(value) >= 0 && parseInt(value) <= 59) {
                       onChange({ minutes: value })
                     }
                   }}
                   onBlur={(e) => {
-                    const value = parseInt(e.target.value)
-                    // Se il valore è fuori range, correggi
-                    if (value < 0) onChange({ minutes: "0" })
-                    if (value > 59) onChange({ minutes: "59" })
+                    const value = e.target.value
+                    if (value === "") {
+                      onChange({ minutes: "00" })
+                    } else {
+                      const numValue = parseInt(value)
+                      // Se il valore è fuori range, correggi
+                      if (numValue < 0) onChange({ minutes: "00" })
+                      if (numValue > 59) onChange({ minutes: "59" })
+                      // Aggiungi zero davanti se necessario
+                      if (numValue >= 0 && numValue <= 59) {
+                        onChange({ minutes: numValue.toString().padStart(2, '0') })
+                      }
+                    }
                   }}
-                  placeholder="MM"
-                  className={`w-20 text-center ${hasFieldError("time") || (hasAttemptedSubmit && (!journey.time || !journey.minutes)) ? "border-red-500" : ""}`}
+                  placeholder="00"
+                  className={`w-20 text-center ${hasFieldError("time") || (hasAttemptedSubmit && !journey.time) ? "border-red-500" : ""}`}
                 />
                 {!is24HourFormat && (
                   <Select
@@ -583,7 +624,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                   </Select>
                 )}
               </div>
-              {hasAttemptedSubmit && (!journey.time || !journey.minutes) && (
+              {hasAttemptedSubmit && !journey.time && (
                 <p className="text-red-500 text-sm mt-1" role="alert">
                   {dictionary.startTimeRequired}
                 </p>
@@ -619,7 +660,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                 ) : (
                   /* Standard Logic: Manual End Time */
                   <>
-                    <Label htmlFor="endTime" className={hasAttemptedSubmit && (!journey.endTime || !journey.endMinutes) ? "text-red-500" : ""}>{dictionary.endTimeLabel}</Label>
+                    <Label htmlFor="endTime" className={hasAttemptedSubmit && !journey.endTime ? "text-red-500" : ""}>{dictionary.endTimeLabel}</Label>
                 <div className="flex items-center space-x-3">
                   <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <Input
@@ -638,15 +679,25 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                       }
                     }}
                     onBlur={(e) => {
-                      const value = parseInt(e.target.value)
+                      const value = e.target.value
+                      if (value === "") return
+                      
+                      const numValue = parseInt(value)
                       const min = is24HourFormat ? 0 : 1
                       const max = is24HourFormat ? 23 : 12
-                      // Se il valore è fuori range, correggi
-                      if (value < min) onChange({ endTime: min.toString() })
-                      if (value > max) onChange({ endTime: max.toString() })
+                      
+                      // Correggi se fuori range
+                      if (numValue < min) {
+                        onChange({ endTime: min.toString() })
+                      } else if (numValue > max) {
+                        onChange({ endTime: max.toString() })
+                      } else if (is24HourFormat && numValue >= 0 && numValue <= 23) {
+                        // In formato 24h, formatta sempre con 2 cifre (00, 01, 02, ..., 23)
+                        onChange({ endTime: numValue.toString().padStart(2, '0') })
+                      }
                     }}
-                    placeholder={is24HourFormat ? "HH" : "HH"}
-                        className={`w-20 text-center ${hasAttemptedSubmit && (!journey.endTime || !journey.endMinutes) ? "border-red-500" : ""}`}
+                    placeholder={is24HourFormat ? "00" : "12"}
+                        className={`w-20 text-center ${hasAttemptedSubmit && !journey.endTime ? "border-red-500" : ""}`}
                     disabled={isEndTimeDisabled()}
                   />
                   <span className="flex-shrink-0">:</span>
@@ -654,22 +705,33 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                     type="number"
                     min="0"
                     max="59"
-                    value={journey.endMinutes || ""}
+                    value={journey.endMinutes === "00" ? "" : (journey.endMinutes || "")}
                     onChange={(e) => {
                       const value = e.target.value
                       // Permetti campo vuoto o valori validi (0-59)
-                      if (value === "" || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
+                      if (value === "") {
+                        onChange({ endMinutes: "00" })
+                      } else if (parseInt(value) >= 0 && parseInt(value) <= 59) {
                         onChange({ endMinutes: value })
                       }
                     }}
                     onBlur={(e) => {
-                      const value = parseInt(e.target.value)
-                      // Se il valore è fuori range, correggi
-                      if (value < 0) onChange({ endMinutes: "0" })
-                      if (value > 59) onChange({ endMinutes: "59" })
+                      const value = e.target.value
+                      if (value === "") {
+                        onChange({ endMinutes: "00" })
+                      } else {
+                        const numValue = parseInt(value)
+                        // Se il valore è fuori range, correggi
+                        if (numValue < 0) onChange({ endMinutes: "00" })
+                        if (numValue > 59) onChange({ endMinutes: "59" })
+                        // Aggiungi zero davanti se necessario
+                        if (numValue >= 0 && numValue <= 59) {
+                          onChange({ endMinutes: numValue.toString().padStart(2, '0') })
+                        }
+                      }
                     }}
-                    placeholder="MM"
-                        className={`w-20 text-center ${hasAttemptedSubmit && (!journey.endTime || !journey.endMinutes) ? "border-red-500" : ""}`}
+                    placeholder="00"
+                        className={`w-20 text-center ${hasAttemptedSubmit && !journey.endTime ? "border-red-500" : ""}`}
                     disabled={isEndTimeDisabled()}
                   />
                   {!is24HourFormat && (
@@ -688,7 +750,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                     </Select>
                   )}
                 </div>
-                    {hasAttemptedSubmit && (!journey.endTime || !journey.endMinutes) && (
+                    {hasAttemptedSubmit && !journey.endTime && (
                       <p className="text-red-500 text-sm mt-1" role="alert">
                         {dictionary.endTimeRequired}
                       </p>
@@ -725,14 +787,6 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                   <div className="space-y-1">
                     <p>
                       <strong>Tempo selezionato:</strong> {journey.serviceDuration}h
-                    </p>
-                    <p>
-                      <strong>Inizio:</strong> {journey.time}:{journey.minutes}
-                      {!is24HourFormat && ` ${journey.timeAmPm}`}
-                    </p>
-                    <p>
-                      <strong>Fine:</strong> {journey.endTime}:{journey.endMinutes}
-                      {!is24HourFormat && ` ${journey.endTimeAmPm}`}
                     </p>
                     <p>
                       <strong>{dictionary.hourlyRate}</strong>

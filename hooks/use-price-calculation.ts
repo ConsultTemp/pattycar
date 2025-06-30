@@ -39,15 +39,28 @@ import {
 export type { PricingResult } from "@/lib/booking-types"
 
 // Helper function to convert 12h format to 24h format
-const convertTo24Hour = (hour: string, minutes: string, ampm: string): { hour24: number, totalMinutes: number } => {
-  let hour24 = parseInt(hour)
-  if (ampm === "PM" && hour24 !== 12) hour24 += 12
-  if (ampm === "AM" && hour24 === 12) hour24 = 0
-  return { hour24, totalMinutes: hour24 * 60 + parseInt(minutes) }
+const convertTo24Hour = (hour: string, minutes: string, ampm?: string): { hour24: number, totalMinutes: number } => {
+  const mins = parseInt(minutes) || 0
+  
+  if (!ampm) {
+    // Formato 24h: 0-23 dove 0=mezzanotte, 12=mezzogiorno, 23=23:00
+    const hour24 = parseInt(hour) || 0
+    return { hour24, totalMinutes: hour24 * 60 + mins }
+  } else {
+    // Formato 12h: 1-12 + AM/PM
+    let hour24 = parseInt(hour) || 0
+    if (ampm === "PM" && hour24 !== 12) {
+      hour24 += 12  // 1 PM = 13, 2 PM = 14, ... 11 PM = 23
+    } else if (ampm === "AM" && hour24 === 12) {
+      hour24 = 0    // 12 AM = mezzanotte (00)
+    }
+    // 12 PM rimane 12 (mezzogiorno)
+    return { hour24, totalMinutes: hour24 * 60 + mins }
+  }
 }
 
 // Helper function to check if time is night (19:30 - 07:30)
-const isNightTime = (hour: string, minutes: string, ampm: string): boolean => {
+const isNightTime = (hour: string, minutes: string, ampm?: string): boolean => {
   const { hour24, totalMinutes } = convertTo24Hour(hour, minutes, ampm)
   // Night time: 19:30 (1170 minutes) to 07:30 (450 minutes)
   return totalMinutes >= 1170 || totalMinutes <= 450
@@ -69,18 +82,36 @@ const calculateDistanceKm = (coord1: { lat: number; lng: number }, coord2: { lat
 
 // Vehicle type mapping for events
 const mapVehicleTypeToEvent = (type: string): 'berlina' | 'monovolume' | 'minibus' => {
+  console.log(`🚗 MAPPING VEHICLE TYPE: "${type}"`)
+  
+  let mapped: 'berlina' | 'monovolume' | 'minibus'
+  
   switch (type.toLowerCase()) {
     case 'sedan':
     case 'berlina':
-      return 'berlina'
-    case 'van':
+    case 'olympic-sedan':    // Olympic sedan → €94
+      mapped = 'berlina'     // €94
+      break
+    case 'van':              
+    case 'minivan':
     case 'monovolume':
-      return 'monovolume'
-    case 'minibus':
-      return 'minibus'
+    case 'olympic-minivan':  // Olympic minivan → €108
+      mapped = 'monovolume'  // €108
+      break
+    case 'minibus':          
+    case 'luxury-sedan':
+    case 'luxury':
+    case 'olympic-van':      // Olympic van → €135
+    case 'olympic-luxury':   // Olympic luxury → €135
+      mapped = 'minibus'     // €135
+      break
     default:
-      return 'berlina'
+      mapped = 'berlina'
+      break
   }
+  
+  console.log(`✅ MAPPED: "${type}" → "${mapped}"`)
+  return mapped
 }
 
 // Olympic vehicle type mapping (for disposition services that still use classic types)
@@ -695,11 +726,20 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           journey.pickup.coordinates
         )
         
-        // Find transfer route from Milano Centrale to disposition start point
-        if (resolvedPickup.resolvedLocationId && resolvedPickup.resolvedLocationId !== 'milano-centrale') {
+        // Check if we need to calculate transfer for Olympic disposition
+        const needsOlympicTransfer = resolvedPickup.resolvedLocationId !== 'milano-centrale' && 
+          (resolvedPickup.resolvedLocationId || resolvedPickup.resolvedCoordinates || journey.pickup.address)
+          
+        if (needsOlympicTransfer) {
           // Check if location is within Milano hinterland (10km)
           const milanoCentroCoordinates = { lat: 45.4642, lng: 9.1900 } // Milano centro coordinates
-          const pickupCoordinates = resolvedPickup.resolvedCoordinates
+          let pickupCoordinates = resolvedPickup.resolvedCoordinates
+          
+          // If we don't have resolved coordinates but have a locationId or address, try to get them
+          if (!pickupCoordinates && (resolvedPickup.resolvedLocationId || journey.pickup.address)) {
+            // This case handles cities like Napoli that aren't in our registry
+            pickupCoordinates = journey.pickup.coordinates
+          }
           
           let isInMilanoHinterland = false
           if (pickupCoordinates) {
@@ -716,7 +756,12 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           
           if (!isInMilanoHinterland) {
             // Outside Milano hinterland - calculate transfer cost
-            const transferRouteFromMilano = findOlympicRoute('milano-centrale', resolvedPickup.resolvedLocationId)
+            let transferRouteFromMilano = null
+            
+            // Try to find Olympic route if we have a resolved location ID
+            if (resolvedPickup.resolvedLocationId) {
+              transferRouteFromMilano = findOlympicRoute('milano-centrale', resolvedPickup.resolvedLocationId)
+            }
             
             if (transferRouteFromMilano) {
               // Map vehicle type to Olympic vehicle type for transfer pricing
@@ -733,12 +778,57 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               transferRoute = `${transferRouteFromMilano.from} → ${transferRouteFromMilano.to}`
               subtotal += transferCost
               
-              // Transfer cost is included in subtotal, no need for separate breakdown
-              
-              console.log("🚗 OLYMPIC DISPOSITION TRANSFER (OUTSIDE HINTERLAND):", {
+              console.log("🚗 OLYMPIC DISPOSITION TRANSFER (PREDEFINED ROUTE):", {
                 from: 'milano-centrale',
                 to: resolvedPickup.resolvedLocationId,
                 vehicleType: olympicVehicleType,
+                cost: transferCost,
+                route: transferRoute
+              })
+            } else if (pickupCoordinates) {
+              // No predefined Olympic route found, calculate using standard distance pricing
+              const milanoCoordinates = { lat: 45.4868, lng: 9.2037 } // Milano Centrale coordinates
+              const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
+              
+              // Use standard pricing calculation for the transfer
+              let vehicleType = 'sedan' // default
+              let passengers = 1
+              let luggage = 0
+              
+              if (vehicles.count === 1 || vehicles.sameType) {
+                vehicleType = vehicles.singleConfig.type
+                passengers = vehicles.singleConfig.passengers
+                luggage = vehicles.singleConfig.luggage
+              } else {
+                vehicleType = vehicles.multipleConfigs[0].type
+                passengers = vehicles.multipleConfigs[0].passengers
+                luggage = vehicles.multipleConfigs[0].luggage
+              }
+              
+              // Calculate transfer price using standard pricing (during Olympic period, we still use standard rates for non-Olympic routes)
+              const { calculateTotalPrice } = require('@/lib/pricing-config')
+              const transferPricing = calculateTotalPrice(
+                distance,
+                vehicleType,
+                passengers,
+                luggage,
+                vehicles.count,
+                journey.time,
+                journey.minutes,
+                journey.timeAmPm,
+                milanoCoordinates,
+                pickupCoordinates
+              )
+              
+              transferCost = transferPricing.basePrice
+              transferRoute = `Milano Centrale → ${journey.pickup.address}`
+              subtotal += transferCost
+              
+              console.log("🚗 OLYMPIC DISPOSITION TRANSFER (DISTANCE-BASED):", {
+                from: 'milano-centrale',
+                to: journey.pickup.address,
+                distance: distance.toFixed(1) + 'km',
+                vehicleType,
                 cost: transferCost,
                 route: transferRoute
               })
@@ -1039,7 +1129,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             )
           }
 
-          // STANDARD DISPOSITION: Add transfer cost from Milano Centrale to disposition start point ONLY if outside Milano hinterland
+          // STANDARD DISPOSITION: Add transfer cost from Milano Centrale to disposition start point
           if (standardPricing) {
             const resolvedPickup = resolveLocationForPricing(
               journey.pickup.locationId, 
@@ -1050,12 +1140,23 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             let transferCost = 0
             let transferRoute = ''
             
-            if (resolvedPickup.resolvedLocationId && resolvedPickup.resolvedLocationId !== 'milano-centrale') {
+            // Check if we need to calculate transfer (if not Milano Centrale and we have location data)
+            const needsTransferCalculation = resolvedPickup.resolvedLocationId !== 'milano-centrale' && 
+              (resolvedPickup.resolvedLocationId || resolvedPickup.resolvedCoordinates || journey.pickup.address)
+            
+            if (needsTransferCalculation) {
               try {
                 // Get distance from Milano Centrale to disposition start point
                 const milanoCoordinates = { lat: 45.4868, lng: 9.2037 } // Milano Centrale coordinates
                 const milanoCentroCoordinates = { lat: 45.4642, lng: 9.1900 } // Milano centro coordinates for hinterland check
-                const pickupCoordinates = resolvedPickup.resolvedCoordinates
+                let pickupCoordinates = resolvedPickup.resolvedCoordinates
+                
+                // If we don't have resolved coordinates but have a locationId or address, try to get them
+                if (!pickupCoordinates && (resolvedPickup.resolvedLocationId || journey.pickup.address)) {
+                  // This case handles cities like Napoli that aren't in our registry
+                  // For now, we'll use the journey coordinates if available, or skip if not
+                  pickupCoordinates = journey.pickup.coordinates
+                }
                 
                 if (pickupCoordinates) {
                   // Check if pickup location is within Milano hinterland (10km from Milano center)

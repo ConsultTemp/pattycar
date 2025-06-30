@@ -612,9 +612,9 @@ export const GP_MONZA_2025: EventPricing = {
     }
   ],
   disposition: {
-    berlina: { daily: 990, hourly: 100, kmRate: 1.5 },
-    monovolume: { daily: 1190, hourly: 120, kmRate: 1.7 },
-    minibus: { daily: 1490, hourly: 150, kmRate: 2.0 },
+    berlina: { daily: 990, hourly: 94, kmRate: 1.5 },
+    monovolume: { daily: 1190, hourly: 108, kmRate: 1.7 },
+    minibus: { daily: 1490, hourly: 135, kmRate: 2.0 },
     dailyIncludes: { hours: 10, km: 100 }
   },
   extras: {
@@ -647,9 +647,9 @@ export const MILANO_CORTINA_2026: EventPricing = {
     ceremonies: ["opening-ceremony", "closing-ceremony"]
   },
   disposition: {
-    berlina: { daily: 1200, hourly: 120, kmRate: 1.8 },
-    monovolume: { daily: 1400, hourly: 140, kmRate: 2.0 },
-    minibus: { daily: 1600, hourly: 160, kmRate: 2.2 },
+    berlina: { daily: 1200, hourly: 94, kmRate: 1.8 },
+    monovolume: { daily: 1400, hourly: 108, kmRate: 2.0 },
+    minibus: { daily: 1600, hourly: 135, kmRate: 2.2 },
     dailyIncludes: { hours: 10, km: 100 }
   },
   extras: {

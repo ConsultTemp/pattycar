@@ -138,11 +138,11 @@ nel form
 
 ✅durata servizio -> tempo di attesa a destinazione prima del ritorno
 
-✅togli supplemento in cerimonia apertura se partenza e arrivo dentro milano
+✅ togli supplemento in cerimonia apertura se partenza e arrivo dentro milano
 
-✅ancora 1000% iva togliere
+✅ ancora 1000% iva togliere
 
-domenica e giorni festivi (6 gennaio 2026)->supplemento 30% solo sui meet e greet
+✅ domenica e giorni festivi (6 gennaio 2026)->supplemento 30% solo sui meet e greet
 
 
 
@@ -153,3 +153,35 @@ domenica e giorni festivi (6 gennaio 2026)->supplemento 30% solo sui meet e gree
 
 
 east cluster non ho modo di verificare che veicoli metter
+
+
+
+
+
+transfer -> west/east clusters
+
+
+
+✅ prezzo orario disposizione non cerimonia.
+
+✅ inizio e fine disposizione rimuovere
+
+
+
+
+
+
+✅partenza servizio: transfer milano -> partenza
+✅disposizione: attesa/durata 
+✅ritorno: compreso nel transfer di andata
+
+
+
+✅prezzi vicendevoli: bormio -> milano == milano-> bormio
+
+
+input ricerca
+✅se non inserisco minuti prende 00.
+✅le 12 le prende come notte. 0 deve essere notte e 12 mezzogiorno
+✅se metto stesso partenza e arrivo a disposizione non calcola il prezzo
+✅chiedere a ai se location sono vicendevoli
