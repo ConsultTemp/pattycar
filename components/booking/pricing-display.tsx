@@ -5,6 +5,16 @@ import { Calculator, Loader2, Star, Users, MapPin } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { PricingResult } from "@/lib/booking-types"
 
+// Helper function per arrotondare al centesimo (2 decimali)
+const roundToTwoDecimals = (num: number): number => {
+  return Math.round(num * 100) / 100
+}
+
+// Helper function per formattare il prezzo con sempre 2 decimali
+const formatPrice = (num: number): string => {
+  return roundToTwoDecimals(num).toFixed(2)
+}
+
 interface PricingDisplayProps {
   pricing: PricingResult | null
   isCalculating: boolean
@@ -97,7 +107,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
         </div>
       )}
 
-      <div className="text-3xl font-bold text-blue-900 mb-1">€{Math.round(pricing.totalPrice)}</div>
+      <div className="text-3xl font-bold text-blue-900 mb-1">€{formatPrice(pricing.totalPrice)}</div>
       <div className="text-sm text-blue-700 mb-2">{dictionary.vatIncluded}</div>
       
       {/* Night Surcharge Indicator */}
@@ -123,7 +133,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
             {pricing.breakdown.vehicleCount > 1 && (
               <p className="text-xs text-green-600">
                 Applied to {pricing.breakdown.vehicleCount} vehicle{pricing.breakdown.vehicleCount > 1 ? 's' : ''} 
-                (€{Math.round((pricing.meetGreetPrice / pricing.breakdown.vehicleCount) * 100) / 100} per vehicle)
+                (€{formatPrice(pricing.meetGreetPrice / pricing.breakdown.vehicleCount)} per vehicle)
               </p>
             )}
             <p className="text-xs text-green-600">Included in total price above</p>
@@ -146,7 +156,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                       Servizio completo cerimonia (include 2h prima + attesa + ritorno in città base)
                     </div>
                   </div>
-                  <div className="font-bold">€{Math.round(pricing.vehicleBreakdowns?.reduce((sum: number, vb: any) => sum + (vb.ceremonyBasePrice || 0), 0) || pricing.breakdown.basePrice || 0)}</div>
+                  <div className="font-bold">€{formatPrice(pricing.vehicleBreakdowns?.reduce((sum: number, vb: any) => sum + (vb.ceremonyBasePrice || 0), 0) || pricing.breakdown.basePrice || 0)}</div>
                 </div>
               )}
 
@@ -164,7 +174,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                       )}
                     </div>
                   </div>
-                  <div className="font-bold">€{Math.round(pricing.vehicleBreakdowns?.reduce((sum: number, vb: any) => sum + (vb.transferCost || 0), 0) || 0)}</div>
+                  <div className="font-bold">€{formatPrice(pricing.vehicleBreakdowns?.reduce((sum: number, vb: any) => sum + (vb.transferCost || 0), 0) || 0)}</div>
                 </div>
               )}
 
@@ -199,7 +209,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                         <div className="mt-1">
                           {pricing.vehicleBreakdowns.map((vb: any, index: number) => (
                             <div key={index} className="text-xs">
-                              Vehicle {vb.vehicleIndex} ({vb.type}): €{Math.round(vb.price || (pricing.breakdown.durationHours ? vb.durationHours * vb.hourlyRate : vb.basePrice || 0))}
+                              Vehicle {vb.vehicleIndex} ({vb.type}): €{formatPrice(vb.price || (pricing.breakdown.durationHours ? vb.durationHours * vb.hourlyRate : vb.basePrice || 0))}
                               {pricing.breakdown.durationHours && vb.hourlyRate && (
                                 <span> ({vb.durationHours}h × €{vb.hourlyRate}/h)</span>
                               )}
@@ -209,12 +219,31 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                       ) : (
                         /* Show simple multiplication only for same vehicle types */
                         pricing.breakdown.vehicleCount > 1 && (
-                          <div>{pricing.breakdown.vehicleCount} veicoli × €{Math.round(pricing.breakdown.basePrice / pricing.breakdown.vehicleCount)}</div>
+                          <div>{pricing.breakdown.vehicleCount} veicoli × €{formatPrice(pricing.breakdown.basePrice / pricing.breakdown.vehicleCount)}</div>
                         )
                       )}
                     </div>
                   </div>
-                  <div className="font-bold">€{Math.round(pricing.breakdown.basePrice)}</div>
+                  <div className="font-bold">€{formatPrice(pricing.breakdown.basePrice)}</div>
+                </div>
+              )}
+
+              {/* TRANSFER COST: Per disposizioni standard con transfer Milano Centrale */}
+              {!pricing.eventRoute?.name?.includes('Cerimonia') && 
+               pricing.breakdown.durationHours && 
+               (pricing.breakdown as any).transferCost && 
+               (pricing.breakdown as any).transferCost > 0 && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <div>
+                    <div className="font-medium">Transfer Milano Centrale</div>
+                    <div className="text-sm text-gray-600">
+                      {(pricing.breakdown as any).transferRoute || 'Transfer da Milano Centrale al punto servizio'}
+                      {pricing.breakdown.vehicleCount > 1 && (
+                        <div>{pricing.breakdown.vehicleCount} veicoli</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="font-bold">€{formatPrice((pricing.breakdown as any).transferCost)}</div>
                 </div>
               )}
 
@@ -225,7 +254,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                     <div className="font-medium">Supplemento notturno</div>
                     <div className="text-sm text-gray-600">Servizio 21:00-06:00 (+{pricing.breakdown.nightSurchargeRate || 20}%)</div>
                   </div>
-                  <div className="font-bold">€{Math.round(pricing.breakdown.nightSurcharge)}</div>
+                  <div className="font-bold">€{formatPrice(pricing.breakdown.nightSurcharge)}</div>
                 </div>
               )}
 
@@ -237,18 +266,18 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                     <div className="text-sm text-gray-600">
                       Servizio di accoglienza
                       {pricing.breakdown.vehicleCount > 1 && (
-                        <div>{pricing.breakdown.vehicleCount} veicoli × €{Math.round((pricing.meetGreetPrice / pricing.breakdown.vehicleCount) * 100) / 100}</div>
+                        <div>{pricing.breakdown.vehicleCount} veicoli × €{formatPrice(pricing.meetGreetPrice / pricing.breakdown.vehicleCount)}</div>
                       )}
                     </div>
                   </div>
-                  <div className="font-bold">€{Math.round(pricing.meetGreetPrice)}</div>
+                  <div className="font-bold">€{formatPrice(pricing.meetGreetPrice)}</div>
                 </div>
               )}
 
               {/* SUBTOTALE */}
               <div className="flex justify-between items-center py-3 bg-gray-50 rounded font-medium">
                 <div className="text-gray-800">SUBTOTALE</div>
-                <div className="text-lg">€{Math.round(pricing.breakdown.subtotal)}</div>
+                <div className="text-lg">€{formatPrice(pricing.breakdown.subtotal)}</div>
               </div>
 
               {/* IVA */}
@@ -256,16 +285,16 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <div>
                     <div className="font-medium">IVA</div>
-                    <div className="text-sm text-gray-600">{pricing.breakdown.vatRate}% su €{Math.round(pricing.breakdown.subtotal)}</div>
+                    <div className="text-sm text-gray-600">{pricing.breakdown.vatRate * 100}%  €{formatPrice(pricing.breakdown.subtotal)}</div>
                   </div>
-                  <div className="font-bold">€{Math.round(pricing.breakdown.vatAmount)}</div>
+                  <div className="font-bold">€{formatPrice(pricing.breakdown.vatAmount)}</div>
                 </div>
               )}
 
               {/* TOTALE FINALE */}
               <div className="flex justify-between items-center py-3 bg-blue-50 rounded border-2 border-blue-200">
                 <div className="font-bold text-xl text-blue-900">TOTALE</div>
-                <div className="font-bold text-2xl text-blue-900">€{Math.round(pricing.totalPrice)}</div>
+                <div className="font-bold text-2xl text-blue-900">€{formatPrice(pricing.totalPrice)}</div>
               </div>
             </div>
           </div>

@@ -83,9 +83,9 @@ export function calculateTotalPrice(
     pricePerVehicle += nightSurcharge
   }
 
-  const subtotal = Math.round(pricePerVehicle * vehicleCount)
-  const vatAmount = Math.round(subtotal * VAT_RATE)
-  const totalPrice = subtotal + vatAmount
+  const subtotal = Math.round(pricePerVehicle * vehicleCount * 100) / 100
+  const vatAmount = Math.round(subtotal * VAT_RATE * 100) / 100
+  const totalPrice = Math.round((subtotal + vatAmount) * 100) / 100
 
   return {
     basePrice,
@@ -158,8 +158,8 @@ export function calculateMultipleVehiclesPrice(
     })
   })
 
-  const vatAmount = Math.round(subtotal * VAT_RATE)
-  const totalPrice = subtotal + vatAmount
+  const vatAmount = Math.round(subtotal * VAT_RATE * 100) / 100
+  const totalPrice = Math.round((subtotal + vatAmount) * 100) / 100
 
   return {
     basePrice,
@@ -215,9 +215,9 @@ export function calculateDispositionPrice(
     pricePerVehicle += nightSurcharge
   }
 
-  const subtotal = Math.round(pricePerVehicle * vehicleCount)
-  const vatAmount = Math.round(subtotal * VAT_RATE)
-  const totalPrice = subtotal + vatAmount
+  const subtotal = Math.round(pricePerVehicle * vehicleCount * 100) / 100
+  const vatAmount = Math.round(subtotal * VAT_RATE * 100) / 100
+  const totalPrice = Math.round((subtotal + vatAmount) * 100) / 100
 
   return {
     basePrice,
@@ -297,8 +297,8 @@ export function calculateMultipleVehiclesDispositionPrice(
     })
   })
 
-  const vatAmount = Math.round(subtotal * VAT_RATE)
-  const totalPrice = subtotal + vatAmount
+  const vatAmount = Math.round(subtotal * VAT_RATE * 100) / 100
+  const totalPrice = Math.round((subtotal + vatAmount) * 100) / 100
 
   return {
     basePrice,

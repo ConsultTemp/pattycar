@@ -53,6 +53,20 @@ const isNightTime = (hour: string, minutes: string, ampm: string): boolean => {
   return totalMinutes >= 1170 || totalMinutes <= 450
 }
 
+// Helper function to calculate distance between two coordinates in kilometers
+const calculateDistanceKm = (coord1: { lat: number; lng: number }, coord2: { lat: number; lng: number }): number => {
+  const R = 6371 // Radius of the Earth in kilometers
+  const dLat = (coord2.lat - coord1.lat) * Math.PI / 180
+  const dLng = (coord2.lng - coord1.lng) * Math.PI / 180
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) * 
+    Math.sin(dLng/2) * Math.sin(dLng/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  const distance = R * c // Distance in kilometers
+  return distance
+}
+
 // Vehicle type mapping for events
 const mapVehicleTypeToEvent = (type: string): 'berlina' | 'monovolume' | 'minibus' => {
   switch (type.toLowerCase()) {
@@ -761,42 +775,45 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         totalPrice += meetGreetPrice
       }
 
-      console.log("🎯 RETURNING RESULT - calculateEventDispositionPrice:", {
-        basePrice,
-        totalPrice,
-        meetGreetPrice,
-        eventRoute: `${activeEvent.name} - Disposition`,
-        isEventPricing: true
-      })
-
-      return {
-        basePrice,
-        totalPrice,
-        meetGreetPrice,
-        meetGreetBreakdown,
-        eventRoute: {
-          name: `${activeEvent.name} - Disposition`,
-          from: "Disposition Service",
-          to: `${durationHours} hours`,
-          notes: `Special ${activeEvent.name} rates - ${durationHours}h duration${transferRoute ? ` + Transfer: ${transferRoute}` : ''}`
-        },
-        isEventPricing: true,
-        breakdown: {
-          durationHours,
+              console.log("🎯 RETURNING RESULT - calculateEventDispositionPrice:", {
           basePrice,
-          vehicleMultiplier: 1,
-          passengerMultiplier: 1,
-          luggageMultiplier: 1,
-          nightSurcharge,
-          nightSurchargeRate: nightSurcharge > 0 ? activeEvent.extras.nightSurcharge : 0,
-          vehicleCount: vehicles.count,
-          pricePerVehicle: Math.round(basePrice / vehicles.count),
-          subtotal,
-          vatAmount,
-          vatRate: activeEvent.extras.vatRate
-        },
-        vehicleBreakdowns: vehicleBreakdowns.length > 0 ? vehicleBreakdowns : undefined
-      }
+          totalPrice,
+          meetGreetPrice,
+          eventRoute: `${activeEvent.name} - Disposition`,
+          isEventPricing: true,
+          transferCost,
+          transferRoute
+        })
+
+        return {
+          basePrice,
+          totalPrice,
+          meetGreetPrice,
+          meetGreetBreakdown,
+          eventRoute: {
+            name: `${activeEvent.name} - Disposition`,
+            from: "Disposition Service",
+            to: `${durationHours} hours`,
+            notes: `Special ${activeEvent.name} rates - ${durationHours}h duration${transferRoute ? ` + Transfer: ${transferRoute}` : ''}`
+          },
+          isEventPricing: true,
+          breakdown: {
+            durationHours,
+            basePrice,
+            vehicleMultiplier: 1,
+            passengerMultiplier: 1,
+            luggageMultiplier: 1,
+            nightSurcharge,
+            nightSurchargeRate: nightSurcharge > 0 ? activeEvent.extras.nightSurcharge : 0,
+            vehicleCount: vehicles.count,
+            pricePerVehicle: Math.round(basePrice / vehicles.count),
+            subtotal,
+            vatAmount,
+            vatRate: activeEvent.extras.vatRate,
+            ...(transferCost > 0 && { transferCost, transferRoute })
+          } as any,
+          vehicleBreakdowns: vehicleBreakdowns.length > 0 ? vehicleBreakdowns : undefined
+        }
     },
     []
   )
@@ -966,6 +983,101 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               journey.endTimeAmPm!,
               vehicles.multipleConfigs,
             )
+          }
+
+          // STANDARD DISPOSITION: Add transfer cost from Milano Centrale to disposition start point
+          if (standardPricing) {
+            const resolvedPickup = resolveLocationForPricing(
+              journey.pickup.locationId, 
+              journey.pickup.coordinates
+            )
+            
+            // Calculate transfer from Milano Centrale to disposition start point
+            let transferCost = 0
+            let transferRoute = ''
+            
+            if (resolvedPickup.resolvedLocationId && resolvedPickup.resolvedLocationId !== 'milano-centrale') {
+              try {
+                // Get distance from Milano Centrale to disposition start point
+                const milanoCoordinates = { lat: 45.4868, lng: 9.2037 } // Milano Centrale coordinates
+                const pickupCoordinates = resolvedPickup.resolvedCoordinates
+                
+                if (pickupCoordinates) {
+                  // Calculate distance between Milano Centrale and pickup location
+                  const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
+                  
+                  // Use standard pricing for the transfer
+                  let vehicleType = 'sedan' // default
+                  let passengers = 1
+                  let luggage = 0
+                  
+                  if (vehicles.count === 1 || vehicles.sameType) {
+                    vehicleType = vehicles.singleConfig.type
+                    passengers = vehicles.singleConfig.passengers
+                    luggage = vehicles.singleConfig.luggage
+                  } else {
+                    // For multiple vehicles, use the first one for transfer calculation
+                    vehicleType = vehicles.multipleConfigs[0].type
+                    passengers = vehicles.multipleConfigs[0].passengers
+                    luggage = vehicles.multipleConfigs[0].luggage
+                  }
+                  
+                  // Calculate transfer price using standard pricing
+                  const transferPricing = calculateTotalPrice(
+                    distance,
+                    vehicleType,
+                    passengers,
+                    luggage,
+                    vehicles.count,
+                    journey.time,
+                    journey.minutes,
+                    journey.timeAmPm
+                  )
+                  
+                  transferCost = transferPricing.basePrice
+                  transferRoute = `Milano Centrale → ${journey.pickup.address}`
+                  
+                  console.log("🚗 STANDARD DISPOSITION TRANSFER:", {
+                    distance: distance.toFixed(1) + 'km',
+                    vehicleType,
+                    cost: transferCost,
+                    route: transferRoute
+                  })
+                }
+              } catch (error) {
+                console.error("Error calculating transfer distance:", error)
+                transferCost = 0
+              }
+            }
+            
+            // Add transfer cost to the total pricing
+            if (transferCost > 0) {
+              const originalSubtotal = standardPricing.breakdown.subtotal
+              const transferSubtotal = originalSubtotal + transferCost
+              const transferVatAmount = Math.round(transferSubtotal * standardPricing.breakdown.vatRate * 100) / 100
+              const transferTotalPrice = Math.round((transferSubtotal + transferVatAmount) * 100) / 100
+              
+              // DON'T add transferCost to basePrice - keep them separate!
+              // standardPricing.basePrice += transferCost  <- REMOVED THIS BAD LINE
+              standardPricing.totalPrice = transferTotalPrice
+               
+               // Create new breakdown with transfer information
+               const updatedBreakdown = {
+                 ...standardPricing.breakdown,
+                 subtotal: transferSubtotal,
+                 vatAmount: transferVatAmount,
+                 transferCost: transferCost,
+                 transferRoute: transferRoute
+               }
+               standardPricing.breakdown = updatedBreakdown
+               
+               console.log("💰 UPDATED STANDARD DISPOSITION PRICING:", {
+                 originalTotal: originalSubtotal + Math.round(originalSubtotal * standardPricing.breakdown.vatRate * 100) / 100,
+                 transferCost,
+                 newTotal: transferTotalPrice,
+                 transferRoute
+               })
+            }
           }
         }
 

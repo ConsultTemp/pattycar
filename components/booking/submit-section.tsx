@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button"
 import { CreditCard, Loader2 } from "lucide-react"
 import type { PricingResult } from "@/lib/booking-types"
 
+// Helper function per formattare il prezzo con sempre 2 decimali
+const formatPrice = (num: number): string => {
+  return (Math.round(num * 100) / 100).toFixed(2)
+}
+
 interface SubmitSectionProps {
   isValid: boolean
   isSubmitting: boolean
@@ -45,7 +50,7 @@ export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, 
           <>
             <CreditCard className="w-5 h-5 mr-2" />
             {dictionary.button}
-            {pricing && <span className="ml-2 font-bold">€{pricing.totalPrice}</span>}
+            {pricing && <span className="ml-2 font-bold">€{formatPrice(pricing.totalPrice)}</span>}
           </>
         )}
       </Button>
