@@ -320,6 +320,12 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
 
   // Helper function to map standard vehicle types to Olympic vehicle types
   const mapToOlympicVehicleType = (standardType: string): keyof OlympicRoute['prices'] => {
+    // If already in Olympic format, return as is
+    if (standardType.startsWith('olympic-')) {
+      return standardType as keyof OlympicRoute['prices']
+    }
+    
+    // Otherwise map standard types to Olympic types
     const mapping: Record<string, keyof OlympicRoute['prices']> = {
       'sedan': 'olympic-sedan',
       'van': 'olympic-minivan', 

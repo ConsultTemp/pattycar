@@ -1232,7 +1232,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 220,
       'olympic-minivan': 255,
-      'olympic-van': 255,
+      'olympic-van': 490,
       'olympic-luxury': 470
     },
     extraHourRates: {
@@ -1250,7 +1250,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1100,
       'olympic-minivan': 1270,
-      'olympic-van': 1270,
+      'olympic-van': 1780,
       'olympic-luxury': 1630
     },
     extraHourRates: {
@@ -1268,7 +1268,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 990,
       'olympic-minivan': 1150,
-      'olympic-van': 1150,
+      'olympic-van': 1540,
       'olympic-luxury': 1430
     },
     extraHourRates: {
@@ -1286,7 +1286,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 710,
       'olympic-minivan': 830,
-      'olympic-van': 830,
+      'olympic-van': 1250,
       'olympic-luxury': 1130
     },
     extraHourRates: {
@@ -1306,7 +1306,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 135,
       'olympic-minivan': 150,
-      'olympic-van': 150,
+      'olympic-van': 330,
       'olympic-luxury': 285
     },
     extraHourRates: {
@@ -1324,7 +1324,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1070,
       'olympic-minivan': 1230,
-      'olympic-van': 1230,
+      'olympic-van': 1590,
       'olympic-luxury': 1470
     },
     extraHourRates: {
@@ -1342,7 +1342,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 920,
       'olympic-minivan': 1170,
-      'olympic-van': 1170,
+      'olympic-van': 1390,
       'olympic-luxury': 1290
     },
     extraHourRates: {
@@ -1360,7 +1360,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 620,
       'olympic-minivan': 730,
-      'olympic-van': 730,
+      'olympic-van': 990,
       'olympic-luxury': 920
     },
     extraHourRates: {
@@ -1380,7 +1380,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 240,
       'olympic-minivan': 270,
-      'olympic-van': 270,
+      'olympic-van': 520,
       'olympic-luxury': 515
     },
     extraHourRates: {
@@ -1398,7 +1398,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 950,
       'olympic-minivan': 1100,
-      'olympic-van': 1100,
+      'olympic-van': 1590,
       'olympic-luxury': 1470
     },
     extraHourRates: {
@@ -1416,7 +1416,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 830,
       'olympic-minivan': 960,
-      'olympic-van': 960,
+      'olympic-van': 1390,
       'olympic-luxury': 1290
     },
     extraHourRates: {
@@ -1434,7 +1434,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 430,
       'olympic-minivan': 500,
-      'olympic-van': 500,
+      'olympic-van': 990,
       'olympic-luxury': 920
     },
     extraHourRates: {
@@ -1454,7 +1454,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 125,
       'olympic-minivan': 150,
-      'olympic-van': 150,
+      'olympic-van': 320,
       'olympic-luxury': 270
     },
     extraHourRates: {
@@ -1472,7 +1472,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 1070,
       'olympic-minivan': 1230,
-      'olympic-van': 1230,
+      'olympic-van': 1590,
       'olympic-luxury': 1470
     },
     extraHourRates: {
@@ -1490,7 +1490,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 920,
       'olympic-minivan': 1170,
-      'olympic-van': 1170,
+      'olympic-van': 1390,
       'olympic-luxury': 1290
     },
     extraHourRates: {
@@ -1508,7 +1508,7 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     prices: {
       'olympic-sedan': 620,
       'olympic-minivan': 730,
-      'olympic-van': 730,
+      'olympic-van': 990,
       'olympic-luxury': 920
     },
     extraHourRates: {
@@ -1519,3 +1519,5 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     }
   }
 ] 
+
+
