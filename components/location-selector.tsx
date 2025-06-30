@@ -3,16 +3,24 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { MapPin, Plane, Train, Loader2, AlertCircle } from "lucide-react"
+import { MapPin, Plane, Train, Loader2, AlertCircle, Star } from "lucide-react"
 import { getAllLocations, getLocationById, getAvailableLocations, type Location } from "@/lib/event-pricing"
 import { isOlympicPeriod } from "@/lib/olympic-pricing"
 import { useDebounce } from "@/hooks/use-debounce"
+import { shouldUseListinoPricing } from "@/lib/locality-mapping"
 
 interface Place {
   place_id: string
   description: string
   main_text: string
   secondary_text: string
+  address_components?: any[]
+  coordinates?: { lat: number; lng: number }
+  extracted_locality?: string | null
+  locality_info?: {
+    locality: string | null
+    administrative_area: string | null
+  }
 }
 
 interface ListinoLocation {
@@ -68,6 +76,7 @@ export function LocationSelector({
   const isSelectingRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const lastSelectedValueRef = useRef<string>("")
+  const isTypingRef = useRef(false) // NEW: Track if user is actively typing
 
   // Debounce dell'input per evitare troppe chiamate API
   const debouncedInputValue = useDebounce(inputValue, 500)
@@ -185,6 +194,7 @@ export function LocationSelector({
         throw new Error(data.details || data.error)
       }
 
+      console.log('🔍 Google Places results:', data.predictions)
       setGooglePlaces(data.predictions || [])
     } catch (error) {
       console.error("Error fetching places:", error)
@@ -198,6 +208,7 @@ export function LocationSelector({
   // Handle listino location selection
   const handleListinoLocationSelect = (location: Location) => {
     isSelectingRef.current = true
+    isTypingRef.current = false // Clear typing flag
     lastSelectedValueRef.current = location.displayName
     
     setInputValue(location.displayName)
@@ -215,19 +226,50 @@ export function LocationSelector({
     }, 300)
   }
 
-  // Handle Google Places selection
+  // Handle Google Places selection - WITH LOCALITY MAPPING
   const handleGooglePlaceSelect = (place: Place) => {
     isSelectingRef.current = true
+    isTypingRef.current = false // Clear typing flag
     lastSelectedValueRef.current = place.description
     
-    setInputValue(place.description)
-    onChange({
-      address: place.description,
-      placeId: place.place_id,
-      coordinates: undefined, // Will be geocoded later
-      locationId: undefined,
-      isCustom: true
-    })
+    console.log('🎯 Selected Google place:', place)
+    
+    // Check se questo indirizzo Google dovrebbe usare il listino
+    const listinoCheck = shouldUseListinoPricing(
+      place.extracted_locality || null,
+      place.address_components || [],
+      place.coordinates || null,
+      0.60 // 60% confidence threshold (lowered for metropolitan area matches)
+    )
+
+    console.log('📊 Listino check result:', listinoCheck)
+
+    if (listinoCheck.useListino && listinoCheck.location) {
+      // USA IL LISTINO - location mappata (testuale O geografica)
+      console.log('✅ Using listino pricing for:', place.description, '-> mapped to:', listinoCheck.locationId)
+      
+      setInputValue(place.description) // Mantieni l'indirizzo originale che ha digitato l'utente
+      onChange({
+        address: place.description,
+        placeId: place.place_id,
+        coordinates: place.coordinates || listinoCheck.location.coordinates,
+        locationId: listinoCheck.locationId!, // Use the mapped location ID
+        isCustom: false // FALSE perché usa listino!
+      })
+    } else {
+      // USA LA DISTANZA - indirizzo custom
+      console.log('📏 Using distance calculation for:', place.description)
+      
+      setInputValue(place.description)
+      onChange({
+        address: place.description,
+        placeId: place.place_id,
+        coordinates: place.coordinates, // Will be geocoded later if needed
+        locationId: undefined,
+        isCustom: true
+      })
+    }
+    
     setIsOpen(false)
     setGooglePlaces([])
     setGoogleError(null)
@@ -243,18 +285,26 @@ export function LocationSelector({
     const newValue = e.target.value
     
     if (!isSelectingRef.current) {
+      // Set typing flag
+      isTypingRef.current = true
+      
       if (newValue !== lastSelectedValueRef.current) {
         lastSelectedValueRef.current = ""
       }
       
       setInputValue(newValue)
+      
+      // Only call onChange to clear previous selection, not to set new values during typing
+      if (value.locationId || value.placeId) {
       onChange({
-        address: newValue,
-        placeId: "",
-        coordinates: undefined,
-        locationId: undefined,
-        isCustom: true
-      })
+          address: newValue,
+          placeId: "",
+          coordinates: undefined,
+          locationId: undefined,
+          isCustom: true
+        })
+      }
+      
       setGoogleError(null)
 
       if (newValue.length >= 1) {
@@ -276,6 +326,18 @@ export function LocationSelector({
   // Handle input blur
   const handleInputBlur = () => {
     if (!isSelectingRef.current) {
+      // If user was typing and blurs, trigger onChange with current value
+      if (isTypingRef.current && inputValue) {
+    onChange({
+          address: inputValue,
+          placeId: "",
+          coordinates: undefined,
+      locationId: undefined,
+      isCustom: true
+    })
+        isTypingRef.current = false
+      }
+      
       setTimeout(() => {
         if (!isSelectingRef.current) {
           setIsOpen(false)
@@ -302,10 +364,41 @@ export function LocationSelector({
     }
   }
 
-  // Sync with external changes
+  // Function to determine if a Google place will use listino pricing (for display)
+  const getGooglePlaceListinoInfo = (place: Place) => {
+    const listinoCheck = shouldUseListinoPricing(
+      place.extracted_locality || null,
+      place.address_components || [],
+      place.coordinates || null,
+      0.60 // Same threshold as selection (60%)
+    )
+    return listinoCheck
+  }
+
+  // Sync with external changes - ONLY when user is not typing
   useEffect(() => {
-    setInputValue(value.address || "")
+    // Don't overwrite input while user is actively typing
+    if (!isTypingRef.current && !isSelectingRef.current) {
+      setInputValue(value.address || "")
+    }
   }, [value.address])
+
+  // NEW: Handle end of typing - call onChange when user stops typing
+  useEffect(() => {
+    if (isTypingRef.current && debouncedInputValue && !isSelectingRef.current) {
+      // User has stopped typing, now update the parent with current typed value
+      onChange({
+        address: debouncedInputValue,
+        placeId: "",
+        coordinates: undefined,
+        locationId: undefined,
+        isCustom: true
+      })
+      
+      // Clear typing flag
+      isTypingRef.current = false
+    }
+  }, [debouncedInputValue, onChange])
 
   const hasResults = filteredListinoLocations.length > 0 || googlePlaces.length > 0
   const showNoResults = isOpen && inputValue.length >= 3 && !hasResults && !isLoadingGoogle && !googleError
@@ -343,17 +436,18 @@ export function LocationSelector({
         {isOpen && (filteredListinoLocations.length > 0 || googlePlaces.length > 0) && (
           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
             
-            {/* Listino Locations First */}
+            {/* Listino Locations First - ALWAYS PRIORITIZED */}
             {filteredListinoLocations.length > 0 && (
               <>
-                <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
-                  {dictionary?.listinoResults || "Destinazioni del listino"}
+                <div className="px-3 py-2 text-xs font-semibold text-green-600 bg-green-50 border-b flex items-center gap-1">
+                  <Star className="h-3 w-3" />
+                  {dictionary?.listinoResults || "Destinazioni del listino (prezzi fissi)"}
                 </div>
                 {filteredListinoLocations.map((location) => (
                   <button
                     key={`listino-${location.id}`}
                     type="button"
-                    className="w-full px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100"
+                    className="w-full px-4 py-3 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-none border-b border-gray-100"
                     onMouseDown={handleOptionMouseDown}
                     onClick={() => handleListinoLocationSelect(location)}
                   >
@@ -379,7 +473,7 @@ export function LocationSelector({
                 </>
               )}
 
-            {/* Google Places Results */}
+            {/* Google Places Results - WITH INTELLIGENT LISTINO DETECTION */}
             {googlePlaces.length > 0 && (
               <>
                 {filteredListinoLocations.length > 0 && (
@@ -387,23 +481,29 @@ export function LocationSelector({
                     {dictionary?.googleResults || "Altri indirizzi"}
                   </div>
                 )}
-                {googlePlaces.map((place) => (
-                  <button
-                    key={`google-${place.place_id}`}
-                    type="button"
-                    className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
-                    onMouseDown={handleOptionMouseDown}
-                    onClick={() => handleGooglePlaceSelect(place)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">{place.main_text}</div>
-                        {place.secondary_text && <div className="text-xs text-gray-500 truncate">{place.secondary_text}</div>}
+                {googlePlaces.map((place) => {
+                  const listinoInfo = getGooglePlaceListinoInfo(place)
+                  const willUseListino = listinoInfo.useListino
+                  const isGeographical = listinoInfo.matchType === 'geographical'
+                  
+                  return (
+                    <button
+                      key={`google-${place.place_id}`}
+                      type="button"
+                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0`}
+                      onMouseDown={handleOptionMouseDown}
+                      onClick={() => handleGooglePlaceSelect(place)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">{place.main_text}</div>
+                          {place.secondary_text && <div className="text-xs text-gray-500 truncate">{place.secondary_text}</div>}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                  ))}
+                    </button>
+                  )
+                })}
                 </>
               )}
         </div>
@@ -419,7 +519,7 @@ export function LocationSelector({
 
       {/* Help text */}
       <p className="text-xs text-gray-500">
-        {dictionary?.unifiedSearchHelp || "Cerca tra le nostre destinazioni o inserisci un indirizzo personalizzato"}
+        Start typing to search for a location...
       </p>
 
       {/* Error message */}

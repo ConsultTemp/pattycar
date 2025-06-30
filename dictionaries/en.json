@@ -305,7 +305,8 @@
         "processing": "Creating payment session...",
         "button": "Proceed to Payment",
         "validationMessage": "Fill in all required fields (*) to proceed to payment",
-        "error": "Error creating payment session. Please try again."
+        "error": "Error creating payment session. Please try again.",
+        "additionalQuotes": "For other quotes write to gamestime@pattycar.com"
       },
       "success": {
         "title": "Booking submitted successfully!",

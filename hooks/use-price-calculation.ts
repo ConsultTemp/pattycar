@@ -728,8 +728,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         // Fall back to standard pricing
         let standardPricing: PricingResult | null = null
 
-        if (serviceType === "transfer") {
-          // Transfer pricing (distance-based)
+        if (serviceType === "transfer" || serviceType === "inter-cluster") {
+          // Transfer pricing (distance-based) OR Inter-cluster (fixed pricing during Olympic period)
           if (vehicles.count === 1 || vehicles.sameType) {
             const config = vehicles.singleConfig
             standardPricing = calculateTotalPrice(

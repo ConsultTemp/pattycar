@@ -305,7 +305,8 @@
         "processing": "Creazione sessione pagamento...",
         "button": "Procedi al Pagamento",
         "validationMessage": "Compila tutti i campi obbligatori (*) per procedere al pagamento",
-        "error": "Errore durante la creazione della sessione di pagamento. Riprova."
+        "error": "Errore durante la creazione della sessione di pagamento. Riprova.",
+        "additionalQuotes": "Per altre quotazioni scrivere a gamestime@pattycar.com"
       },
       "success": {
         "title": "Prenotazione inviata con successo!",

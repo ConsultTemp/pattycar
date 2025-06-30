@@ -23,7 +23,7 @@ export const OLYMPIC_VEHICLE_TYPES: Record<string, OlympicVehicleType> = {
     maxPassengersWithLuggage: 3,
     maxLuggage: 2,
     maxSmallLuggage: 1,
-    description: '3 passengers max',
+    description: '3 passengers + 2 large + 1 small luggage',
     category: 'standard'
   },
 
@@ -32,9 +32,9 @@ export const OLYMPIC_VEHICLE_TYPES: Record<string, OlympicVehicleType> = {
     name: 'minivan',
     displayName: 'Mini Van',
     maxPassengers: 6,
-    maxPassengersWithLuggage: 4,
-    maxLuggage: 4,
-    description: '6 passengers (4 with luggage)',
+    maxPassengersWithLuggage: 6,
+    maxLuggage: 6,
+    description: '6 passengers + 6 luggage',
     category: 'standard'
   },
   'olympic-van': {
@@ -42,9 +42,9 @@ export const OLYMPIC_VEHICLE_TYPES: Record<string, OlympicVehicleType> = {
     name: 'van',
     displayName: 'Van',
     maxPassengers: 8,
-    maxPassengersWithLuggage: 6,
-    maxLuggage: 6,
-    description: '8 passengers (6 with luggage)',
+    maxPassengersWithLuggage: 8,
+    maxLuggage: 8,
+    description: '8 passengers + 8 luggage',
     category: 'standard'
   },
   'olympic-luxury': {
@@ -54,7 +54,7 @@ export const OLYMPIC_VEHICLE_TYPES: Record<string, OlympicVehicleType> = {
     maxPassengers: 2,
     maxPassengersWithLuggage: 2,
     maxLuggage: 2,
-    description: '2 passengers max (Mercedes S / Maserati)',
+    description: '2 passengers + 2 luggage',
     category: 'luxury'
   }
 }
@@ -920,6 +920,13 @@ export function findOlympicRoute(fromLocationId: string, toLocationId: string): 
   
   if (transferRoute) return transferRoute
   
+  // Try airport/station routes
+  const airportStationRoute = OLYMPIC_AIRPORT_STATION_ROUTES.find(route => 
+    route.fromLocationId === fromLocationId && route.toLocationId === toLocationId
+  )
+  
+  if (airportStationRoute) return airportStationRoute
+  
   // Then try inter-cluster routes (destination to destination)
   const interClusterRoute = OLYMPIC_INTER_CLUSTER_ROUTES.find(route => 
     route.fromLocationId === fromLocationId && route.toLocationId === toLocationId
@@ -927,12 +934,18 @@ export function findOlympicRoute(fromLocationId: string, toLocationId: string): 
   
   if (interClusterRoute) return interClusterRoute
   
-  // Try reverse routes for both
+  // Try reverse routes for all
   const reverseTransferRoute = OLYMPIC_TRANSFER_ROUTES.find(route => 
     route.fromLocationId === toLocationId && route.toLocationId === fromLocationId
   )
   
   if (reverseTransferRoute) return reverseTransferRoute
+  
+  const reverseAirportStationRoute = OLYMPIC_AIRPORT_STATION_ROUTES.find(route => 
+    route.fromLocationId === toLocationId && route.toLocationId === fromLocationId
+  )
+  
+  if (reverseAirportStationRoute) return reverseAirportStationRoute
   
   const reverseInterClusterRoute = OLYMPIC_INTER_CLUSTER_ROUTES.find(route => 
     route.fromLocationId === toLocationId && route.toLocationId === fromLocationId
@@ -1205,4 +1218,304 @@ function calculateDistanceKm(coord1: { lat: number; lng: number }, coord2: { lat
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
   const distance = R * c // Distance in kilometers
   return distance
-} 
+}
+
+// Olympic Airport/Station Transfer Routes - Airport and Train station Arrival and Departure Rates
+// Olympic Period rates from January - March 2026
+export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
+  // Milano Malpensa routes
+  {
+    from: 'Milano Malpensa MXP',
+    to: 'Milano City Center',
+    fromLocationId: 'malpensa',
+    toLocationId: 'milano',
+    prices: {
+      'olympic-sedan': 220,
+      'olympic-minivan': 255,
+      'olympic-van': 255,
+      'olympic-luxury': 470
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Malpensa MXP',
+    to: 'Livigno',
+    fromLocationId: 'malpensa',
+    toLocationId: 'livigno',
+    prices: {
+      'olympic-sedan': 1100,
+      'olympic-minivan': 1270,
+      'olympic-van': 1270,
+      'olympic-luxury': 1630
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Malpensa MXP',
+    to: 'Bormio',
+    fromLocationId: 'malpensa',
+    toLocationId: 'bormio',
+    prices: {
+      'olympic-sedan': 990,
+      'olympic-minivan': 1150,
+      'olympic-van': 1150,
+      'olympic-luxury': 1430
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Malpensa MXP',
+    to: 'Verona',
+    fromLocationId: 'malpensa',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 710,
+      'olympic-minivan': 830,
+      'olympic-van': 830,
+      'olympic-luxury': 1130
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+
+  // Milano Linate routes
+  {
+    from: 'Milano Linate LIN',
+    to: 'Milano City Center',
+    fromLocationId: 'linate',
+    toLocationId: 'milano',
+    prices: {
+      'olympic-sedan': 135,
+      'olympic-minivan': 150,
+      'olympic-van': 150,
+      'olympic-luxury': 285
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Linate LIN',
+    to: 'Livigno',
+    fromLocationId: 'linate',
+    toLocationId: 'livigno',
+    prices: {
+      'olympic-sedan': 1070,
+      'olympic-minivan': 1230,
+      'olympic-van': 1230,
+      'olympic-luxury': 1470
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Linate LIN',
+    to: 'Bormio',
+    fromLocationId: 'linate',
+    toLocationId: 'bormio',
+    prices: {
+      'olympic-sedan': 920,
+      'olympic-minivan': 1170,
+      'olympic-van': 1170,
+      'olympic-luxury': 1290
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Linate LIN',
+    to: 'Verona',
+    fromLocationId: 'linate',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 620,
+      'olympic-minivan': 730,
+      'olympic-van': 730,
+      'olympic-luxury': 920
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+
+  // Bergamo BGY routes
+  {
+    from: 'Bergamo BGY',
+    to: 'Milano City Center',
+    fromLocationId: 'orio-al-serio',
+    toLocationId: 'milano',
+    prices: {
+      'olympic-sedan': 240,
+      'olympic-minivan': 270,
+      'olympic-van': 270,
+      'olympic-luxury': 515
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Bergamo BGY',
+    to: 'Livigno',
+    fromLocationId: 'orio-al-serio',
+    toLocationId: 'livigno',
+    prices: {
+      'olympic-sedan': 950,
+      'olympic-minivan': 1100,
+      'olympic-van': 1100,
+      'olympic-luxury': 1470
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Bergamo BGY',
+    to: 'Bormio',
+    fromLocationId: 'orio-al-serio',
+    toLocationId: 'bormio',
+    prices: {
+      'olympic-sedan': 830,
+      'olympic-minivan': 960,
+      'olympic-van': 960,
+      'olympic-luxury': 1290
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Bergamo BGY',
+    to: 'Verona',
+    fromLocationId: 'orio-al-serio',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 430,
+      'olympic-minivan': 500,
+      'olympic-van': 500,
+      'olympic-luxury': 920
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+
+  // Milano Stazione Centrale routes
+  {
+    from: 'Milano Stazione Centrale',
+    to: 'Milano City Center',
+    fromLocationId: 'milano-centrale',
+    toLocationId: 'milano',
+    prices: {
+      'olympic-sedan': 125,
+      'olympic-minivan': 150,
+      'olympic-van': 150,
+      'olympic-luxury': 270
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Stazione Centrale',
+    to: 'Livigno',
+    fromLocationId: 'milano-centrale',
+    toLocationId: 'livigno',
+    prices: {
+      'olympic-sedan': 1070,
+      'olympic-minivan': 1230,
+      'olympic-van': 1230,
+      'olympic-luxury': 1470
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Stazione Centrale',
+    to: 'Bormio',
+    fromLocationId: 'milano-centrale',
+    toLocationId: 'bormio',
+    prices: {
+      'olympic-sedan': 920,
+      'olympic-minivan': 1170,
+      'olympic-van': 1170,
+      'olympic-luxury': 1290
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  },
+  {
+    from: 'Milano Stazione Centrale',
+    to: 'Verona',
+    fromLocationId: 'milano-centrale',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 620,
+      'olympic-minivan': 730,
+      'olympic-van': 730,
+      'olympic-luxury': 920
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    }
+  }
+] 

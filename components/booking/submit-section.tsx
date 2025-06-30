@@ -50,6 +50,11 @@ export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, 
         )}
       </Button>
 
+      {/* Additional Quotes Text */}
+      <div className="text-sm text-gray-600 mt-4">
+        <p>{dictionary.additionalQuotes}</p>
+      </div>
+
       {submitError && (
         <p className="text-red-600 text-sm" role="alert">
           {submitError}

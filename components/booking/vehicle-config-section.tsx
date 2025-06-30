@@ -248,7 +248,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                 <SelectContent>
                   {vehicleTypes.map((vehicle) => (
                     <SelectItem key={vehicle.value} value={vehicle.value}>
-                      <div className="flex flex-col gap-1 py-1">
+                      <div className="flex flex-col gap-1 py-1 w-full">
                         <div className="flex items-center gap-2">
                           {/* Category icon */}
                           {vehicle.category === 'ceremony' && (
@@ -258,18 +258,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                             <span className="text-xs">💎</span>
                           )}
                           
-                          <span className="font-medium">{vehicle.label}</span>
-                          <span className="text-xs text-gray-500">
-                            ({vehicle.maxPassengers} <User2 className="w-3 h-3 inline" />
-                            {vehicle.maxSmallLuggage ? (
-                              <span>
-                                {" "}{vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" />
-                                + {vehicle.maxSmallLuggage} <Backpack className="w-3 h-3 inline" />
-                              </span>
-                            ) : (
-                              <span> {vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" /></span>
-                            )})
-                          </span>
+                          <span className="font-medium text-sm">{vehicle.label}</span>
                           
                           {/* Ceremony price */}
                           {vehicle.ceremonyPrice && (
@@ -279,12 +268,15 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                           )}
                         </div>
                         
-                        {/* Description on separate line if exists */}
-                        {vehicle.description && (
-                          <div className="text-xs text-gray-500 pl-0">
-                            {vehicle.description}
-                          </div>
-                        )}
+                        {/* Capacity info on separate line */}
+                        <div className="text-xs text-gray-500">
+                          <span>{vehicle.maxPassengers} pax</span>
+                          {vehicle.maxSmallLuggage ? (
+                            <span> • {vehicle.maxLuggage} 🧳 + {vehicle.maxSmallLuggage} 🎒</span>
+                          ) : (
+                            <span> • {vehicle.maxLuggage} 🧳</span>
+                          )}
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -434,7 +426,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                       <SelectContent>
                         {vehicleTypes.map((vehicle) => (
                           <SelectItem key={vehicle.value} value={vehicle.value}>
-                            <div className="flex flex-col gap-1 py-1">
+                            <div className="flex flex-col gap-1 py-1 w-full">
                               <div className="flex items-center gap-2">
                                 {/* Category icon */}
                                 {vehicle.category === 'ceremony' && (
@@ -444,18 +436,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                                   <span className="text-xs">💎</span>
                                 )}
                                 
-                                <span className="font-medium">{vehicle.label}</span>
-                                <span className="text-xs text-gray-500">
-                                  ({vehicle.maxPassengers} <User2 className="w-3 h-3 inline" />
-                                  {vehicle.maxSmallLuggage ? (
-                                    <span>
-                                      {" "}{vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" />
-                                      + {vehicle.maxSmallLuggage} <Backpack className="w-3 h-3 inline" />
-                                    </span>
-                                  ) : (
-                                    <span> {vehicle.maxLuggage} <Luggage className="w-3 h-3 inline" /></span>
-                                  )})
-                                </span>
+                                <span className="font-medium text-sm">{vehicle.label}</span>
                                 
                                 {/* Ceremony price */}
                                 {vehicle.ceremonyPrice && (
@@ -465,12 +446,15 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                                 )}
                               </div>
                               
-                              {/* Description on separate line if exists */}
-                              {vehicle.description && (
-                                <div className="text-xs text-gray-500 pl-0">
-                                  {vehicle.description}
-                                </div>
-                              )}
+                              {/* Capacity info on separate line */}
+                              <div className="text-xs text-gray-500">
+                                <span>{vehicle.maxPassengers} pax</span>
+                                {vehicle.maxSmallLuggage ? (
+                                  <span> • {vehicle.maxLuggage} 🧳 + {vehicle.maxSmallLuggage} 🎒</span>
+                                ) : (
+                                  <span> • {vehicle.maxLuggage} 🧳</span>
+                                )}
+                              </div>
                             </div>
                           </SelectItem>
                         ))}

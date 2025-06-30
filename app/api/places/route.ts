@@ -16,13 +16,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Usa la nuova Places API - Autocomplete endpoint
-    const url = "https://places.googleapis.com/v1/places:autocomplete"
+    const autocompleteUrl = "https://places.googleapis.com/v1/places:autocomplete"
 
-    console.log("=== CALLING GOOGLE PLACES API ===")
-    console.log("URL:", url)
+    console.log("=== CALLING GOOGLE PLACES AUTOCOMPLETE API ===")
+    console.log("URL:", autocompleteUrl)
     console.log("Input:", input)
 
-    // Richiesta semplificata per evitare parametri non supportati
     const requestBody = {
       input: input,
       languageCode: "it",
@@ -31,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Request body:", JSON.stringify(requestBody, null, 2))
 
-    const response = await fetch(url, {
+    const autocompleteResponse = await fetch(autocompleteUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,59 +40,118 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(requestBody),
     })
 
-    console.log("=== RESPONSE STATUS ===")
-    console.log("Status:", response.status, response.statusText)
-    console.log("Headers:", Object.fromEntries(response.headers.entries()))
+    console.log("=== AUTOCOMPLETE RESPONSE STATUS ===")
+    console.log("Status:", autocompleteResponse.status, autocompleteResponse.statusText)
 
-    const responseText = await response.text()
-    console.log("=== RAW RESPONSE ===")
-    console.log(responseText)
+    const autocompleteText = await autocompleteResponse.text()
+    console.log("=== RAW AUTOCOMPLETE RESPONSE ===")
+    console.log(autocompleteText)
 
-    if (!response.ok) {
-      console.error("=== API ERROR ===")
-      console.error(`Status: ${response.status} ${response.statusText}`)
-      console.error("Response:", responseText)
+    if (!autocompleteResponse.ok) {
+      console.error("=== AUTOCOMPLETE API ERROR ===")
+      console.error(`Status: ${autocompleteResponse.status} ${autocompleteResponse.statusText}`)
+      console.error("Response:", autocompleteText)
       
       return NextResponse.json({ 
         error: "Places API error", 
-        details: `${response.status}: ${response.statusText}`,
-        apiResponse: responseText
-      }, { status: response.status })
+        details: `${autocompleteResponse.status}: ${autocompleteResponse.statusText}`,
+        apiResponse: autocompleteText
+      }, { status: autocompleteResponse.status })
     }
 
-    let data
+    let autocompleteData
     try {
-      data = JSON.parse(responseText)
+      autocompleteData = JSON.parse(autocompleteText)
     } catch (parseError) {
       console.error("=== JSON PARSE ERROR ===")
       console.error("Parse error:", parseError)
-      console.error("Raw response:", responseText)
+      console.error("Raw response:", autocompleteText)
       return NextResponse.json({ 
         error: "Invalid JSON response from Places API",
-        details: responseText
+        details: autocompleteText
       }, { status: 500 })
     }
 
-    console.log("=== PARSED RESPONSE ===")
-    console.log(JSON.stringify(data, null, 2))
+    console.log("=== PARSED AUTOCOMPLETE RESPONSE ===")
+    console.log(JSON.stringify(autocompleteData, null, 2))
 
-    // Trasforma i risultati nel formato atteso
-    const predictions = data.suggestions
-      ?.filter((suggestion: any) => suggestion.placePrediction)
-      .map((suggestion: any) => {
-        const place = suggestion.placePrediction
-        return {
-          place_id: place.placeId,
-          description: place.text?.text || "",
-          main_text: place.structuredFormat?.mainText?.text || place.text?.text || "",
-          secondary_text: place.structuredFormat?.secondaryText?.text || "",
+    // Trasforma i risultati nel formato atteso e ottieni dettagli per ogni luogo
+    const predictions = []
+    const suggestions = autocompleteData.suggestions?.filter((suggestion: any) => suggestion.placePrediction) || []
+
+    console.log(`=== PROCESSING ${suggestions.length} SUGGESTIONS ===`)
+
+    for (const suggestion of suggestions) {
+      const place = suggestion.placePrediction
+      
+      // Ottieni dettagli del luogo per avere address_components
+      let addressComponents = []
+      let coordinates = null
+      
+      try {
+        console.log(`Getting details for place ID: ${place.placeId}`)
+        
+        const detailsUrl = `https://places.googleapis.com/v1/places/${place.placeId}`
+        const detailsResponse = await fetch(detailsUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": apiKey,
+            "X-Goog-FieldMask": "addressComponents,location"
+          }
+        })
+
+        if (detailsResponse.ok) {
+          const detailsData = await detailsResponse.json()
+          console.log(`Details for ${place.placeId}:`, JSON.stringify(detailsData, null, 2))
+          
+          addressComponents = detailsData.addressComponents || []
+          coordinates = detailsData.location ? {
+            lat: detailsData.location.latitude,
+            lng: detailsData.location.longitude
+          } : null
+        } else {
+          console.warn(`Failed to get details for ${place.placeId}: ${detailsResponse.status}`)
         }
-      }) || []
+      } catch (detailError) {
+        console.warn(`Error getting details for ${place.placeId}:`, detailError)
+      }
 
-    console.log("=== FINAL PREDICTIONS ===")
+      // Estrai località dal address_components
+      let locality = null
+      let administrativeArea = null
+      
+      for (const component of addressComponents) {
+        if (component.types?.includes('locality')) {
+          locality = component.longText
+        } else if (component.types?.includes('administrative_area_level_3')) {
+          administrativeArea = component.longText
+        } else if (component.types?.includes('administrative_area_level_2') && !locality && !administrativeArea) {
+          administrativeArea = component.longText
+        }
+      }
+
+      const extractedLocality = locality || administrativeArea
+
+      predictions.push({
+        place_id: place.placeId,
+        description: place.text?.text || "",
+        main_text: place.structuredFormat?.mainText?.text || place.text?.text || "",
+        secondary_text: place.structuredFormat?.secondaryText?.text || "",
+        address_components: addressComponents,
+        coordinates: coordinates,
+        extracted_locality: extractedLocality,
+        locality_info: {
+          locality: locality,
+          administrative_area: administrativeArea
+        }
+      })
+    }
+
+    console.log("=== FINAL PREDICTIONS WITH LOCALITIES ===")
     console.log(`Found ${predictions.length} predictions:`)
     predictions.forEach((p: any, i: number) => {
-      console.log(`${i + 1}. ${p.description}`)
+      console.log(`${i + 1}. ${p.description} (Locality: ${p.extracted_locality})`)
     })
 
     return NextResponse.json({ predictions })
