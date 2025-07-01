@@ -32,7 +32,7 @@ interface JourneySectionProps {
 
 export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
-  const [is24HourFormat, setIs24HourFormat] = useState(true)
+  const [is24HourFormat, setIs24HourFormat] = useState(false)
 
   // Check if we're in Olympic period for special disposition logic
   const isOlympicPeriod_local = journey.date ? isOlympicPeriod(journey.date) : false
@@ -449,7 +449,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
         <div className="space-y-4">
 
           {/* Time Format Switch */}
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          {/* <div className="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <Label htmlFor="time-format" className="text-sm font-medium">
               {dictionary.timeFormat || "Time format:"}
             </Label>
@@ -493,7 +493,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                 {dictionary.timeFormat24h || "24h (European)"}
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Time Section */}
           <div className={`grid gap-6 ${(serviceType === "disposizione" || serviceType === "ceremony-disposition") ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>

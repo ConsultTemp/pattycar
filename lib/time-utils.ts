@@ -53,6 +53,6 @@ export const timeUtils = {
   isNightTime: (hour: string, minutes: string, ampm?: string): boolean => {
     const { totalMinutes } = timeUtils.to24h(hour, minutes, ampm)
     // Night time: 19:30 (1170 minutes) to 07:30 (450 minutes)
-    return totalMinutes >= 1170 || totalMinutes <= 450
+    return totalMinutes >= 1170 || totalMinutes <= 450 || totalMinutes == 0
   }
 } 
