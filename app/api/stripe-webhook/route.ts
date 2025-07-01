@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
       console.log("🔍 Debug telefono - phoneNumber:", phoneNumber)
       
       // Combina prefisso e numero di telefono (migliorata la logica)
-      let phone = "Non specificato"
+      let phone = "Not specified"
       if (phonePrefix || phoneNumber) {
         if (phonePrefix && phoneNumber) {
           phone = `${phonePrefix} ${phoneNumber}`
@@ -264,16 +264,16 @@ export async function POST(req: NextRequest) {
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: customerEmail,
-          subject: `✅ Prenotazione Confermata - ${serviceLabel} Patty Car${serviceBadge ? ` (${serviceBadge})` : ""}`,
+          subject: `✅ Booking Confirmed - ${serviceLabel} Patty Car${serviceBadge ? ` (${serviceBadge})` : ""}`,
           html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">
-                  ${serviceIcon} Prenotazione Confermata
+                  ${serviceIcon} Booking Confirmed
                 </h1>
                 <p style="color: #e3f2fd; margin: 10px 0 0 0; font-size: 16px;">
-                  ${serviceLabel} prenotato con successo
+                  ${serviceLabel} successfully booked
                 </p>
                 ${serviceBadge ? `
                 <div style="margin-top: 15px;">
@@ -287,12 +287,12 @@ export async function POST(req: NextRequest) {
               <!-- Content -->
               <div style="padding: 40px 30px;">
                 <p style="font-size: 18px; color: #333; margin: 0 0 30px 0; line-height: 1.6;">
-                  Gentile <strong style="color: #1e3c72;">${customerName}</strong>,
+                  Dear <strong style="color: #1e3c72;">${customerName}</strong>,
                 </p>
                 
                 <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 35px 0;">
-                  La sua prenotazione per il servizio <strong>${serviceLabel}</strong> è stata confermata e il pagamento è stato elaborato con successo. 
-                  Di seguito trova tutti i dettagli del suo ${isDisposizione ? "servizio" : "viaggio"}.
+                  Thank you for making a reservation through our website. We are pleased to confirm your booking at Patty Car. 
+                  Your reservation for <strong>${serviceLabel}</strong> has been confirmed and payment has been processed successfully.
                 </p>
                 
                 <!-- Service Type Badge -->
@@ -318,21 +318,21 @@ export async function POST(req: NextRequest) {
                   ` : ""}
                 </div>
                 
-                <!-- Trip Details Card -->
+                <!-- Booking Summary -->
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; margin: 30px 0;">
                   <h2 style="color: #1e3c72; margin: 0 0 25px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-                    📋 Dettagli del ${isDisposizione ? "Servizio" : "Viaggio"}
+                    📄 Booking Summary
                   </h2>
                   
                   <div style="display: grid; gap: 15px;">
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #ef4444; font-size: 18px; margin-right: 12px;">📍</span>
                       <div>
-                        <strong style="color: #374151;">Partenza:</strong>
+                        <strong style="color: #374151;">Departure:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${pickup}</span>
                         ${pickupIsCustom === "false" && pickupLocationId ? `
                         <span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
-                          📋 LISTINO
+                          📋 PRICELIST
                         </span>
                         ` : pickupIsCustom === "true" ? `
                         <span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
@@ -345,11 +345,11 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #10b981; font-size: 18px; margin-right: 12px;">🎯</span>
                       <div>
-                        <strong style="color: #374151;">${isDisposizione ? "Destinazione:" : "Arrivo:"}</strong>
+                        <strong style="color: #374151;">${isDisposizione ? "Destination:" : "Arrival:"}</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${destination}</span>
                         ${destinationIsCustom === "false" && destinationLocationId ? `
                         <span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
-                          📋 LISTINO
+                          📋 PRICELIST
                         </span>
                         ` : destinationIsCustom === "true" ? `
                         <span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
@@ -362,7 +362,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">📅</span>
                       <div>
-                        <strong style="color: #374151;">Data:</strong>
+                        <strong style="color: #374151;">Date:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${formattedDate}</span>
                       </div>
                     </div>
@@ -370,7 +370,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #8b5cf6; font-size: 18px; margin-right: 12px;">🕐</span>
                       <div>
-                        <strong style="color: #374151;">${isDisposizione ? "Inizio servizio:" : "Orario partenza:"}</strong>
+                        <strong style="color: #374151;">${isDisposizione ? "Service start time:" : "Departure time:"}</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${formattedTime}</span>
                       </div>
                     </div>
@@ -381,7 +381,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #ef4444; font-size: 18px; margin-right: 12px;">🕐</span>
                       <div>
-                        <strong style="color: #374151;">Fine servizio:</strong>
+                        <strong style="color: #374151;">Service end time:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${formattedEndTime}</span>
                       </div>
                     </div>
@@ -395,10 +395,10 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #7c3aed; font-size: 18px; margin-right: 12px;">⏱️</span>
                       <div>
-                        <strong style="color: #374151;">Durata servizio:</strong>
-                        <span style="color: #6b7280; margin-left: 8px;">${serviceDuration} ore</span>
+                        <strong style="color: #374151;">Service duration:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${serviceDuration} hours</span>
                         <span style="background: #ede9fe; color: #7c3aed; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
-                          🏅 OLIMPIADI 2026
+                          🏅 OLYMPICS 2026
                         </span>
                       </div>
                     </div>
@@ -412,7 +412,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;">📏</span>
                       <div>
-                        <strong style="color: #374151;">Distanza:</strong>
+                        <strong style="color: #374151;">Distance:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${distance}</span>
                       </div>
                     </div>
@@ -426,7 +426,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #84cc16; font-size: 18px; margin-right: 12px;">⏱️</span>
                       <div>
-                        <strong style="color: #374151;">Durata stimata:</strong>
+                        <strong style="color: #374151;">Estimated duration:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${duration}</span>
                       </div>
                     </div>
@@ -437,7 +437,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;">👥</span>
                       <div>
-                        <strong style="color: #374151;">Passeggeri:</strong>
+                        <strong style="color: #374151;">Passengers:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${passengers}</span>
                       </div>
                     </div>
@@ -445,7 +445,7 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #84cc16; font-size: 18px; margin-right: 12px;">🧳</span>
                       <div>
-                        <strong style="color: #374151;">Bagagli:</strong>
+                        <strong style="color: #374151;">Luggage:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${luggage}</span>
                       </div>
                     </div>
@@ -453,11 +453,11 @@ export async function POST(req: NextRequest) {
                     ${
                       hasIndividualVehicles
                         ? `
-                    <!-- Veicoli Individuali -->
+                    <!-- Individual Vehicles -->
                     <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 15px 0;">
                       <h4 style="color: #374151; margin: 0 0 15px 0; font-size: 16px; font-weight: 600; display: flex; align-items: center;">
                         <span style="color: #ec4899; font-size: 18px; margin-right: 10px;">🚙</span>
-                        Configurazione Veicoli
+                        Vehicle Configuration
                       </h4>
                       ${parsedIndividualVehicles
                         .map(
@@ -466,17 +466,17 @@ export async function POST(req: NextRequest) {
                         index < parsedIndividualVehicles.length - 1 ? "10px" : "0px"
                       };">
                         <div style="font-weight: 600; color: #1f2937; margin-bottom: 8px;">
-                          🚗 Veicolo ${index + 1}
+                          🚗 Vehicle ${index + 1}
                         </div>
                         <div style="display: grid; gap: 8px; font-size: 14px;">
                           <div style="color: #374151;">
-                            <strong>Tipo:</strong> <span style="color: #6b7280;">${vehicle.type}</span>
+                            <strong>Type:</strong> <span style="color: #6b7280;">${vehicle.type}</span>
                           </div>
                           <div style="color: #374151;">
-                            <strong>Passeggeri:</strong> <span style="color: #6b7280;">${vehicle.passengers}</span>
+                            <strong>Passengers:</strong> <span style="color: #6b7280;">${vehicle.passengers}</span>
                           </div>
                           <div style="color: #374151;">
-                            <strong>Bagagli:</strong> <span style="color: #6b7280;">${vehicle.luggage}</span>
+                            <strong>Luggage:</strong> <span style="color: #6b7280;">${vehicle.luggage}</span>
                           </div>
                         </div>
                       </div>
@@ -486,11 +486,11 @@ export async function POST(req: NextRequest) {
                     </div>
                     `
                         : `
-                    <!-- Configurazione Unica Veicolo -->
+                    <!-- Single Vehicle Configuration -->
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #ec4899; font-size: 18px; margin-right: 12px;">🚙</span>
                       <div>
-                        <strong style="color: #374151;">Veicolo:</strong>
+                        <strong style="color: #374151;">Vehicle:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${vehicleType}</span>
                       </div>
                     </div>
@@ -501,8 +501,8 @@ export async function POST(req: NextRequest) {
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
                       <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">🚗</span>
                       <div>
-                        <strong style="color: #374151;">Numero veicoli:</strong>
-                        <span style="color: #6b7280; margin-left: 8px;">${vehicleCount} (tutti dello stesso tipo)</span>
+                        <strong style="color: #374151;">Number of vehicles:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${vehicleCount} (all same type)</span>
                       </div>
                     </div>
                     `
@@ -518,9 +518,9 @@ export async function POST(req: NextRequest) {
                       <div style="display: flex; align-items: center;">
                         <span style="color: #2563eb; font-size: 18px; margin-right: 12px;">🚗</span>
                         <div>
-                          <strong style="color: #1e40af;">Transfer aggiuntivo incluso</strong>
-                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Tratta: ${transferRoute}</p>
-                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 12px;">Costo transfer: €${transferCost}</p>
+                          <strong style="color: #1e40af;">Additional transfer included</strong>
+                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Route: ${transferRoute}</p>
+                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 12px;">Transfer cost: €${transferCost}</p>
                         </div>
                       </div>
                     </div>
@@ -535,7 +535,7 @@ export async function POST(req: NextRequest) {
                       <div style="display: flex; align-items: center;">
                         <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🏁</span>
                         <div>
-                          <strong style="color: #166534;">Tratta speciale evento</strong>
+                          <strong style="color: #166534;">Special event route</strong>
                           <p style="color: #166534; margin: 5px 0 0 0; font-size: 14px;">${eventRoute}</p>
                         </div>
                       </div>
@@ -551,8 +551,8 @@ export async function POST(req: NextRequest) {
                       <div style="display: flex; align-items: center;">
                         <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">🌙</span>
                         <div>
-                          <strong style="color: #92400e;">Supplemento notturno applicato</strong>
-                          <p style="color: #92400e; margin: 5px 0 0 0; font-size: 14px;">Servizio tra 19:30 - 07:30: +€${nightSurcharge}</p>
+                          <strong style="color: #92400e;">Night surcharge applied</strong>
+                          <p style="color: #92400e; margin: 5px 0 0 0; font-size: 14px;">Service between 19:30 - 07:30: +€${nightSurcharge}</p>
                         </div>
                       </div>
                     </div>
@@ -567,25 +567,25 @@ export async function POST(req: NextRequest) {
                       <div style="display: flex; align-items: center;">
                         <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🤝</span>
                         <div>
-                          <strong style="color: #166534;">Servizio Meet & Greet incluso</strong>
+                          <strong style="color: #166534;">Meet & Greet service included</strong>
                           ${parsedMeetGreetConfig ? `
                           <div style="margin-top: 8px; font-size: 13px; color: #166534;">
-                            ${parsedMeetGreetConfig.selectedService ? `<p>📍 Servizio: ${parsedMeetGreetConfig.selectedService}</p>` : ""}
-                            ${parsedMeetGreetConfig.passengers > 0 ? `<p>👥 Passeggeri: ${parsedMeetGreetConfig.passengers}</p>` : ""}
-                            ${parsedMeetGreetConfig.children > 0 ? `<p>👶 Bambini: ${parsedMeetGreetConfig.children}</p>` : ""}
-                            ${parsedMeetGreetConfig.infants > 0 ? `<p>🍼 Neonati: ${parsedMeetGreetConfig.infants}</p>` : ""}
-                            ${parsedMeetGreetConfig.extraLuggage > 0 ? `<p>🧳 Bagagli extra: ${parsedMeetGreetConfig.extraLuggage}</p>` : ""}
-                            ${parsedMeetGreetConfig.extraHours > 0 ? `<p>⏰ Ore extra: ${parsedMeetGreetConfig.extraHours}</p>` : ""}
+                            ${parsedMeetGreetConfig.selectedService ? `<p>📍 Service: ${parsedMeetGreetConfig.selectedService}</p>` : ""}
+                            ${parsedMeetGreetConfig.passengers > 0 ? `<p>👥 Passengers: ${parsedMeetGreetConfig.passengers}</p>` : ""}
+                            ${parsedMeetGreetConfig.children > 0 ? `<p>👶 Children: ${parsedMeetGreetConfig.children}</p>` : ""}
+                            ${parsedMeetGreetConfig.infants > 0 ? `<p>🍼 Infants: ${parsedMeetGreetConfig.infants}</p>` : ""}
+                            ${parsedMeetGreetConfig.extraLuggage > 0 ? `<p>🧳 Extra luggage: ${parsedMeetGreetConfig.extraLuggage}</p>` : ""}
+                            ${parsedMeetGreetConfig.extraHours > 0 ? `<p>⏰ Extra hours: ${parsedMeetGreetConfig.extraHours}</p>` : ""}
                             ${parsedMeetGreetConfig.specialServices ? `
-                              ${parsedMeetGreetConfig.specialServices.tarmac ? `<p>✈️ Servizio TARMAC incluso</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.fastTrack ? `<p>⚡ Fast Track incluso</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.vipLounge ? `<p>🥂 VIP Lounge incluso</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.veniceCombo ? `<p>🎭 Venice Combo (Fast Track + VIP) incluso</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.greeterOnly ? `<p>👋 Solo Greeter (senza Porter)</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.tarmac ? `<p>✈️ TARMAC service included</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.fastTrack ? `<p>⚡ Fast Track included</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.vipLounge ? `<p>🥂 VIP Lounge included</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.veniceCombo ? `<p>🎭 Venice Combo (Fast Track + VIP) included</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.greeterOnly ? `<p>👋 Greeter only (without Porter)</p>` : ""}
                             ` : ""}
                           </div>
                           ` : `
-                          <p style="color: #166534; margin: 5px 0 0 0; font-size: 14px;">Il nostro autista la aspetterà con un cartello personalizzato</p>
+                          <p style="color: #166534; margin: 5px 0 0 0; font-size: 14px;">Our driver will wait for you with a personalized sign</p>
                           `}
                         </div>
                       </div>
@@ -601,9 +601,9 @@ export async function POST(req: NextRequest) {
                       <div style="display: flex; align-items: center;">
                         <span style="color: #2563eb; font-size: 18px; margin-right: 12px;">✈️</span>
                         <div>
-                          ${flight ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Numero volo/treno:</strong> ${flight}</div>` : ""}
-                          ${departureCity ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Città di provenienza:</strong> ${departureCity}</div>` : ""}
-                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Monitoreremo eventuali ritardi del volo</p>
+                          ${flight ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Flight/Train number:</strong> ${flight}</div>` : ""}
+                          ${departureCity ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Departure city:</strong> ${departureCity}</div>` : ""}
+                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">We will monitor any flight delays</p>
                         </div>
                       </div>
                     </div>
@@ -618,7 +618,7 @@ export async function POST(req: NextRequest) {
                       <div style="display: flex; align-items: flex-start;">
                         <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">📝</span>
                         <div>
-                          <strong style="color: #92400e;">Note aggiuntive:</strong>
+                          <strong style="color: #92400e;">Additional notes:</strong>
                           <p style="color: #92400e; margin: 5px 0 0 0; line-height: 1.5;">${notes}</p>
                         </div>
                       </div>
@@ -634,7 +634,7 @@ export async function POST(req: NextRequest) {
                       <div style="display: flex; align-items: flex-start;">
                         <span style="color: #6b7280; font-size: 18px; margin-right: 12px;">🧾</span>
                         <div>
-                          <strong style="color: #374151;">Dati di fatturazione:</strong>
+                          <strong style="color: #374151;">Billing information:</strong>
                           <p style="color: #374151; margin: 5px 0 0 0; line-height: 1.5; white-space: pre-line;">${billingInfo}</p>
                         </div>
                       </div>
@@ -648,13 +648,13 @@ export async function POST(req: NextRequest) {
                 <!-- Payment Confirmation -->
                 <div style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border: 1px solid #22c55e; border-radius: 12px; padding: 25px; margin: 30px 0; text-align: center;">
                   <div style="color: #16a34a; font-size: 24px; margin-bottom: 10px;">✅</div>
-                  <h3 style="color: #166534; margin: 0 0 10px 0; font-size: 18px;">Pagamento Confermato</h3>
+                  <h3 style="color: #166534; margin: 0 0 10px 0; font-size: 18px;">Payment Confirmed</h3>
                   <p style="color: #166534; margin: 0; font-size: 24px; font-weight: 600;">
                     €${(session.amount_total! / 100).toFixed(2)}
                   </p>
                   ${vatRate ? `
                   <p style="color: #166534; margin: 5px 0 0 0; font-size: 12px;">
-                    IVA ${vatRate}% inclusa${isOlympic ? " (Tariffa Olimpica)" : ""}
+                    VAT ${vatRate}% included${isOlympic ? " (Olympic Rate)" : ""}
                   </p>
                   ` : ""}
                   ${
@@ -676,7 +676,7 @@ export async function POST(req: NextRequest) {
                      style="display: inline-block; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
                             color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; 
                             font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);">
-                    📄 Visualizza Fattura
+                    📄 View Invoice
                   </a>
                 </div>
                 `
@@ -684,7 +684,7 @@ export async function POST(req: NextRequest) {
                 <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
                   <span style="color: #f59e0b; font-size: 20px;">📄</span>
                   <p style="color: #92400e; margin: 10px 0 0 0; font-weight: 500;">
-                    La fattura verrà inviata separatamente nelle prossime ore
+                    The invoice will be sent separately in the next few hours
                   </p>
                 </div>
                 `
@@ -693,36 +693,47 @@ export async function POST(req: NextRequest) {
                 <!-- Next Steps -->
                 <div style="background: #f1f5f9; border-radius: 12px; padding: 30px; margin: 35px 0;">
                   <h3 style="color: #1e3c72; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
-                    🚀 Prossimi Passi
+                    🚀 Next Steps
                   </h3>
                   <ul style="color: #475569; line-height: 1.8; margin: 0; padding-left: 20px;">
-                    <li style="margin-bottom: 8px;">Ti contatteremo entro <strong>24 ore</strong> per confermare tutti i dettagli</li>
-                    <li style="margin-bottom: 8px;">Riceverai un <strong>SMS promemoria</strong> il giorno prima del servizio</li>
-                    <li>Il nostro autista ti contatterà <strong>30 minuti prima</strong> dell'orario concordato</li>
+                    <li style="margin-bottom: 8px;">We will contact you within <strong>24 hours</strong> to confirm all details</li>
+                    <li style="margin-bottom: 8px;">You will receive a <strong>reminder SMS</strong> the day before the service</li>
+                    <li>Our driver will contact you <strong>30 minutes before</strong> the agreed time</li>
                   </ul>
                 </div>
                 
-                <!-- Contact Info -->
+                <!-- Cancellation Policy -->
+                <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 12px; padding: 25px; margin: 30px 0;">
+                  <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+                    📌 Cancellation Policy
+                  </h3>
+                  <p style="color: #92400e; margin: 0; line-height: 1.6;">
+                    Please note that any changes or cancellations can be made according to the terms outlined in our cancellation policy. 
+                    The applicable conditions and deadlines were provided during the booking process.
+                  </p>
+                </div>
+                
+                <!-- Customer Support -->
                 <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 25px; margin: 30px 0;">
                   <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
-                    📞 Hai bisogno di assistenza?
+                    📬 Customer Support
                   </h3>
                   <p style="color: #1e40af; margin: 0 0 10px 0;">
-                    Per qualsiasi domanda o modifica alla prenotazione:
+                    Should you require any assistance, wish to make changes, or cancel your reservation, please do not hesitate to contact us at:
                   </p>
                   <ul style="color: #1e40af; margin: 0; padding-left: 20px; line-height: 1.6;">
-                    <li>📧 Email: info@pattycar.com</li>
-                    <li>📱 Telefono: ${phone !== "Non specificato" ? phone : "+39 XXX XXX XXXX"}</li>
-                    <li>🌐 Sito web: www.pattycar.com</li>
+                    <li>📧 Email: gamestime@pattycar.com</li>
+                    <li>📱 Phone: ${phone !== "Not specified" ? phone : "+39 XXX XXX XXXX"}</li>
+                    <li>🌐 Website: www.pattycar.com</li>
                   </ul>
                 </div>
                 
                 <div style="text-align: center; margin: 40px 0 20px 0;">
                   <p style="color: #1e3c72; font-size: 18px; font-weight: 600; margin: 0;">
-                    Grazie per aver scelto Patty Car! 🙏
+                    We sincerely thank you for choosing us and remain at your disposal for any further assistance. 🙏
                   </p>
                   <p style="color: #6b7280; font-size: 14px; margin: 10px 0 0 0;">
-                    Il tuo servizio di trasporto di fiducia
+                    Kind regards, The Patty Car Team
                   </p>
                 </div>
               </div>
@@ -730,8 +741,8 @@ export async function POST(req: NextRequest) {
               <!-- Footer -->
               <div style="background: #f8fafc; padding: 25px 30px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e2e8f0;">
                 <p style="color: #6b7280; font-size: 13px; margin: 0; line-height: 1.5;">
-                  Questa è una email automatica di conferma. <br>
-                  Per assistenza o modifiche contatta il nostro servizio clienti.
+                  This is an automatic confirmation email. <br>
+                  For assistance or changes, please contact our customer service.
                 </p>
               </div>
             </div>
