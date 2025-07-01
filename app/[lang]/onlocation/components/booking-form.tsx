@@ -1,6 +1,7 @@
 "use client"
 
 import { useReducer, useCallback, useMemo } from "react"
+import { timeUtils } from "@/lib/time-utils"
 import { useLanguage } from "@/components/language-provider"
 import { bookingReducer, initialBookingState } from "@/lib/booking-reducer"
 import { useFormValidation } from "@/hooks/use-form-validation"
@@ -17,14 +18,12 @@ import { SubmitSection } from "@/components/booking/submit-section"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MeetGreetConfig, ServiceType } from "@/lib/booking-types"
-import { isOlympicPeriod, isCeremonyDate, getCeremonyName } from "@/lib/olympic-pricing"
+import { isOlympicPeriod, isCeremonyDate, getCeremonyName, findOlympicRoute } from "@/lib/olympic-pricing"
 
-// Helper function to convert 12h format to 24h format
-const convertTo24Hour = (hour: string, minutes: string, ampm: string): string => {
-  let hour24 = parseInt(hour)
-  if (ampm === "PM" && hour24 !== 12) hour24 += 12
-  if (ampm === "AM" && hour24 === 12) hour24 = 0
-  return `${hour24.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`
+// Helper function to convert to 24h format string (for form submission)
+const formatTime24Hour = (hour: string, minutes: string, ampm: string): string => {
+  const converted = timeUtils.to24h(hour, minutes, ampm)
+  return `${converted.hour24.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`
 }
 
 // Service type definition
@@ -83,7 +82,7 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
     const ceremonyName = getCeremonyName(date)
     olympicServices.push({
       value: "ceremony-disposition",
-      label: ceremonyName || dictionary?.serviceType?.ceremony?.label || "Ceremony Disposition",
+      label: dictionary?.serviceType?.dispositionCeremony || dictionary?.serviceType?.ceremony?.label || "Ceremony Disposition",
       description: dictionary?.serviceType?.ceremony?.description || "Special service for Olympic ceremonies",
       icon: "🏆",
       badge: dictionary?.serviceType?.badges?.ceremony || "CEREMONY"
@@ -201,11 +200,11 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         destination: state.journey.destination.address,
         date: state.journey.date ? format(state.journey.date, "yyyy-MM-dd") : "",
         time: state.journey.time && state.journey.minutes && state.journey.timeAmPm 
-          ? convertTo24Hour(state.journey.time, state.journey.minutes, state.journey.timeAmPm) 
+          ? formatTime24Hour(state.journey.time, state.journey.minutes, state.journey.timeAmPm) 
           : "",
         endTime:
           state.serviceType === "disposizione" && state.journey.endTime && state.journey.endMinutes && state.journey.endTimeAmPm
-            ? convertTo24Hour(state.journey.endTime, state.journey.endMinutes, state.journey.endTimeAmPm)
+            ? formatTime24Hour(state.journey.endTime, state.journey.endMinutes, state.journey.endTimeAmPm)
             : "",
         passengers:
           state.vehicles.sameType || state.vehicles.count === 1
@@ -467,23 +466,43 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
         {/* Vehicle Configuration - Only enabled when date is selected */}
         <div className={!state.journey.date ? "opacity-50 pointer-events-none" : ""}>
-          <VehicleConfigSection
-            vehicleCount={state.vehicles.count}
-            sameType={state.vehicles.sameType}
-            singleConfig={state.vehicles.singleConfig}
-            multipleConfigs={state.vehicles.multipleConfigs}
-            errors={getFieldErrors("vehicles")}
-            hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
-            journeyDate={state.journey.date}
-            serviceType={state.serviceType}
-            onCountChange={handleVehicleCountChange}
-            onToggleSameType={handleToggleSameType}
-            onSingleConfigChange={handleSingleConfigChange}
-            onMultipleConfigChange={handleMultipleConfigChange}
-            onAddVehicle={handleAddVehicle}
-            onRemoveVehicle={handleRemoveVehicle}
-            dictionary={dictionary.vehicles}
-          />
+          {(() => {
+            // Determine if current route is East Cluster
+            let isEastCluster = false
+            
+            if (state.journey.pickup?.locationId && state.journey.destination?.locationId && isOlympicPeriod_local) {
+              const olympicRoute = findOlympicRoute(state.journey.pickup.locationId, state.journey.destination.locationId)
+              isEastCluster = olympicRoute?.isEastCluster === true
+              
+              console.log('🌍 ROUTE CHECK:', {
+                from: state.journey.pickup.locationId,
+                to: state.journey.destination.locationId,
+                route: olympicRoute,
+                isEastCluster
+              })
+            }
+            
+            return (
+              <VehicleConfigSection
+                vehicleCount={state.vehicles.count}
+                sameType={state.vehicles.sameType}
+                singleConfig={state.vehicles.singleConfig}
+                multipleConfigs={state.vehicles.multipleConfigs}
+                errors={getFieldErrors("vehicles")}
+                hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
+                journeyDate={state.journey.date}
+                serviceType={state.serviceType}
+                isEastCluster={isEastCluster}
+                onCountChange={handleVehicleCountChange}
+                onToggleSameType={handleToggleSameType}
+                onSingleConfigChange={handleSingleConfigChange}
+                onMultipleConfigChange={handleMultipleConfigChange}
+                onAddVehicle={handleAddVehicle}
+                onRemoveVehicle={handleRemoveVehicle}
+                dictionary={dictionary.vehicles}
+              />
+            )
+          })()}
         </div>
 
         {/* Pricing Display - Only shown when date is selected */}

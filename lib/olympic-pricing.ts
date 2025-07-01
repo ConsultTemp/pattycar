@@ -212,6 +212,7 @@ export interface OlympicRoute {
     'olympic-van': number
     'olympic-luxury': number
   }
+  isEastCluster?: boolean
 }
 
 // Olympic Transfer Routes - Based on the pricing tables provided
@@ -529,7 +530,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia VCE',
@@ -547,7 +549,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia VCE',
@@ -565,7 +568,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia VCE',
@@ -583,7 +587,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia VCE',
@@ -601,7 +606,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   
   // Treviso TSF Routes
@@ -621,7 +627,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Treviso TSF',
@@ -639,7 +646,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Treviso TSF',
@@ -657,7 +665,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Treviso TSF',
@@ -675,7 +684,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Treviso TSF',
@@ -693,7 +703,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   
   // Venezia Santa Lucia Routes
@@ -713,7 +724,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia Stazione Santa Lucia',
@@ -731,7 +743,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia Stazione Santa Lucia',
@@ -749,7 +762,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia Stazione Santa Lucia',
@@ -767,7 +781,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   },
   {
     from: 'Venezia Stazione Santa Lucia',
@@ -785,7 +800,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 135,
       'olympic-luxury': 135
-    }
+    },
+    isEastCluster: true
   }
 ]
 
@@ -1086,7 +1102,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 108,
       'olympic-van': 108,
       'olympic-luxury': 108
-    }
+    },
+    isEastCluster: true
   }
 ]
 

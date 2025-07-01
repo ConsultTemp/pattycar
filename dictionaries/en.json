@@ -187,7 +187,9 @@
         },
         "subServices": {
           "title": "Choose Service Type"
-        }
+        },
+        "dispositionCeremony": "Opening Ceremony Disposition",
+        "dispositionCeremonyDescription": "Opening Ceremony Disposition - San Siro Stadium, Milan"
       },
       "customer": {
         "title": "Customer Information",
@@ -197,7 +199,10 @@
         "emailLabel": "Email *",
         "emailRequired": "Invalid email",
         "phoneLabel": "Phone *",
-        "phoneRequired": "Phone number required"
+        "phoneRequired": "Phone number required",
+        "selectCountry": "Select...",
+        "searchCountry": "Search country...",
+        "noCountryFound": "No country found."
       },
       "journey": {
         "title": "Trip Details",
@@ -238,7 +243,12 @@
         "flightLabel": "Flight/train number",
         "flightPlaceholder": "E.g. AZ123",
         "departureCityLabel": "Departure city",
-        "departureCityPlaceholder": "E.g. Milan (for connections, last stopover)"
+        "departureCityPlaceholder": "E.g. Milan (for connections, last stopover)",
+        "selectDuration": "Select duration",
+        "selectedTime": "Selected time",
+        "roundedUp": "rounded up",
+        "selectDestination": "Select destination",
+        "selectDropoffPoint": "Select drop-off point"
       },
       "vehicles": {
         "title": "Vehicle Configuration",
@@ -266,7 +276,11 @@
         "maxSedanLuggageShort": "Max {maxLuggage}+{maxSmallLuggage}",
         "individualConfig": "Individual Configuration",
         "addVehicle": "Add Vehicle",
-        "vehicleNumber": "Vehicle"
+        "vehicleNumber": "Vehicle",
+        "exampleNumber": "E.g. 2",
+        "passengers": "pax",
+        "luggageLarge": "large luggage",
+        "luggageSmall": "small luggage"
       },
       "pricing": {
         "error": "Price Calculation Error",
@@ -286,7 +300,114 @@
         "price": "Price:",
         "subtotal": "Subtotal:",
         "vat": "VAT",
-        "vatIncluded": "VAT included"
+        "vatIncluded": "VAT included",
+        "olympicPricing": "Olympic Pricing",
+        "eventPricing": "Event Pricing",
+        "specialEvent": "Special Event",
+        "milanoCortina2026": "Milano-Cortina 2026",
+        "route": "Route:",
+        "ceremonySurcharge": "Ceremony Surcharge:",
+        "fixedPrice": "FIXED PRICE",
+        "includes": "Includes:",
+        "transferExtraInfo": "Extra transfer only if departure from different city",
+        "noReturnTransfer": "Does NOT include return transfer",
+        "noExtraHours": "No extra hours applied for standard service",
+        "nightServiceSurcharge": "Night service surcharge applied",
+        "nightServiceInfo": "Service between 19:30 PM - 07:30 AM (+20%)",
+        "meetGreetService": "Meet & Greet Service",
+        "totalServicePrice": "Total service price",
+        "appliedToVehicles": "Applied to {count} vehicles",
+        "perVehicle": "per vehicle",
+        "includedInTotal": "Included in total price above",
+        "serviceDetails": "SERVICE DETAILS",
+        "serviceBreakdown": "SERVICE BREAKDOWN",
+        "ceremonyBaseService": "Ceremony base disposition",
+        "ceremonyCompleteService": "Complete ceremony service (includes 2h before + wait during ceremony)",
+        "transferExtraLocation": "Extra location transfer",
+        "transferExtraInfo2": "Transfer for locations different from ceremony base city",
+        "routes": "Routes:",
+        "hourlyDisposition": "Hourly disposition",
+        "transfer": "Transfer",
+        "serviceHours": "service hours",
+        "pointToPointTransfer": "Point-to-point transfer",
+        "vehicleBreakdown": "Vehicle {index} ({type}): €{price}",
+        "transferMilanoCentrale": "Milano Centrale Transfer",
+        "transferMilanoInfo": "Transfer from Milano Centrale to service location",
+        "vehicles": "vehicles",
+        "nightSurcharge": "Night surcharge",
+        "nightServiceHours": "Service 19:30-07:30",
+        "receptionService": "Reception service",
+        "subtotalLabel": "SUBTOTAL",
+        "vatLabel": "VAT",
+        "vatCalculation": "10% on €{amount}",
+        "totalLabel": "TOTAL"
+      },
+      "meetGreet": {
+        "notAvailable": "Meet & Greet services are available for specific airports and railway stations. Your journey does not involve Milano Malpensa, Milano Linate, Venezia Marco Polo, Milano Centrale, Verona Porta Nuova, or Venezia Santa Lucia.",
+        "autoDetected": "Meet & Greet service automatically detected:",
+        "arrivals": "Arrivals",
+        "departures": "Departures",
+        "includesService": "Includes: Greeter + Porter + {luggage} luggage",
+        "extraPassenger": "Extra passenger: €{price}",
+        "extraLuggage": "Extra luggage: €{price}",
+        "nightServiceDetected": "Night service detected ({start} - {end})",
+        "passengerConfiguration": "Passenger Configuration",
+        "maxPassengersAllowed": "Maximum {max} passengers allowed. Groups of more than 8 require special quotation.",
+        "tarmacLimitExceeded": "TARMAC service is limited to maximum 6 passengers. Current total: {total}",
+        "adults": "Adults (Full rate)",
+        "children": "Children (up to 12 years)",
+        "infants": "Infants (0-2 years)",
+        "luggageConfiguration": "Luggage Configuration",
+        "includedLuggagePerPerson": "Includes {count} pieces of luggage per person",
+        "extraLuggageLabel": "Extra Luggage",
+        "extraHoursLabel": "Extra Hours for Delays",
+        "afterIncludedHours": "After {hours} hours included",
+        "totalPassengersCount": "Total passengers: {current} / {max} max",
+        "specialServices": "Special Services",
+        "pricingBreakdown": "Pricing Breakdown",
+        "baseServicePrice": "Base service ({passengers} passenger, {luggage} luggage included)",
+        "vatPercentage": "VAT ({rate}%)",
+        "totalMeetGreet": "Total Meet & Greet",
+        "enableService": "Enable Meet & Greet Service",
+        "groupsQuoteRequest": "Groups of more than 8 people will be quoted on request",
+        "tarmacAvailability": "TARMAC service available only if aircraft is parked (on demand)",
+        "maxLuggageNightSurcharge": "Maximum {max} pieces of luggage per operator for night surcharge",
+        "serviceDetails": "Service Details",
+        "greeterMeetsClient": "The greeter meets the client/s at the finger exit",
+        "passportControlHelp": "She/he helps with passports control [fast-track / skip the line is not possible]",
+        "porterBaggageAssist": "There will be also a porter that will assist with baggage claim through a dedicated transport service",
+        "escortToVehicle": "The greeter and porter will escort passenger/s to the reserved vehicle PATTY CAR",
+        "tarmacServiceDescription": "Service that picks passengers directly on the landing strip with van for max 6 pax (available only if aircraft is parked)",
+        "onDemand": "On Demand",
+        "fullRate": "Full rate",
+        "halfRate": "50% rate",
+        "freeRate": "FREE",
+        "eachPrice": "€{price} each",
+        "nightService": "Night Service",
+        "currentExtraLuggage": "Current extra luggage: {count}",
+        "maxLuggageForNightSurcharge": "Maximum {max} pieces of luggage per operator for night surcharge",
+        "baseServiceDescription": "Base service ({passengers} passenger, {luggage} luggage included)",
+        "vatLabel": "VAT ({rate}%)",
+        "totalMeetGreetLabel": "Total Meet & Greet",
+        "maxPiecesNightSurcharge": "Maximum {max} pieces for night surcharge ({start} - {end})",
+        "tarmacServiceLimited": "TARMAC service is limited to {max} passengers maximum. Current total: {total}",
+        "mandatoryTogether": "Mandatory Together",
+        "includesServices": "Includes: {services}",
+        "veniceComboNote": "At Venice Airport, Fast Track and VIP Lounge must be purchased together. Price is per passenger (excluding infants).",
+        "pricePerPassenger": "Price is per passenger (excluding infants)",
+        "porterOnDemand": "Porter on Demand",
+        "nightSurchargeApplied": "* Night service surcharge applied ({start} - {end})",
+        "constraintTranslations": {
+          "Groups of more than 8 people will be quoted on request": "Groups of more than 8 people will be quoted on request",
+          "TARMAC service available only if aircraft is parked (on demand)": "TARMAC service available only if aircraft is parked (on demand)",
+          "Maximum 10 pieces of luggage per operator for night surcharge": "Maximum 10 pieces of luggage per operator for night surcharge"
+        },
+        "detailTranslations": {
+          "The greeter meets the client/s at the finger exit": "The greeter meets the client/s at the finger exit",
+          "She/he helps with passports control [fast-track / skip the line is not possible]": "She/he helps with passports control [fast-track / skip the line is not possible]",
+          "There will be also a porter that will assist with baggage claim through a dedicated transport service": "There will be also a porter that will assist with baggage claim through a dedicated transport service",
+          "The greeter and porter will escort passenger/s to the reserved vehicle PATTY CAR": "The greeter and porter will escort passenger/s to the reserved vehicle PATTY CAR"
+        }
       },
       "options": {
         "title": "Additional Options",
@@ -297,7 +418,8 @@
         "privacyRequired": "Privacy policy acceptance required",
         "notesLabel": "Additional Notes",
         "notesPlaceholder": "Any special requests or additional information",
-        "privacyLabel": "I accept the data processing according to the"
+        "privacyLabel": "I accept the data processing according to the",
+        "privacyPolicy": "Privacy Policy"
       },
       "submit": {
         "contactInfo": "For information contact pattycar@pattycar.com",
@@ -732,5 +854,11 @@
         ]
       }
     ]
+  },
+  "common": {
+    "startTypingToSearch": "Start typing to search for a location...",
+    "listinoResults": "Fixed price destinations",
+    "googleResults": "Other addresses",
+    "noResultsFound": "No results found"
   }
 }

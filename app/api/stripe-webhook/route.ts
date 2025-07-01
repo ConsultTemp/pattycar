@@ -111,19 +111,35 @@ export async function POST(req: NextRequest) {
         vehicleCount = "1",
         date = "Non specificata",
         time = "Non specificato",
+        minutes = "00",
+        timeAmPm = "AM",
         endTime = "",
+        endMinutes = "00",
+        endTimeAmPm = "AM",
+        serviceDuration = "",
         phonePrefix = "",
         phoneNumber = "",
         notes = "Nessuna nota",
         flight = "",
         departureCity = "",
         meetAndGreet = "false",
+        meetGreetConfig = "",
         billingInfo = "",
         distance = "",
         duration = "",
         priceBreakdown = "",
         sameVehicleType = "true",
         individualVehicles = "",
+        pickupLocationId = "",
+        destinationLocationId = "",
+        pickupIsCustom = "false",
+        destinationIsCustom = "false",
+        transferCost = "",
+        transferRoute = "",
+        eventRoute = "",
+        isOlympicPricing = "false",
+        nightSurcharge = "",
+        vatRate = "22",
       } = metadata
 
       // Parsa i veicoli individuali se presenti
@@ -134,6 +150,17 @@ export async function POST(req: NextRequest) {
           console.log("🚗 Veicoli individuali parsati:", parsedIndividualVehicles)
         } catch (error) {
           console.error("❌ Errore parsing veicoli individuali:", error)
+        }
+      }
+
+      // Parsa la configurazione Meet & Greet se presente
+      let parsedMeetGreetConfig: any = null
+      if (meetGreetConfig && meetGreetConfig !== "") {
+        try {
+          parsedMeetGreetConfig = JSON.parse(meetGreetConfig)
+          console.log("🤝 Meet & Greet config parsato:", parsedMeetGreetConfig)
+        } catch (error) {
+          console.error("❌ Errore parsing Meet & Greet config:", error)
         }
       }
 
@@ -196,7 +223,40 @@ export async function POST(req: NextRequest) {
       const formattedDate = formatDate(date)
       const formattedTime = formatTime(time)
       const formattedEndTime = endTime ? formatTime(endTime) : ""
-      const isDisposizione = serviceType === "disposizione"
+      
+      // Determina il tipo di servizio e le etichette appropriate
+      const isDisposizione = serviceType === "disposizione" || serviceType === "ceremony-disposition"
+      const isCeremony = serviceType === "ceremony-disposition"
+      const isOlympic = isOlympicPricing === "true"
+      const isInterCluster = serviceType === "inter-cluster"
+      const isAltriServizi = serviceType === "altri-servizi"
+      
+      // Determina l'etichetta del servizio
+      let serviceLabel = "Transfer"
+      let serviceIcon = "🚗"
+      let serviceBadge = ""
+      
+      if (isCeremony) {
+        serviceLabel = "Disposizione Cerimonia"
+        serviceIcon = "🏆"
+        serviceBadge = "CERIMONIA"
+      } else if (isDisposizione) {
+        serviceLabel = "Disposizione"
+        serviceIcon = "⏰"
+        serviceBadge = isOlympic ? "OLIMPIADI 2026" : ""
+      } else if (isInterCluster) {
+        serviceLabel = "Inter-Cluster"
+        serviceIcon = "🏔️"
+        serviceBadge = "OLIMPIADI 2026"
+      } else if (isAltriServizi) {
+        serviceLabel = "Altri Servizi"
+        serviceIcon = "🚙"
+        serviceBadge = "OLIMPIADI 2026"
+      } else {
+        serviceLabel = "Transfer"
+        serviceIcon = "🚗"
+        serviceBadge = isOlympic ? "OLIMPIADI 2026" : ""
+      }
 
       try {
         // 📧 EMAIL AL CLIENTE - Conferma prenotazione completa
@@ -204,17 +264,24 @@ export async function POST(req: NextRequest) {
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: customerEmail,
-          subject: `✅ Prenotazione Confermata - ${isDisposizione ? "Disposizione" : "Transfer"} Patty Car`,
+          subject: `✅ Prenotazione Confermata - ${serviceLabel} Patty Car${serviceBadge ? ` (${serviceBadge})` : ""}`,
           html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">
-                  🚗 Prenotazione Confermata
+                  ${serviceIcon} Prenotazione Confermata
                 </h1>
                 <p style="color: #e3f2fd; margin: 10px 0 0 0; font-size: 16px;">
-                  ${isDisposizione ? "Disposizione" : "Transfer"} prenotato con successo
+                  ${serviceLabel} prenotato con successo
                 </p>
+                ${serviceBadge ? `
+                <div style="margin-top: 15px;">
+                  <span style="background: rgba(255,255,255,0.2); color: #ffffff; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                    ${serviceBadge}
+                  </span>
+                </div>
+                ` : ""}
               </div>
               
               <!-- Content -->
@@ -224,16 +291,31 @@ export async function POST(req: NextRequest) {
                 </p>
                 
                 <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 35px 0;">
-                  La sua prenotazione per il servizio ${isDisposizione ? "di disposizione" : "transfer"} è stata confermata e il pagamento è stato elaborato con successo. 
+                  La sua prenotazione per il servizio <strong>${serviceLabel}</strong> è stata confermata e il pagamento è stato elaborato con successo. 
                   Di seguito trova tutti i dettagli del suo ${isDisposizione ? "servizio" : "viaggio"}.
                 </p>
                 
                 <!-- Service Type Badge -->
                 <div style="text-align: center; margin: 25px 0;">
-                  <span style="display: inline-block; background: ${isDisposizione ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)"}; 
+                  <span style="display: inline-block; background: ${
+                    isCeremony 
+                      ? "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)"
+                      : isDisposizione 
+                        ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" 
+                        : isInterCluster || isAltriServizi
+                          ? "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)"
+                          : "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                  }; 
                              color: white; padding: 12px 24px; border-radius: 25px; font-weight: 600; font-size: 16px;">
-                    ${isDisposizione ? "⏰ DISPOSIZIONE" : "🚗 TRANSFER"}
+                    ${serviceIcon} ${serviceLabel.toUpperCase()}
                   </span>
+                  ${serviceBadge ? `
+                  <div style="margin-top: 10px;">
+                    <span style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 15px; font-size: 12px; font-weight: 500;">
+                      ${serviceBadge}
+                    </span>
+                  </div>
+                  ` : ""}
                 </div>
                 
                 <!-- Trip Details Card -->
@@ -248,6 +330,15 @@ export async function POST(req: NextRequest) {
                       <div>
                         <strong style="color: #374151;">Partenza:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${pickup}</span>
+                        ${pickupIsCustom === "false" && pickupLocationId ? `
+                        <span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
+                          📋 LISTINO
+                        </span>
+                        ` : pickupIsCustom === "true" ? `
+                        <span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
+                          ✏️ CUSTOM
+                        </span>
+                        ` : ""}
                       </div>
                     </div>
                     
@@ -256,6 +347,15 @@ export async function POST(req: NextRequest) {
                       <div>
                         <strong style="color: #374151;">${isDisposizione ? "Destinazione:" : "Arrivo:"}</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${destination}</span>
+                        ${destinationIsCustom === "false" && destinationLocationId ? `
+                        <span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
+                          📋 LISTINO
+                        </span>
+                        ` : destinationIsCustom === "true" ? `
+                        <span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
+                          ✏️ CUSTOM
+                        </span>
+                        ` : ""}
                       </div>
                     </div>
                     
@@ -283,6 +383,23 @@ export async function POST(req: NextRequest) {
                       <div>
                         <strong style="color: #374151;">Fine servizio:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${formattedEndTime}</span>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      serviceDuration && isOlympic
+                        ? `
+                    <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #7c3aed; font-size: 18px; margin-right: 12px;">⏱️</span>
+                      <div>
+                        <strong style="color: #374151;">Durata servizio:</strong>
+                        <span style="color: #6b7280; margin-left: 8px;">${serviceDuration} ore</span>
+                        <span style="background: #ede9fe; color: #7c3aed; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
+                          🏅 OLIMPIADI 2026
+                        </span>
                       </div>
                     </div>
                     `
@@ -395,14 +512,81 @@ export async function POST(req: NextRequest) {
                     }
                     
                     ${
-                      meetAndGreet === "true"
+                      transferCost && transferRoute && isDisposizione
+                        ? `
+                    <div style="background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: center;">
+                        <span style="color: #2563eb; font-size: 18px; margin-right: 12px;">🚗</span>
+                        <div>
+                          <strong style="color: #1e40af;">Transfer aggiuntivo incluso</strong>
+                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Tratta: ${transferRoute}</p>
+                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 12px;">Costo transfer: €${transferCost}</p>
+                        </div>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      eventRoute
+                        ? `
+                    <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: center;">
+                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🏁</span>
+                        <div>
+                          <strong style="color: #166534;">Tratta speciale evento</strong>
+                          <p style="color: #166534; margin: 5px 0 0 0; font-size: 14px;">${eventRoute}</p>
+                        </div>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      nightSurcharge && parseFloat(nightSurcharge) > 0
+                        ? `
+                    <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: center;">
+                        <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">🌙</span>
+                        <div>
+                          <strong style="color: #92400e;">Supplemento notturno applicato</strong>
+                          <p style="color: #92400e; margin: 5px 0 0 0; font-size: 14px;">Servizio tra 19:30 - 07:30: +€${nightSurcharge}</p>
+                        </div>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      meetAndGreet === "true" || parsedMeetGreetConfig
                         ? `
                     <div style="background: #dcfce7; border: 1px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
                         <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🤝</span>
                         <div>
                           <strong style="color: #166534;">Servizio Meet & Greet incluso</strong>
+                          ${parsedMeetGreetConfig ? `
+                          <div style="margin-top: 8px; font-size: 13px; color: #166534;">
+                            ${parsedMeetGreetConfig.selectedService ? `<p>📍 Servizio: ${parsedMeetGreetConfig.selectedService}</p>` : ""}
+                            ${parsedMeetGreetConfig.passengers > 0 ? `<p>👥 Passeggeri: ${parsedMeetGreetConfig.passengers}</p>` : ""}
+                            ${parsedMeetGreetConfig.children > 0 ? `<p>👶 Bambini: ${parsedMeetGreetConfig.children}</p>` : ""}
+                            ${parsedMeetGreetConfig.infants > 0 ? `<p>🍼 Neonati: ${parsedMeetGreetConfig.infants}</p>` : ""}
+                            ${parsedMeetGreetConfig.extraLuggage > 0 ? `<p>🧳 Bagagli extra: ${parsedMeetGreetConfig.extraLuggage}</p>` : ""}
+                            ${parsedMeetGreetConfig.extraHours > 0 ? `<p>⏰ Ore extra: ${parsedMeetGreetConfig.extraHours}</p>` : ""}
+                            ${parsedMeetGreetConfig.specialServices ? `
+                              ${parsedMeetGreetConfig.specialServices.tarmac ? `<p>✈️ Servizio TARMAC incluso</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.fastTrack ? `<p>⚡ Fast Track incluso</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.vipLounge ? `<p>🥂 VIP Lounge incluso</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.veniceCombo ? `<p>🎭 Venice Combo (Fast Track + VIP) incluso</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.greeterOnly ? `<p>👋 Solo Greeter (senza Porter)</p>` : ""}
+                            ` : ""}
+                          </div>
+                          ` : `
                           <p style="color: #166534; margin: 5px 0 0 0; font-size: 14px;">Il nostro autista la aspetterà con un cartello personalizzato</p>
+                          `}
                         </div>
                       </div>
                     </div>
@@ -468,6 +652,11 @@ export async function POST(req: NextRequest) {
                   <p style="color: #166534; margin: 0; font-size: 24px; font-weight: 600;">
                     €${(session.amount_total! / 100).toFixed(2)}
                   </p>
+                  ${vatRate ? `
+                  <p style="color: #166534; margin: 5px 0 0 0; font-size: 12px;">
+                    IVA ${vatRate}% inclusa${isOlympic ? " (Tariffa Olimpica)" : ""}
+                  </p>
+                  ` : ""}
                   ${
                     priceBreakdown
                       ? `
@@ -563,14 +752,21 @@ export async function POST(req: NextRequest) {
         const adminEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: process.env.ADMIN_EMAIL!,
-          subject: `🚗 Nuova Prenotazione ${isDisposizione ? "DISPOSIZIONE" : "TRANSFER"} - Pagamento Completato - ${customerName}`,
+          subject: `🚗 Nuova Prenotazione ${serviceLabel.toUpperCase()}${serviceBadge ? ` (${serviceBadge})` : ""} - Pagamento Completato - ${customerName}`,
           html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">
-                  🚗 Nuova Prenotazione ${isDisposizione ? "DISPOSIZIONE" : "TRANSFER"}
+                  ${serviceIcon} Nuova Prenotazione ${serviceLabel.toUpperCase()}
                 </h1>
+                ${serviceBadge ? `
+                <div style="margin-top: 10px;">
+                  <span style="background: rgba(255,255,255,0.2); color: #ffffff; padding: 6px 12px; border-radius: 15px; font-size: 12px; font-weight: 600;">
+                    ${serviceBadge}
+                  </span>
+                </div>
+                ` : ""}
                 <p style="color: #fecaca; margin: 10px 0 0 0; font-size: 14px;">
                   Pagamento completato con successo
                 </p>
@@ -618,10 +814,25 @@ export async function POST(req: NextRequest) {
                 
                 <!-- Service Type Badge -->
                 <div style="text-align: center; margin: 25px 0;">
-                  <span style="display: inline-block; background: ${isDisposizione ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)"}; 
+                  <span style="display: inline-block; background: ${
+                    isCeremony 
+                      ? "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)"
+                      : isDisposizione 
+                        ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" 
+                        : isInterCluster || isAltriServizi
+                          ? "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)"
+                          : "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                  }; 
                              color: white; padding: 12px 24px; border-radius: 25px; font-weight: 600; font-size: 16px;">
-                    ${isDisposizione ? "⏰ DISPOSIZIONE" : "🚗 TRANSFER"}
+                    ${serviceIcon} ${serviceLabel.toUpperCase()}
                   </span>
+                  ${serviceBadge ? `
+                  <div style="margin-top: 10px;">
+                    <span style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 15px; font-size: 12px; font-weight: 500;">
+                      ${serviceBadge}
+                    </span>
+                  </div>
+                  ` : ""}
                 </div>
                 
                 <!-- Trip Details -->
@@ -632,9 +843,13 @@ export async function POST(req: NextRequest) {
                   <div style="display: grid; gap: 12px;">
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🚩 Partenza:</strong> <span style="color: #3730a3;">${pickup}</span>
+                      ${pickupLocationId ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 8px; font-size: 10px; margin-left: 8px;">ID: ${pickupLocationId}</span>` : ""}
+                      ${pickupIsCustom === "true" ? `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 8px; font-size: 10px; margin-left: 8px;">CUSTOM</span>` : ""}
                     </p>
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🎯 ${isDisposizione ? "Destinazione:" : "Arrivo:"}</strong> <span style="color: #3730a3;">${destination}</span>
+                      ${destinationLocationId ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 8px; font-size: 10px; margin-left: 8px;">ID: ${destinationLocationId}</span>` : ""}
+                      ${destinationIsCustom === "true" ? `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 8px; font-size: 10px; margin-left: 8px;">CUSTOM</span>` : ""}
                     </p>
                     <p style="margin: 0; color: #1e40af;">
                       <strong>📅 Data:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedDate}</span>
@@ -726,11 +941,59 @@ export async function POST(req: NextRequest) {
                     `
                     }
                     ${
-                      meetAndGreet === "true"
+                      serviceDuration && isOlympic
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>⏱️ Durata Servizio:</strong> <span style="color: #7c3aed; font-weight: 600;">${serviceDuration} ore (Olimpico)</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      transferCost && transferRoute
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🚗 Transfer Cost:</strong> <span style="color: #3730a3;">€${transferCost} (${transferRoute})</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      eventRoute
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🏁 Event Route:</strong> <span style="color: #16a34a; font-weight: 600;">${eventRoute}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      nightSurcharge && parseFloat(nightSurcharge) > 0
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>🌙 Night Surcharge:</strong> <span style="color: #f59e0b; font-weight: 600;">€${nightSurcharge}</span>
+                    </p>
+                    `
+                        : ""
+                    }
+                    ${
+                      meetAndGreet === "true" || parsedMeetGreetConfig
                         ? `
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🤝 Meet & Greet:</strong> <span style="color: #16a34a; font-weight: 600;">SÌ</span>
+                      ${parsedMeetGreetConfig ? ` <span style="font-size: 11px;">(Configurazione avanzata)</span>` : ""}
                     </p>
+                    ${parsedMeetGreetConfig ? `
+                    <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px; padding: 10px; margin: 8px 0; font-size: 12px;">
+                      ${parsedMeetGreetConfig.selectedService ? `<div><strong>Servizio:</strong> ${parsedMeetGreetConfig.selectedService}</div>` : ""}
+                      ${parsedMeetGreetConfig.passengers > 0 ? `<div><strong>Passeggeri:</strong> ${parsedMeetGreetConfig.passengers}</div>` : ""}
+                      ${parsedMeetGreetConfig.children > 0 ? `<div><strong>Bambini:</strong> ${parsedMeetGreetConfig.children}</div>` : ""}
+                      ${parsedMeetGreetConfig.infants > 0 ? `<div><strong>Neonati:</strong> ${parsedMeetGreetConfig.infants}</div>` : ""}
+                      ${parsedMeetGreetConfig.extraLuggage > 0 ? `<div><strong>Bagagli extra:</strong> ${parsedMeetGreetConfig.extraLuggage}</div>` : ""}
+                      ${parsedMeetGreetConfig.extraHours > 0 ? `<div><strong>Ore extra:</strong> ${parsedMeetGreetConfig.extraHours}</div>` : ""}
+                      ${parsedMeetGreetConfig.specialServices ? Object.keys(parsedMeetGreetConfig.specialServices).filter(key => parsedMeetGreetConfig.specialServices[key]).map(key => `<div><strong>${key}:</strong> Incluso</div>`).join('') : ""}
+                    </div>
+                    ` : ""}
                     `
                         : ""
                     }
@@ -791,6 +1054,11 @@ export async function POST(req: NextRequest) {
                     <p style="margin: 0; color: #16a34a;">
                       <strong>Importo:</strong> <span style="color: #15803d; font-size: 20px; font-weight: 700;">€${(session.amount_total! / 100).toFixed(2)}</span>
                     </p>
+                    ${vatRate ? `
+                    <p style="margin: 0; color: #16a34a;">
+                      <strong>IVA:</strong> <span style="color: #15803d;">${vatRate}%${isOlympic ? " (Olimpica)" : ""}</span>
+                    </p>
+                    ` : ""}
                     <p style="margin: 0; color: #16a34a;">
                       <strong>Status:</strong> <span style="color: #15803d; font-weight: 600;">✅ Pagamento Completato</span>
                     </p>
@@ -829,7 +1097,12 @@ export async function POST(req: NextRequest) {
                     <p style="margin: 0 0 5px 0;"><strong>Sessione Stripe:</strong> ${session.id}</p>
                     ${paymentIntentId ? `<p style="margin: 0 0 5px 0;"><strong>Payment Intent:</strong> ${paymentIntentId}</p>` : ""}
                     <p style="margin: 0 0 5px 0;"><strong>Fattura Presente:</strong> ${session.invoice ? "Sì" : "No"}</p>
-                    <p style="margin: 0;"><strong>Customer ID:</strong> ${session.customer || "N/A"}</p>
+                    <p style="margin: 0 0 5px 0;"><strong>Customer ID:</strong> ${session.customer || "N/A"}</p>
+                    <p style="margin: 0 0 5px 0;"><strong>Service Type:</strong> ${serviceType}</p>
+                    ${isOlympic ? `<p style="margin: 0 0 5px 0;"><strong>Olympic Pricing:</strong> Attivo</p>` : ""}
+                    ${parsedMeetGreetConfig ? `<p style="margin: 0 0 5px 0;"><strong>Meet & Greet Config:</strong> Presente</p>` : ""}
+                    ${hasIndividualVehicles ? `<p style="margin: 0 0 5px 0;"><strong>Individual Vehicles:</strong> ${parsedIndividualVehicles.length} configurazioni</p>` : ""}
+                    <p style="margin: 0;"><strong>Metadata Count:</strong> ${Object.keys(metadata).length} campi</p>
                   </div>
                 </div>
               </div>

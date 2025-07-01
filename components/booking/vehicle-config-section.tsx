@@ -19,6 +19,7 @@ interface VehicleConfigSectionProps {
   hasAttemptedSubmit: boolean
   journeyDate?: Date // Add journey date to filter vehicle types
   serviceType?: string // Add service type to determine ceremony vehicles
+  isEastCluster?: boolean // Add flag to determine if route is East Cluster
   onCountChange: (count: number) => void
   onToggleSameType: () => void
   onSingleConfigChange: (config: Partial<VehicleConfig>) => void
@@ -45,6 +46,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     hasAttemptedSubmit,
     journeyDate,
     serviceType,
+    isEastCluster,
     onCountChange,
     onToggleSameType,
     onSingleConfigChange,
@@ -72,6 +74,26 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
         ceremonyPrice: vehicle.ceremonyPrice,
         category: 'ceremony'
       }))
+    } else if (isEastCluster && isOlympic) {
+      // EAST CLUSTER: Only Sedan and Minivan as per eastern cluster pricing
+      vehicleTypes = [
+        {
+          value: 'olympic-sedan',
+          label: 'Sedan',
+          maxPassengers: 2,
+          maxLuggage: 2,
+          description: '2 passengers max',
+          category: 'standard'
+        },
+        {
+          value: 'olympic-minivan',
+          label: 'Mini Van',
+          maxPassengers: 6,
+          maxLuggage: 4,
+          description: '6 passengers (4 with luggage)',
+          category: 'standard'
+        }
+      ]
     } else if (isInterCluster && isOlympic) {
       // INTER-CLUSTER: Only Sedan and Minivan as per official pricing table
       vehicleTypes = [
@@ -270,7 +292,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         
                         {/* Capacity info on separate line */}
                         <div className="text-xs text-gray-500">
-                          <span>{vehicle.maxPassengers} pax</span>
+                          <span>{vehicle.maxPassengers} {dictionary.passengers}</span>
                           {vehicle.maxSmallLuggage ? (
                             <span> • {vehicle.maxLuggage} 🧳 + {vehicle.maxSmallLuggage} 🎒</span>
                           ) : (
@@ -315,7 +337,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                     onSingleConfigChange({ passengers: 1 })
                   }
                 }}
-                placeholder={singleConfig.type ? "Es. 2" : dictionary.selectVehiclePlaceholder}
+                placeholder={singleConfig.type ? dictionary.exampleNumber : dictionary.selectVehiclePlaceholder}
                 className={hasFieldError("config.passengers") ? "border-red-500" : ""}
               />
               {!singleConfig.type ? (
@@ -348,7 +370,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                   const validValue = Math.min(Math.max(numValue, 0), limits.maxLuggage)
                   onSingleConfigChange({ luggage: validValue })
                 }}
-                placeholder={singleConfig.type ? "Es. 2" : dictionary.selectVehiclePlaceholder}
+                placeholder={singleConfig.type ? dictionary.exampleNumber : dictionary.selectVehiclePlaceholder}
                 className={hasFieldError("config.luggage") ? "border-red-500" : ""}
               />
               {!singleConfig.type ? (
@@ -448,7 +470,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                               
                               {/* Capacity info on separate line */}
                               <div className="text-xs text-gray-500">
-                                <span>{vehicle.maxPassengers} pax</span>
+                                <span>{vehicle.maxPassengers} {dictionary.passengers}</span>
                                 {vehicle.maxSmallLuggage ? (
                                   <span> • {vehicle.maxLuggage} 🧳 + {vehicle.maxSmallLuggage} 🎒</span>
                                 ) : (
@@ -493,7 +515,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                           onMultipleConfigChange(index, { passengers: 1 })
                         }
                       }}
-                      placeholder={config.type ? "Es. 2" : dictionary.selectVehiclePlaceholderShort}
+                      placeholder={config.type ? dictionary.exampleNumber : dictionary.selectVehiclePlaceholderShort}
                       className={hasFieldError(`configs.${index}.passengers`) ? "border-red-500" : ""}
                     />
                     {!config.type ? (
@@ -526,7 +548,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         const validValue = Math.min(Math.max(numValue, 0), limits.maxLuggage)
                         onMultipleConfigChange(index, { luggage: validValue })
                       }}
-                      placeholder={config.type ? "Es. 2" : dictionary.selectVehiclePlaceholderShort}
+                      placeholder={config.type ? dictionary.exampleNumber : dictionary.selectVehiclePlaceholderShort}
                       className={hasFieldError(`configs.${index}.luggage`) ? "border-red-500" : ""}
                     />
                     {!config.type ? (

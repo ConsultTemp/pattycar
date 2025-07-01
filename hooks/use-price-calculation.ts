@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo } from "react"
 import { debounce } from "lodash"
+import { timeUtils } from "@/lib/time-utils"
 import type { BookingState, PricingResult } from "@/lib/booking-types"
 import {
   calculateTotalPrice,
@@ -38,30 +39,9 @@ import {
 // Export PricingResult for use in other components
 export type { PricingResult } from "@/lib/booking-types"
 
-// Helper function to convert 12h format to 24h format
-const convertTo24Hour = (hour: string, minutes: string, ampm?: string): { hour24: number, totalMinutes: number } => {
-  const mins = parseInt(minutes) || 0
-  
-  if (!ampm) {
-    // Formato 24h: 0-23 dove 0=mezzanotte, 12=mezzogiorno, 23=23:00
-    const hour24 = parseInt(hour) || 0
-    return { hour24, totalMinutes: hour24 * 60 + mins }
-  } else {
-    // Formato 12h: 1-12 + AM/PM
-    let hour24 = parseInt(hour) || 0
-    if (ampm === "PM" && hour24 !== 12) {
-      hour24 += 12  // 1 PM = 13, 2 PM = 14, ... 11 PM = 23
-    } else if (ampm === "AM" && hour24 === 12) {
-      hour24 = 0    // 12 AM = mezzanotte (00)
-    }
-    // 12 PM rimane 12 (mezzogiorno)
-    return { hour24, totalMinutes: hour24 * 60 + mins }
-  }
-}
-
-// Helper function to check if time is night (19:30 - 07:30)
+// Helper function to check if time is night (19:30 - 07:30) - LEGACY PRICING LOGIC
 const isNightTime = (hour: string, minutes: string, ampm?: string): boolean => {
-  const { hour24, totalMinutes } = convertTo24Hour(hour, minutes, ampm)
+  const { totalMinutes } = timeUtils.to24h(hour, minutes, ampm)
   // Night time: 19:30 (1170 minutes) to 07:30 (450 minutes)
   return totalMinutes >= 1170 || totalMinutes <= 450
 }
@@ -199,8 +179,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         
         if (hasCompleteStartTime && hasCompleteEndTime) {
           // If both are present, validate they're logical
-          const startTime = convertTo24Hour(journey.time!, journey.minutes!, journey.timeAmPm!)
-          const endTime = convertTo24Hour(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
+          const startTime = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
+          const endTime = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
           if (endTime.totalMinutes <= startTime.totalMinutes) {
             console.log("❌ isReadyForPricing: end time before start time")
             return false
@@ -220,8 +200,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           return false
         }
         // Check end time is after start time using 12h to 24h conversion
-        const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
-        const endTime = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
+        const startTime = timeUtils.to24h(journey.time, journey.minutes, journey.timeAmPm)
+        const endTime = timeUtils.to24h(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
         if (endTime.totalMinutes <= startTime.totalMinutes) {
           console.log("❌ isReadyForPricing: end time before start time")
           return false
@@ -258,8 +238,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       const { vehicles, journey, options } = state
       
       // Calculate service hours (minimum 2 hours included)
-      const startTimeConverted = convertTo24Hour(journey.time!, journey.minutes!, journey.timeAmPm!)
-      const endTimeConverted = convertTo24Hour(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
+      const startTimeConverted = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
+      const endTimeConverted = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
       const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
       const serviceHours = Math.ceil(durationMinutes / 60)
       
@@ -666,8 +646,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       const { vehicles, journey, options } = state
       
       // Calculate duration in hours
-      const startTimeConverted = convertTo24Hour(journey.time!, journey.minutes!, journey.timeAmPm!)
-      const endTimeConverted = convertTo24Hour(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
+      const startTimeConverted = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
+      const endTimeConverted = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
       const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
       const durationHours = Math.ceil(durationMinutes / 60)
       

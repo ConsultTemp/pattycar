@@ -1,3 +1,5 @@
+import { timeUtils } from "./time-utils"
+
 // Moltiplicatori per tipo di veicolo
 export const VEHICLE_MULTIPLIERS: Record<string, number> = {
   sedan: 1.0,
@@ -69,19 +71,9 @@ export const VAT_RATE = 0.1 // 10%
 // Supplemento notturno
 export const NIGHT_SURCHARGE_RATE = 0.2 // 20%
 
-// Helper function to convert 12h format to 24h format
-const convertTo24Hour = (hour: string, minutes: string, ampm: string): { hour24: number, totalMinutes: number } => {
-  let hour24 = parseInt(hour)
-  if (ampm === "PM" && hour24 !== 12) hour24 += 12
-  if (ampm === "AM" && hour24 === 12) hour24 = 0
-  return { hour24, totalMinutes: hour24 * 60 + parseInt(minutes) }
-}
-
-// Helper function to check if time is night (19:30 - 07:30)
+// Use unified time utilities
 export const isNightTime = (hour: string, minutes: string, ampm: string): boolean => {
-  const { totalMinutes } = convertTo24Hour(hour, minutes, ampm)
-  // Night time: 19:30 (1170 minutes) to 07:30 (450 minutes)
-  return totalMinutes >= 1170 || totalMinutes <= 450
+  return timeUtils.isNightTime(hour, minutes, ampm)
 }
 
 // Helper function to calculate distance between two coordinates in kilometers
@@ -304,8 +296,8 @@ export function calculateDispositionPrice(
   vehicleCount = 1,
 ): { basePrice: number; totalPrice: number; breakdown: any } {
   // Calcola la durata in ore utilizzando la conversione dal formato 12h al 24h
-  const startTimeConverted = convertTo24Hour(startTime, startMinutes, startTimeAmPm)
-  const endTimeConverted = convertTo24Hour(endTime, endMinutes, endTimeAmPm)
+  const startTimeConverted = timeUtils.to24h(startTime, startMinutes, startTimeAmPm)
+  const endTimeConverted = timeUtils.to24h(endTime, endMinutes, endTimeAmPm)
   const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
   const durationHours = Math.ceil(durationMinutes / 60)
 
@@ -367,8 +359,8 @@ export function calculateMultipleVehiclesDispositionPrice(
   const vehicleBreakdowns: any[] = []
 
   // Calcola la durata in ore utilizzando la conversione dal formato 12h al 24h
-  const startTimeConverted = convertTo24Hour(startTime, startMinutes, startTimeAmPm)
-  const endTimeConverted = convertTo24Hour(endTime, endMinutes, endTimeAmPm)
+  const startTimeConverted = timeUtils.to24h(startTime, startMinutes, startTimeAmPm)
+  const endTimeConverted = timeUtils.to24h(endTime, endMinutes, endTimeAmPm)
   const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
   const durationHours = Math.ceil(durationMinutes / 60)
 

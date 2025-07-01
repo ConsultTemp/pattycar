@@ -1,3 +1,4 @@
+import { timeUtils } from './time-utils'
 import { findLocationByLocality, shouldUseListinoPricing } from './locality-mapping'
 
 // Unified Location Registry - All available locations with precise coordinates and services
@@ -1169,36 +1170,31 @@ export function findAvailableMeetGreetServices(
   return availableServices
 }
 
-// Function to check if a time is during night hours
+// Function to check if a time is during night hours - UNIFIED SYSTEM
 export function isNightTime(timeStr: string): boolean {
   try {
     // Parse time from various formats (HH:MM AM/PM or HH:MM)
-    let hour24: number
-    let minutes: number
+    let hour: string
+    let minutes: string
+    let ampm: string | undefined
 
     if (timeStr.includes('AM') || timeStr.includes('PM')) {
       // 12-hour format
-      const [time, ampm] = timeStr.split(' ')
+      const [time, ampmPart] = timeStr.split(' ')
       const [hourStr, minuteStr] = time.split(':')
-      let hour = parseInt(hourStr)
-      minutes = parseInt(minuteStr) || 0
-      
-      if (ampm === 'PM' && hour !== 12) hour += 12
-      if (ampm === 'AM' && hour === 12) hour = 0
-      hour24 = hour
+      hour = hourStr
+      minutes = minuteStr || '00'
+      ampm = ampmPart
     } else {
       // 24-hour format
       const [hourStr, minuteStr] = timeStr.split(':')
-      hour24 = parseInt(hourStr)
-      minutes = parseInt(minuteStr) || 0
+      hour = hourStr
+      minutes = minuteStr || '00'
+      ampm = undefined
     }
 
-    const totalMinutes = hour24 * 60 + minutes
-
-    // Night time: 20:00 (1200 minutes) to 08:00 (480 minutes)
-    // Airport hours: 20:00-08:00, Railway hours: 18:30-09:00
-    // Using more general airport hours as default
-    return totalMinutes >= 1200 || totalMinutes <= 480
+    // Use unified time utils for consistent logic (19:30-07:30)
+    return timeUtils.isNightTime(hour, minutes, ampm)
   } catch (error) {
     console.error('Error parsing time:', timeStr, error)
     return false
@@ -1640,8 +1636,8 @@ export function calculateRoundTripDispositionPrice(config: {
   const vehicleDisposition = event.disposition![config.vehicleType]
   
   // Calculate service duration
-  const startTime = convertTo24Hour(config.serviceStartTime, config.serviceStartMinutes, config.serviceStartAmPm)
-  const endTime = convertTo24Hour(config.serviceEndTime, config.serviceEndMinutes, config.serviceEndAmPm)
+  const startTime = timeUtils.to24h(config.serviceStartTime, config.serviceStartMinutes, config.serviceStartAmPm)
+  const endTime = timeUtils.to24h(config.serviceEndTime, config.serviceEndMinutes, config.serviceEndAmPm)
   const serviceDurationMinutes = Math.max(0, endTime.totalMinutes - startTime.totalMinutes)
   const serviceDurationHours = Math.ceil(serviceDurationMinutes / 60)
   
@@ -1711,17 +1707,9 @@ export function calculateRoundTripDispositionPrice(config: {
   }
 }
 
-// Helper function for time calculation (already exists above, but adding for reference)
-function convertTo24Hour(hour: string, minutes: string, ampm: string): { hour24: number, totalMinutes: number } {
-  let hour24 = parseInt(hour)
-  if (ampm === "PM" && hour24 !== 12) hour24 += 12
-  if (ampm === "AM" && hour24 === 12) hour24 = 0
-  return { hour24, totalMinutes: hour24 * 60 + parseInt(minutes) }
-}
-
-// Helper function to check if time is in night range (19:30-07:30)
+// Helper function to check if time is in night range (19:30-07:30) - LEGACY PRICING LOGIC
 function isTimeInNightRange(hour: string, minutes: string, ampm: string): boolean {
-  const time = convertTo24Hour(hour, minutes, ampm)
+  const time = timeUtils.to24h(hour, minutes, ampm)
   const totalMinutes = time.totalMinutes
   
   // Night time: 19:30 (1170 minutes) to 07:30 (450 minutes)

@@ -172,9 +172,7 @@ export function MeetGreetSection({
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Meet & Greet services are available for specific airports and railway stations. 
-            Your journey does not involve Milano Malpensa, Milano Linate, Venezia Marco Polo, 
-            Milano Centrale, Verona Porta Nuova, or Venezia Santa Lucia.
+            {dictionary.notAvailable}
           </AlertDescription>
         </Alert>
       )
@@ -185,7 +183,7 @@ export function MeetGreetSection({
         <Alert className="border-green-200 bg-green-50">
           <CheckCircle2 className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-700">
-            <strong>Meet & Greet service automatically detected:</strong> {availableService.location}
+            <strong>{dictionary.autoDetected}</strong> {availableService.location}
           </AlertDescription>
         </Alert>
 
@@ -197,20 +195,20 @@ export function MeetGreetSection({
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline">
-                {availableService.type.includes("arrivals") ? "Arrivals" : "Departures"}
+                {availableService.type.includes("arrivals") ? dictionary.arrivals : dictionary.departures}
               </Badge>
               <Badge variant="secondary">€{availableService.basePrice}</Badge>
             </div>
           </div>
 
           <div className="text-sm text-gray-600 mb-2">
-            <p>• Includes: Greeter + Porter + {availableService.includedLuggage} luggage</p>
-            <p>• Extra passenger: €{availableService.extraPassengerPrice}</p>
-            <p>• Extra luggage: €{availableService.extraLuggagePrice}</p>
+            <p>• {dictionary.includesService.replace('{luggage}', availableService.includedLuggage)}</p>
+            <p>• {dictionary.extraPassenger.replace('{price}', availableService.extraPassengerPrice)}</p>
+            <p>• {dictionary.extraLuggage.replace('{price}', availableService.extraLuggagePrice)}</p>
             {isNightService && (
               <div className="flex items-center gap-1 text-orange-600 mt-1">
                 <Clock className="h-3 w-3" />
-                <span>Night service detected ({availableService.nightSurchargeHours.start} - {availableService.nightSurchargeHours.end})</span>
+                <span>{dictionary.nightServiceDetected.replace('{start}', availableService.nightSurchargeHours.start).replace('{end}', availableService.nightSurchargeHours.end)}</span>
               </div>
             )}
           </div>
@@ -221,7 +219,7 @@ export function MeetGreetSection({
               {availableService.constraints.map((constraint: string, idx: number) => (
                 <div key={idx} className="flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
-                  <span>{constraint}</span>
+                  <span>{dictionary.constraintTranslations?.[constraint] || constraint}</span>
                 </div>
               ))}
             </div>
@@ -237,7 +235,7 @@ export function MeetGreetSection({
 
     return (
       <div className="space-y-4">
-        <h4 className="font-medium">Passenger Configuration</h4>
+        <h4 className="font-medium">{dictionary.passengerConfiguration}</h4>
         
         {/* Passenger limits warning */}
         {(isPassengerLimitExceeded || isTarmacPassengerLimitExceeded) && (
@@ -245,8 +243,8 @@ export function MeetGreetSection({
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-700">
               {isTarmacPassengerLimitExceeded 
-                ? `TARMAC service is limited to maximum 6 passengers. Current total: ${totalPassengers}`
-                : `Maximum ${passengerLimit} passengers allowed. Groups of more than 8 require special quotation.`
+                ? dictionary.tarmacLimitExceeded.replace('{total}', totalPassengers.toString())
+                : dictionary.maxPassengersAllowed.replace('{max}', passengerLimit.toString())
               }
             </AlertDescription>
           </Alert>
@@ -255,7 +253,7 @@ export function MeetGreetSection({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Adults (Full rate)
+              {dictionary.adults} ({dictionary.fullRate})
             </label>
             <input
               type="number"
@@ -279,7 +277,7 @@ export function MeetGreetSection({
                   onChange({ passengers: 1 })
                 }
               }}
-              placeholder="Es. 2"
+              placeholder={dictionary.exampleNumber || "Es. 2"}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
               disabled={isPassengerLimitExceeded}
             />
@@ -287,7 +285,7 @@ export function MeetGreetSection({
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Children (up to 12 years) <Badge variant="secondary">50% rate</Badge>
+              {dictionary.children} <Badge variant="secondary">{dictionary.halfRate}</Badge>
             </label>
             <input
               type="number"
@@ -305,7 +303,7 @@ export function MeetGreetSection({
                   onChange({ children: validValue })
                 }
               }}
-              placeholder="Es. 1"
+              placeholder={dictionary.exampleNumber || "Es. 1"}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
               disabled={isPassengerLimitExceeded}
             />
@@ -313,7 +311,7 @@ export function MeetGreetSection({
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Infants (0-2 years) <Badge variant="secondary">FREE</Badge>
+              {dictionary.infants} <Badge variant="secondary">{dictionary.freeRate}</Badge>
             </label>
             <input
               type="number"
@@ -331,7 +329,7 @@ export function MeetGreetSection({
                   onChange({ infants: validValue })
                 }
               }}
-              placeholder="Es. 1"
+              placeholder={dictionary.exampleNumber || "Es. 1"}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
               disabled={isPassengerLimitExceeded}
             />
@@ -340,7 +338,7 @@ export function MeetGreetSection({
 
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Users className="h-4 w-4" />
-          <span>Total passengers: {totalPassengers} / {passengerLimit} max</span>
+          <span>{dictionary.totalPassengersCount.replace('{current}', totalPassengers.toString()).replace('{max}', passengerLimit.toString())}</span>
         </div>
       </div>
     )
@@ -354,11 +352,11 @@ export function MeetGreetSection({
 
     return (
       <div className="space-y-4">
-        <h4 className="font-medium">Luggage Configuration</h4>
+        <h4 className="font-medium">{dictionary.luggageConfiguration}</h4>
         
         <div className="text-sm text-green-600 mb-2">
           <CheckCircle2 className="h-4 w-4 inline mr-1" />
-          Includes {selectedService.includedLuggage} pieces of luggages per person
+          {dictionary.includedLuggagePerPerson.replace('{count}', selectedService.includedLuggage.toString())}
         </div>
 
         {/* Night luggage limit warning */}
@@ -366,15 +364,15 @@ export function MeetGreetSection({
           <Alert className="border-amber-200 bg-amber-50">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-700">
-              Night surcharge applies to maximum {luggageLimit} pieces of luggage per operator.
-              Current extra luggage: {config.extraLuggage}
+              {dictionary.maxLuggageNightSurcharge.replace('{max}', luggageLimit.toString())}
+              {dictionary.currentExtraLuggage?.replace('{count}', config.extraLuggage.toString()) || `Current extra luggage: ${config.extraLuggage}`}
             </AlertDescription>
           </Alert>
         )}
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Extra Luggage <Badge variant="outline">€{selectedService.extraLuggagePrice} each</Badge>
+            {dictionary.extraLuggageLabel} <Badge variant="outline">{dictionary.eachPrice.replace('{price}', selectedService.extraLuggagePrice.toString())}</Badge>
           </label>
           <input
             type="number"
@@ -392,19 +390,19 @@ export function MeetGreetSection({
                 onChange({ extraLuggage: validValue })
               }
             }}
-            placeholder="Es. 2"
+            placeholder={dictionary.exampleNumber || "Es. 2"}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
           />
           {showNightLuggageLimit && (
             <p className="text-xs text-gray-500 mt-1">
-              Maximum {luggageLimit} pieces for night surcharge ({selectedService.nightSurchargeHours.start} - {selectedService.nightSurchargeHours.end})
+              {dictionary.maxPiecesNightSurcharge.replace('{max}', luggageLimit.toString()).replace('{start}', selectedService.nightSurchargeHours.start).replace('{end}', selectedService.nightSurchargeHours.end)}
             </p>
           )}
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Extra Hours for Delays <Badge variant="outline">€{selectedService.extraHourPrice} each</Badge>
+            {dictionary.extraHoursLabel} <Badge variant="outline">{dictionary.eachPrice.replace('{price}', selectedService.extraHourPrice.toString())}</Badge>
           </label>
           <input
             type="number"
@@ -421,11 +419,11 @@ export function MeetGreetSection({
                 onChange({ extraHours: validValue })
               }
             }}
-            placeholder="Es. 1"
+            placeholder={dictionary.exampleNumber || "Es. 1"}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
           />
           <p className="text-xs text-gray-500 mt-1">
-            After {selectedService.includedHours} hours included
+            {dictionary.afterIncludedHours.replace('{hours}', selectedService.includedHours.toString())}
           </p>
         </div>
       </div>
@@ -442,7 +440,7 @@ export function MeetGreetSection({
 
     return (
       <div className="space-y-4">
-        <h4 className="font-medium">Special Services</h4>
+        <h4 className="font-medium">{dictionary.specialServices}</h4>
 
         <div className="space-y-3">
           {/* TARMAC Service */}
@@ -459,16 +457,15 @@ export function MeetGreetSection({
                   />
                   <span className="font-medium">TARMAC Service</span>
                   <Badge variant="secondary">€{services.tarmac.price}</Badge>
-                  {services.tarmac.onDemand && <Badge variant="outline">On Demand</Badge>}
+                  {services.tarmac.onDemand && <Badge variant="outline">{dictionary.onDemand}</Badge>}
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-2">{services.tarmac.description}</p>
+              <p className="text-sm text-gray-600 mb-2">{dictionary.tarmacServiceDescription || services.tarmac.description}</p>
               {totalPassengers > services.tarmac.maxPassengers && (
                 <Alert className="border-red-200 bg-red-50">
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                   <AlertDescription className="text-red-700">
-                    TARMAC service is limited to {services.tarmac.maxPassengers} passengers maximum. 
-                    Current total: {totalPassengers}
+                    {dictionary.tarmacServiceLimited.replace('{max}', services.tarmac.maxPassengers.toString()).replace('{total}', totalPassengers.toString())}
                   </AlertDescription>
                 </Alert>
               )}
@@ -490,14 +487,14 @@ export function MeetGreetSection({
                   <Badge variant="secondary">
                     €{services.combo.price} × {passengersForSpecialServices} = €{services.combo.price * passengersForSpecialServices}
                   </Badge>
-                  <Badge variant="outline">Mandatory Together</Badge>
+                  <Badge variant="outline">{dictionary.mandatoryTogether}</Badge>
                 </div>
               </div>
               <p className="text-sm text-gray-600">
-                Includes: {services.combo.includes.join(" + ")}
+                {dictionary.includesServices.replace('{services}', services.combo.includes.join(" + "))}
               </p>
               <p className="text-xs text-amber-600 mt-1">
-                At Venice Airport, Fast Track and VIP Lounge must be purchased together. Price is per passenger (excluding infants).
+                {dictionary.veniceComboNote}
               </p>
             </div>
           )}
@@ -518,7 +515,7 @@ export function MeetGreetSection({
                 </Badge>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Price is per passenger (excluding infants)
+                {dictionary.pricePerPassenger}
               </p>
             </div>
           )}
@@ -539,7 +536,7 @@ export function MeetGreetSection({
                 </Badge>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Price is per passenger (excluding infants)
+                {dictionary.pricePerPassenger}
               </p>
             </div>
           )}
@@ -556,7 +553,7 @@ export function MeetGreetSection({
                 />
                 <span className="font-medium">Greeter Only</span>
                 <Badge variant="secondary">€{services.greeterOnly.price}</Badge>
-                <Badge variant="outline">Porter on Demand</Badge>
+                <Badge variant="outline">{dictionary.porterOnDemand}</Badge>
               </div>
             </div>
           )}
@@ -571,7 +568,7 @@ export function MeetGreetSection({
 
     return (
       <div className="space-y-3">
-        <h4 className="font-medium">Pricing Breakdown</h4>
+        <h4 className="font-medium">{dictionary.pricingBreakdown}</h4>
         
         <div className="space-y-2 text-sm">
           {meetGreetPricing.breakdown.map((item: any, index: number) => (
@@ -584,13 +581,13 @@ export function MeetGreetSection({
           <Separator />
           
           <div className="flex justify-between font-medium text-base">
-            <span>Total Meet & Greet</span>
+            <span>{dictionary.totalMeetGreetLabel}</span>
             <span>€{meetGreetPricing.total.toFixed(2)}</span>
           </div>
           
           {isNightService && (
             <div className="text-xs text-orange-600">
-              * Night service surcharge applied ({selectedService?.nightSurchargeHours.start} - {selectedService?.nightSurchargeHours.end})
+              {dictionary.nightSurchargeApplied.replace('{start}', selectedService?.nightSurchargeHours.start || '').replace('{end}', selectedService?.nightSurchargeHours.end || '')}
             </div>
           )}
         </div>
@@ -602,11 +599,11 @@ export function MeetGreetSection({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          Meet & Greet Service
+          {dictionary.meetGreetService}
           {isNightService && (
             <Badge variant="outline" className="text-orange-600 border-orange-600">
               <Clock className="h-3 w-3 mr-1" />
-              Night Service
+              {dictionary.nightService || "Night Service"}
             </Badge>
           )}
         </CardTitle>
@@ -622,7 +619,7 @@ export function MeetGreetSection({
             className="text-black"
           />
           <label htmlFor="enableMeetGreet" className="font-medium">
-            Enable Meet & Greet Service
+            {dictionary.enableService}
           </label>
         </div>
 
@@ -637,10 +634,10 @@ export function MeetGreetSection({
                 
                 {/* Service Details */}
                 <div className="space-y-4">
-                  <h4 className="font-medium">Service Details</h4>
+                  <h4 className="font-medium">{dictionary.serviceDetails}</h4>
                   <div className="text-sm text-gray-600 space-y-1">
                     {selectedService.details.map((detail: string, index: number) => (
-                      <p key={index}>• {detail}</p>
+                      <p key={index}>• {dictionary.detailTranslations?.[detail] || detail}</p>
                     ))}
                   </div>
                 </div>

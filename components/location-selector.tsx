@@ -72,20 +72,25 @@ export function LocationSelector({
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false)
   const [googleError, setGoogleError] = useState<string | null>(null)
   
-  // Simplified refs for better control
+  // Refs for better control
   const isSelectingOptionRef = useRef(false)
+  const isTypingRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const lastPropValueRef = useRef<string>("")
+  const lastPropValueRef = useRef<string>(value.address || "")
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Debounce dell'input per evitare troppe chiamate API
+  // Debounce dell'input per Google Places API
   const debouncedInputValue = useDebounce(inputValue, 500)
+  
+  // Debounce per aggiornamenti al parent - più lungo per evitare interferenze
+  const debouncedInputForParent = useDebounce(inputValue, 800)
 
   // Get available locations based on journey date
   const locations = getAvailableLocations(journeyDate)
   const isOlympic = journeyDate ? isOlympicPeriod(journeyDate) : false
 
-  // Filter listino locations based on input - IMPROVED SEARCH
+  // Filter listino locations based on input
   const filteredListinoLocations = locations.filter(location => {
     if (!inputValue || inputValue.length < 1) return false
     
@@ -134,16 +139,69 @@ export function LocationSelector({
     return false
   })
 
-  // Sync input with external value changes - SIMPLIFIED
+  // Sync input ONLY when prop changes from external source (not from our own updates)
   useEffect(() => {
-    // Only sync if we're not currently selecting an option AND the prop value actually changed
-    if (!isSelectingOptionRef.current && value.address !== lastPropValueRef.current) {
-      setInputValue(value.address || "")
-      lastPropValueRef.current = value.address || ""
+    const newPropValue = value.address || ""
+    
+    // Only sync if:
+    // 1. We're not currently typing
+    // 2. We're not selecting an option
+    // 3. The prop value actually changed from what we last knew
+    // 4. The current input value is different from the new prop value
+    if (!isTypingRef.current && 
+        !isSelectingOptionRef.current && 
+        newPropValue !== lastPropValueRef.current &&
+        inputValue !== newPropValue) {
+      
+      console.log('🔄 Syncing input with prop value:', newPropValue)
+      setInputValue(newPropValue)
     }
-  }, [value.address])
+    
+    lastPropValueRef.current = newPropValue
+  }, [value.address, inputValue])
 
-  // Search Google Places when input changes - IMPROVED
+  // Update parent with debounced input (only when user stops typing)
+  useEffect(() => {
+    // Don't update parent if we're selecting an option or typing
+    if (isSelectingOptionRef.current || isTypingRef.current) {
+      return
+    }
+    
+    // Don't update if the debounced value is the same as current parent value
+    if (debouncedInputForParent === value.address) {
+      return
+    }
+    
+    // CRITICAL: Don't update if we have a valid selection (locationId or placeId)
+    // This prevents overwriting a valid selection with a "custom" one
+    if (value.locationId || (value.placeId && value.placeId !== "")) {
+      return
+    }
+    
+    console.log('📤 Updating parent with debounced value:', debouncedInputForParent)
+    
+    if (!debouncedInputForParent.trim()) {
+      // If input is empty, clear the selection
+      onChange({
+        address: "",
+        placeId: "",
+        coordinates: undefined,
+        locationId: undefined,
+        isCustom: true
+      })
+    } else {
+      // If input has content, mark as custom (will be updated if they select an option)
+      onChange({
+        address: debouncedInputForParent,
+        placeId: "",
+        coordinates: undefined,
+        locationId: undefined,
+        isCustom: true
+      })
+    }
+  }, [debouncedInputForParent, onChange, value.address, value.locationId, value.placeId])
+
+  // Search Google Places when input changes
   useEffect(() => {
     // Don't search if we're selecting an option
     if (isSelectingOptionRef.current) {
@@ -163,12 +221,27 @@ export function LocationSelector({
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false)
+        // When clicking outside, mark as not typing
+        isTypingRef.current = false
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current)
+          typingTimeoutRef.current = null
+        }
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
     }
   }, [])
 
@@ -209,14 +282,21 @@ export function LocationSelector({
     }
   }, [])
 
-  // Handle listino location selection - IMPROVED
+  // Handle listino location selection
   const handleListinoLocationSelect = (location: Location) => {
     console.log('🎯 Selecting listino location:', location.displayName)
     
     // Prevent any interference during selection
     isSelectingOptionRef.current = true
+    isTypingRef.current = false
     
-    // Update input and parent state
+    // Clear any typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    
+    // Update input and parent state immediately
     setInputValue(location.displayName)
     lastPropValueRef.current = location.displayName
     
@@ -236,15 +316,22 @@ export function LocationSelector({
     // Clear selection flag after a short delay
     setTimeout(() => {
       isSelectingOptionRef.current = false
-    }, 200)
+    }, 100)
   }
 
-  // Handle Google Places selection - IMPROVED
+  // Handle Google Places selection
   const handleGooglePlaceSelect = (place: Place) => {
     console.log('🎯 Selecting Google place:', place.description)
     
     // Prevent any interference during selection
     isSelectingOptionRef.current = true
+    isTypingRef.current = false
+    
+    // Clear any typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
     
     // Check se questo indirizzo Google dovrebbe usare il listino
     const listinoCheck = shouldUseListinoPricing(
@@ -256,7 +343,7 @@ export function LocationSelector({
 
     console.log('📊 Listino check result:', listinoCheck)
 
-    // Update input
+    // Update input immediately
     setInputValue(place.description)
     lastPropValueRef.current = place.description
 
@@ -292,10 +379,10 @@ export function LocationSelector({
     // Clear selection flag after a short delay
     setTimeout(() => {
       isSelectingOptionRef.current = false
-    }, 200)
+    }, 100)
   }
 
-  // Handle input change - SIMPLIFIED
+  // Handle input change - COMPLETELY LOCAL NOW
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     
@@ -304,24 +391,27 @@ export function LocationSelector({
       return
     }
     
+    // Mark as typing and clear any previous typing timeout
+    isTypingRef.current = true
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+    
+    // Set timeout to mark as not typing after user stops
+    typingTimeoutRef.current = setTimeout(() => {
+      isTypingRef.current = false
+      typingTimeoutRef.current = null
+    }, 1000) // 1 second after stopping typing
+    
     // Always update input value immediately for responsive UI
     setInputValue(newValue)
     
     // Clear any previous Google error
     setGoogleError(null)
 
-    // Update parent state
-    if (!newValue.trim()) {
-      // If input is empty, clear the selection
-      onChange({
-        address: "",
-        placeId: "",
-        coordinates: undefined,
-        locationId: undefined,
-        isCustom: true
-      })
-    } else if (newValue !== value.address) {
-      // If input has content and is different from current selection, mark as custom
+    // If user is typing and we had a valid selection, clear it immediately
+    // (This prevents keeping old selections when user starts typing new text)
+    if (newValue !== value.address && (value.locationId || value.placeId)) {
       onChange({
         address: newValue,
         placeId: "",
@@ -347,8 +437,15 @@ export function LocationSelector({
     }
   }
 
-  // Handle input blur - SIMPLIFIED
+  // Handle input blur
   const handleInputBlur = () => {
+    // Mark as not typing when losing focus
+    isTypingRef.current = false
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    
     // Close dropdown after a short delay to allow for option selection
     setTimeout(() => {
       if (!isSelectingOptionRef.current) {
@@ -427,7 +524,7 @@ export function LocationSelector({
               <>
                 <div className="px-3 py-2 text-xs font-semibold text-green-600 bg-green-50 border-b flex items-center gap-1">
                   <Star className="h-3 w-3" />
-                  {dictionary?.listinoResults || "Destinazioni del listino (prezzi fissi)"}
+                  {dictionary?.common?.listinoResults || dictionary?.listinoResults || "Destinazioni del listino (prezzi fissi)"}
                 </div>
                 {filteredListinoLocations.map((location) => (
                   <button
@@ -464,7 +561,7 @@ export function LocationSelector({
               <>
                 {filteredListinoLocations.length > 0 && (
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
-                    {dictionary?.googleResults || "Altri indirizzi"}
+                    {dictionary?.common?.googleResults || dictionary?.googleResults || "Altri indirizzi"}
                   </div>
                 )}
                 {googlePlaces.map((place) => {
@@ -498,14 +595,14 @@ export function LocationSelector({
         {/* No results message */}
         {showNoResults && (
           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 text-center text-gray-500 text-sm">
-            {dictionary?.noResultsFound || "Nessun risultato trovato"}
+            {dictionary?.common?.noResultsFound || dictionary?.noResultsFound || "Nessun risultato trovato"}
           </div>
         )}
       </div>
 
       {/* Help text */}
       <p className="text-xs text-gray-500">
-        Start typing to search for a location...
+        {dictionary?.common?.startTypingToSearch || "Start typing to search for a location..."}
       </p>
 
       {/* Error message */}

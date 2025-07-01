@@ -33,7 +33,7 @@
   "hero": {
     "title": "سافر بأناقة وراحة ودقة في المواعيد",
     "description": "منذ عام 1998، تقدم باتي كار خدمات سائق عالية المستوى (NCC)، مما يضمن نقلات حصرية ومخصصة في إيطاليا والخارج. سواء كان للعمل أو للمتعة، خدمتنا متاحة على مدار الساعة طوال أيام الأسبوع لتلبية جميع احتياجات سفرك.",
-    "subDescription": "سواء ك  مما يضمن نقلات حصرية ومخصصة في إيطاليا والخارج. سواء كان للعمل أو للمتعة، خدمتنا متاحة على مدار الساعة طوال أيام الأسبوع لتلبية جميع احتياجات سفرك.",
+    "subDescription": "سواء كنت تبحث عن نقل مطار من الدرجة الأولى، أو نقل للمناسبات المرموقة، أو ببساطة راحة رحلة خالية من التوتر، فإن خدمتنا مرادفة للأناقة والأمان.",
     "ctaButton": "احجز الآن",
     "bottomText": "خدمة NCC مرموقة منذ عام 1998"
   },
@@ -142,6 +142,7 @@
     "minlabel": "دقيقة",
     "flightTrainLabel": "رقم الرحلة/القطار",
     "privacyPolicyLabel": "أوافق على معالجة بياناتي الشخصية وفقًا لـ",
+    "privacyPolicy": "سياسة الخصوصية",
     "admin": {
       "title": "حجز محجوز",
       "pageTitle": "الحجز - منطقة محظورة",
@@ -185,6 +186,8 @@
           "ceremony": "حفل",
           "olympicPeriod": "فترة أولمبية"
         },
+        "dispositionCeremony": "تصرف حفل الافتتاح",
+        "dispositionCeremonyDescription": "تصرف حفل الافتتاح - استاد سان سيرو، ميلان",
         "subServices": {
           "title": "اختر نوع الخدمة"
         }
@@ -197,7 +200,10 @@
         "emailLabel": "البريد الإلكتروني *",
         "emailRequired": "بريد إلكتروني غير صالح",
         "phoneLabel": "الهاتف *",
-        "phoneRequired": "رقم الهاتف مطلوب"
+        "phoneRequired": "رقم الهاتف مطلوب",
+        "selectCountry": "اختر...",
+        "searchCountry": "ابحث عن البلد...",
+        "noCountryFound": "لم يتم العثور على بلد."
       },
       "journey": {
         "title": "تفاصيل الرحلة",
@@ -238,7 +244,12 @@
         "flightLabel": "رقم الطيران/القطار",
         "flightPlaceholder": "مثال AZ123",
         "departureCityLabel": "مدينة المغادرة",
-        "departureCityPlaceholder": "مثال ميلان (للتوصيلات، آخر توقف)"
+        "departureCityPlaceholder": "مثال ميلان (للتوصيلات، آخر توقف)",
+        "selectDuration": "اختر المدة",
+        "selectedTime": "الوقت المحدد",
+        "roundedUp": "مقرب للأعلى",
+        "selectDestination": "اختر الوجهة",
+        "selectDropoffPoint": "اختر نقطة الإنزال"
       },
       "vehicles": {
         "title": "تكوين المركبات",
@@ -266,7 +277,11 @@
         "maxSedanLuggageShort": "حد أقصى {maxLuggage}+{maxSmallLuggage}",
         "individualConfig": "التكوين الفردي",
         "addVehicle": "إضافة مركبة",
-        "vehicleNumber": "المركبة"
+        "vehicleNumber": "المركبة",
+        "exampleNumber": "مثال 2",
+        "passengers": "راكب",
+        "luggageLarge": "أمتعة كبيرة",
+        "luggageSmall": "أمتعة صغيرة"
       },
       "pricing": {
         "error": "خطأ في حساب السعر",
@@ -286,7 +301,110 @@
         "price": "السعر:",
         "subtotal": "المجموع الفرعي:",
         "vat": "ضريبة القيمة المضافة",
-        "vatIncluded": "شامل ضريبة القيمة المضافة"
+        "vatIncluded": "شامل ضريبة القيمة المضافة",
+        "olympicPricing": "التسعير الأولمبي",
+        "eventPricing": "تسعير الفعاليات",
+        "specialEvent": "فعالية خاصة",
+        "milanoCortina2026": "ميلانو-كورتينا 2026",
+        "route": "الطريق:",
+        "ceremonySurcharge": "رسوم إضافية للحفل:",
+        "fixedPrice": "سعر ثابت",
+        "includes": "يشمل:",
+        "transferExtraInfo": "نقل إضافي فقط إذا كان المغادرة من مدينة مختلفة",
+        "noReturnTransfer": "لا يشمل نقل العودة",
+        "noExtraHours": "لا تطبق ساعات إضافية للخدمة العادية",
+        "nightServiceSurcharge": "رسوم إضافية للخدمة الليلية مطبقة",
+        "nightServiceInfo": "الخدمة بين 19:30 مساءً - 07:30 صباحاً (+20%)",
+        "meetGreetService": "خدمة الاستقبال",
+        "totalServicePrice": "إجمالي سعر الخدمة",
+        "appliedToVehicles": "مطبق على {count} مركبات",
+        "perVehicle": "لكل مركبة",
+        "includedInTotal": "مدرج في السعر الإجمالي أعلاه",
+        "serviceDetails": "تفاصيل الخدمات",
+        "ceremonyBaseService": "توزيع الحفل الأساسي",
+        "ceremonyCompleteService": "خدمة الحفل الكاملة (تشمل ساعتين قبل + انتظار أثناء الحفل)",
+        "transferExtraLocation": "نقل موقع إضافي",
+        "transferExtraInfo2": "نقل للمواقع المختلفة عن مدينة قاعدة الحفل",
+        "routes": "الطرق:",
+        "hourlyDisposition": "توزيع بالساعة",
+        "transfer": "نقل",
+        "serviceHours": "ساعات الخدمة",
+        "pointToPointTransfer": "نقل من نقطة إلى نقطة",
+        "vehicleBreakdown": "المركبة {index} ({type}): €{price}",
+        "transferMilanoCentrale": "نقل ميلانو الوسطى",
+        "transferMilanoInfo": "نقل من ميلانو الوسطى إلى موقع الخدمة",
+        "vehicles": "مركبات",
+        "nightSurcharge": "رسوم ليلية",
+        "nightServiceHours": "الخدمة 19:30-07:30",
+        "receptionService": "خدمة الاستقبال",
+        "subtotalLabel": "المجموع الفرعي",
+        "vatLabel": "ضريبة القيمة المضافة",
+        "vatCalculation": "10% على €{amount}",
+        "totalLabel": "الإجمالي"
+      },
+      "meetGreet": {
+        "notAvailable": "خدمات الاستقبال متاحة لمطارات ومحطات قطار محددة. رحلتك لا تشمل ميلانو مالبنسا، ميلانو ليناتي، فينيسيا ماركو بولو، ميلانو سنترالي، فيرونا بورتا نوفا، أو فينيسيا سانتا لوسيا.",
+        "autoDetected": "تم اكتشاف خدمة الاستقبال تلقائياً:",
+        "arrivals": "الوصول",
+        "departures": "المغادرة",
+        "includesService": "يشمل: مرحب + حمال + {luggage} أمتعة",
+        "extraPassenger": "راكب إضافي: €{price}",
+        "extraLuggage": "أمتعة إضافية: €{price}",
+        "nightServiceDetected": "تم اكتشاف خدمة ليلية ({start} - {end})",
+        "passengerConfiguration": "تكوين الركاب",
+        "maxPassengersAllowed": "الحد الأقصى {max} راكب مسموح. المجموعات أكثر من 8 تتطلب عرض أسعار خاص.",
+        "tarmacLimitExceeded": "خدمة المدرج محدودة بحد أقصى 6 ركاب. المجموع الحالي: {total}",
+        "adults": "البالغون (تعريفة كاملة)",
+        "children": "الأطفال (حتى 12 سنة)",
+        "infants": "الرضع (0-2 سنة)",
+        "luggageConfiguration": "تكوين الأمتعة",
+        "includedLuggagePerPerson": "يشمل {count} قطع من الأمتعة لكل شخص",
+        "extraLuggageLabel": "أمتعة إضافية",
+        "extraHoursLabel": "ساعات إضافية للتأخير",
+        "afterIncludedHours": "بعد {hours} ساعات مشمولة",
+        "totalPassengersCount": "إجمالي الركاب: {current} / {max} الحد الأقصى",
+        "specialServices": "خدمات خاصة",
+        "pricingBreakdown": "تفصيل الأسعار",
+        "baseServicePrice": "الخدمة الأساسية ({passengers} راكب، {luggage} أمتعة مشمولة)",
+        "vatPercentage": "ضريبة القيمة المضافة ({rate}%)",
+        "totalMeetGreet": "إجمالي خدمة الاستقبال",
+        "enableService": "تفعيل خدمة الاستقبال",
+        "groupsQuoteRequest": "المجموعات التي تزيد عن 8 أشخاص ستحصل على عرض أسعار عند الطلب",
+        "tarmacAvailability": "خدمة المدرج متاحة فقط إذا كانت الطائرة متوقفة (عند الطلب)",
+        "maxLuggageNightSurcharge": "حد أقصى {max} قطعة أمتعة لكل مشغل لرسوم إضافية ليلية",
+        "serviceDetails": "تفاصيل الخدمة",
+        "greeterMeetsClient": "يلتقي المستقبل بالعميل/العملاء عند مخرج المحطة",
+        "passportControlHelp": "يساعد في مراقبة جوازات السفر [المسار السريع / تخطي الطابور غير ممكن]",
+        "porterBaggageAssist": "سيكون هناك أيضاً حمال يساعد في استلام الأمتعة من خلال خدمة نقل مخصصة",
+        "escortToVehicle": "سيرافق المستقبل والحمال الراكب/الركاب إلى المركبة المحجوزة PATTY CAR",
+        "tarmacServiceDescription": "خدمة تلتقط الركاب مباشرة على مدرج الهبوط بالفان لحد أقصى 6 ركاب (متاح فقط إذا كانت الطائرة متوقفة)",
+        "onDemand": "عند الطلب",
+        "fullRate": "تعريفة كاملة",
+        "halfRate": "50% تعريفة",
+        "freeRate": "مجاني",
+        "eachPrice": "€{price} لكل واحد",
+        "nightService": "الخدمة الليلية",
+        "currentExtraLuggage": "الأمتعة الإضافية الحالية: {count}",
+        "totalMeetGreetLabel": "إجمالي خدمة الاستقبال",
+        "maxPiecesNightSurcharge": "حد أقصى {max} قطع للرسوم الليلية ({start} - {end})",
+        "tarmacServiceLimited": "خدمة المدرج محدودة بحد أقصى {max} ركاب. المجموع الحالي: {total}",
+        "mandatoryTogether": "إلزامي معاً",
+        "includesServices": "يشمل: {services}",
+        "veniceComboNote": "في مطار فينيسيا، يجب شراء المسار السريع وصالة VIP معاً. السعر لكل راكب (باستثناء الرضع).",
+        "pricePerPassenger": "السعر لكل راكب (باستثناء الرضع)",
+        "porterOnDemand": "حمال عند الطلب",
+        "nightSurchargeApplied": "* رسوم الخدمة الليلية مطبقة ({start} - {end})",
+        "constraintTranslations": {
+          "Groups of more than 8 people will be quoted on request": "المجموعات أكثر من 8 أشخاص سيتم تسعيرها عند الطلب",
+          "TARMAC service available only if aircraft is parked (on demand)": "خدمة المدرج متاحة فقط إذا كانت الطائرة متوقفة (عند الطلب)",
+          "Maximum 10 pieces of luggage per operator for night surcharge": "حد أقصى 10 قطع أمتعة لكل مشغل للرسوم الليلية"
+        },
+        "detailTranslations": {
+          "The greeter meets the client/s at the finger exit": "يلتقي المرحب بالعميل/العملاء عند مخرج الجسر",
+          "She/he helps with passports control [fast-track / skip the line is not possible]": "يساعد في مراقبة الجوازات [المسار السريع / تخطي الطابور غير ممكن]",
+          "There will be also a porter that will assist with baggage claim through a dedicated transport service": "سيكون هناك أيضاً حمال يساعد في استلام الأمتعة عبر خدمة نقل مخصصة",
+          "The greeter and porter will escort passenger/s to the reserved vehicle PATTY CAR": "سيرافق المرحب والحمال الراكب/الركاب إلى السيارة المحجوزة PATTY CAR"
+        }
       },
       "options": {
         "title": "خيارات إضافية",
@@ -297,7 +415,8 @@
         "privacyRequired": "قبول سياسة الخصوصية مطلوب",
         "notesLabel": "ملاحظات إضافية",
         "notesPlaceholder": "أي طلبات خاصة أو معلومات إضافية",
-        "privacyLabel": "أوافق على معالجة البيانات وفقاً لـ"
+        "privacyLabel": "أوافق على معالجة البيانات وفقاً لـ",
+        "privacyPolicy": "سياسة الخصوصية"
       },
       "submit": {
         "contactInfo": "للحصول على المعلومات تواصل معنا على pattycar@pattycar.com",
@@ -737,5 +856,11 @@
         ]
       }
     ]
+  },
+  "common": {
+    "startTypingToSearch": "ابدأ بالكتابة للبحث عن موقع...",
+    "listinoResults": "وجهات بأسعار ثابتة",
+    "googleResults": "عناوين أخرى",
+    "noResultsFound": "لم يتم العثور على نتائج"
   }
 }

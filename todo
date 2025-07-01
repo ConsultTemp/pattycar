@@ -5,8 +5,6 @@
 
 messaggi di conferma e promemoria
 
-attenzione nella selezione delle partenze/arrivi rispetto a listino prezzi ricevuto
-
 aggiorna foglio google con prenotazioni
 
 
@@ -48,19 +46,6 @@ aggiorna foglio google con prenotazioni
 
 ✅ ⁠per quanto riguarda la sedan anziché 3persone e 3 valigie metterei, se possibile: 3 persone, 2 valigie grandi e 1 piccola. 
 
-🕒 Listini apertira e chiusura cerimonie 
-
-🕒 Listino monza e olimpiadi
-
-🕒 Se data è cerimonia di apertira e chiusura applica listini cerimonie
-
-
-
-
-
-
-nel form
-- telefono
 
 
 
@@ -152,13 +137,13 @@ nel form
 
 
 
-east cluster non ho modo di verificare che veicoli metter
+✅east cluster non ho modo di verificare che veicoli metter
 
 
 
 
 
-transfer -> west/east clusters
+✅transfer -> west/east clusters
 
 
 
@@ -179,9 +164,14 @@ transfer -> west/east clusters
 
 ✅prezzi vicendevoli: bormio -> milano == milano-> bormio
 
-
-input ricerca
+✅input ricerca
 ✅se non inserisco minuti prende 00.
-✅le 12 le prende come notte. 0 deve essere notte e 12 mezzogiorno
 ✅se metto stesso partenza e arrivo a disposizione non calcola il prezzo
 ✅chiedere a ai se location sono vicendevoli
+
+
+✅ mail 
+
+traduzioni
+
+le 12 le prende come notte. 0 deve essere notte e 12 mezzogiorno

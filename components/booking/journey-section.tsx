@@ -14,6 +14,7 @@ import { format } from "date-fns"
 import { it } from "date-fns/locale"
 import { PlacesAutocomplete } from "@/components/places-autocomplete"
 import { LocationSelector } from "@/components/location-selector"
+import { timeUtils } from "@/lib/time-utils"
 import type { Journey, ValidationError, BookingOptions, ServiceType } from "@/lib/booking-types"
 import { useEffect, useState } from "react"
 import { isOlympicPeriod } from "@/lib/olympic-pricing"
@@ -51,20 +52,11 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
   // Auto-calculate end time when start time or duration changes (Olympic logic)
   useEffect(() => {
     if (useOlympicDurationLogic && journey.time && journey.minutes && journey.serviceDuration) {
-      const startHour = parseInt(journey.time)
-      const startMinutes = parseInt(journey.minutes) 
       const durationHours = parseInt(journey.serviceDuration)
       
-      // Calculate total minutes
-      let totalStartMinutes = startHour * 60 + startMinutes
-      if (!is24HourFormat && journey.timeAmPm === "PM" && startHour !== 12) {
-        totalStartMinutes += 12 * 60 // Add 12 hours for PM
-      }
-      if (!is24HourFormat && journey.timeAmPm === "AM" && startHour === 12) {
-        totalStartMinutes -= 12 * 60 // Subtract 12 hours for 12 AM
-      }
-      
-      const totalEndMinutes = totalStartMinutes + (durationHours * 60)
+      // Use unified time conversion
+      const startTime = timeUtils.to24h(journey.time, journey.minutes, journey.timeAmPm)
+      const totalEndMinutes = startTime.totalMinutes + (durationHours * 60)
       
       // Convert back to hour/minute format
       const endHour24 = Math.floor(totalEndMinutes / 60) % 24
@@ -72,12 +64,12 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
       
       if (is24HourFormat) {
         onChange({
-          endTime: endHour24.toString(),
+          endTime: endHour24.toString().padStart(2, '0'),
           endMinutes: endMinutes.toString().padStart(2, '0'),
           endTimeAmPm: undefined
         })
       } else {
-        const { hour12, ampm } = convertTo12Hour(endHour24)
+        const { hour12, ampm } = timeUtils.to12h(endHour24)
         onChange({
           endTime: hour12,
           endMinutes: endMinutes.toString().padStart(2, '0'),
@@ -87,37 +79,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     }
   }, [journey.time, journey.minutes, journey.timeAmPm, journey.serviceDuration, is24HourFormat, useOlympicDurationLogic, onChange])
 
-  // Helper functions for time conversion
-  const convertTo24Hour = (hour: string, minutes: string, ampm?: string): { hour24: number, totalMinutes: number } => {
-    const mins = parseInt(minutes) || 0
-    
-    if (is24HourFormat) {
-      // In formato 24h: 0-23 dove 0=mezzanotte, 12=mezzogiorno, 23=23:00
-      const hour24 = parseInt(hour) || 0
-      return { hour24, totalMinutes: hour24 * 60 + mins }
-    } else {
-      // In formato 12h: 1-12 + AM/PM
-      let hour24 = parseInt(hour) || 0
-      if (ampm === "PM" && hour24 !== 12) {
-        hour24 += 12  // 1 PM = 13, 2 PM = 14, ... 11 PM = 23
-      } else if (ampm === "AM" && hour24 === 12) {
-        hour24 = 0    // 12 AM = mezzanotte (00)
-      }
-      // 12 PM rimane 12 (mezzogiorno)
-      return { hour24, totalMinutes: hour24 * 60 + mins }
-    }
-  }
 
-  const convertTo12Hour = (hour24: number): { hour12: string, ampm: string } => {
-    // 0 = 12 AM (mezzanotte)
-    if (hour24 === 0) return { hour12: "12", ampm: "AM" }
-    // 1-11 = 1-11 AM  
-    if (hour24 < 12) return { hour12: hour24.toString(), ampm: "AM" }
-    // 12 = 12 PM (mezzogiorno)
-    if (hour24 === 12) return { hour12: "12", ampm: "PM" }
-    // 13-23 = 1-11 PM
-    return { hour12: (hour24 - 12).toString(), ampm: "PM" }
-  }
 
   // Convert between formats when switching
   const handleFormatChange = (new24HourFormat: boolean) => {
@@ -127,7 +89,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     if (journey.time && journey.minutes) {
       if (new24HourFormat && journey.timeAmPm) {
         // Converting from 12h to 24h
-        const converted = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
+        const converted = timeUtils.to24h(journey.time, journey.minutes, journey.timeAmPm)
         onChange({
           time: converted.hour24.toString().padStart(2, '0'),
           minutes: (journey.minutes || "00").padStart(2, '0'),
@@ -136,7 +98,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
       } else if (!new24HourFormat && !journey.timeAmPm) {
         // Converting from 24h to 12h
         const hour24 = parseInt(journey.time)
-        const converted = convertTo12Hour(hour24)
+        const converted = timeUtils.to12h(hour24)
         onChange({
           time: converted.hour12,
           minutes: journey.minutes,
@@ -146,10 +108,10 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     }
 
     // Convert end time for disposizione
-    if (serviceType === "disposizione" && journey.endTime && journey.endMinutes) {
+    if ((serviceType === "disposizione" || serviceType === "ceremony-disposition") && journey.endTime && journey.endMinutes) {
       if (new24HourFormat && journey.endTimeAmPm) {
         // Converting from 12h to 24h
-        const converted = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
+        const converted = timeUtils.to24h(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
         onChange({
           endTime: converted.hour24.toString().padStart(2, '0'),
           endMinutes: (journey.endMinutes || "00").padStart(2, '0'),
@@ -158,7 +120,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
       } else if (!new24HourFormat && !journey.endTimeAmPm) {
         // Converting from 24h to 12h
         const hour24 = parseInt(journey.endTime)
-        const converted = convertTo12Hour(hour24)
+        const converted = timeUtils.to12h(hour24)
         onChange({
           endTime: converted.hour12,
           endMinutes: journey.endMinutes,
@@ -310,8 +272,8 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     if (!journey.time || !journey.minutes || !journey.endTime || !journey.endMinutes) return true
     if (!is24HourFormat && (!journey.timeAmPm || !journey.endTimeAmPm)) return true
 
-    const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
-    const endTime = convertTo24Hour(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
+    const startTime = timeUtils.to24h(journey.time, journey.minutes, journey.timeAmPm)
+    const endTime = timeUtils.to24h(journey.endTime, journey.endMinutes, journey.endTimeAmPm)
 
     return endTime.totalMinutes > startTime.totalMinutes
   }
@@ -426,7 +388,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
           placeholder={
             serviceType === "transfer" || serviceType === "inter-cluster"
               ? dictionary.selectDestination || "Select destination"
-              : "Seleziona punto di rientro"
+              : dictionary.selectDropoffPoint || "Seleziona punto di rientro"
           }
           customPlaceholder={
             serviceType === "transfer" || serviceType === "inter-cluster"
@@ -643,12 +605,12 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                       onValueChange={(value) => onChange({ serviceDuration: value })}
                     >
                       <SelectTrigger className={`w-full ${hasAttemptedSubmit && !journey.serviceDuration ? "border-red-500" : ""}`}>
-                        <SelectValue placeholder="Seleziona durata" />
+                        <SelectValue placeholder={dictionary.selectDuration || "Seleziona durata"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="4">4 ore</SelectItem>
-                        <SelectItem value="6">6 ore</SelectItem>
-                        <SelectItem value="8">8 ore</SelectItem>
+                        <SelectItem value="4">4 {dictionary.serviceHours || "ore"}</SelectItem>
+                        <SelectItem value="6">6 {dictionary.serviceHours || "ore"}</SelectItem>
+                        <SelectItem value="8">8 {dictionary.serviceHours || "ore"}</SelectItem>
                       </SelectContent>
                     </Select>
                     {hasAttemptedSubmit && !journey.serviceDuration && (
@@ -786,7 +748,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                   /* Olympic Logic: Use selected duration */
                   <div className="space-y-1">
                     <p>
-                      <strong>Tempo selezionato:</strong> {journey.serviceDuration}h
+                      <strong>{dictionary.selectedTime || "Tempo selezionato"}:</strong> {journey.serviceDuration}h
                     </p>
                     <p>
                       <strong>{dictionary.hourlyRate}</strong>
@@ -795,8 +757,8 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                 ) : (
                   /* Standard Logic: Calculate duration from times */
                   (() => {
-                  const startTime = convertTo24Hour(journey.time, journey.minutes, journey.timeAmPm)
-                    const endTime = convertTo24Hour(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm)
+                  const startTime = timeUtils.to24h(journey.time, journey.minutes, journey.timeAmPm)
+                    const endTime = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm)
                   const durationMinutes = endTime.totalMinutes - startTime.totalMinutes
                   const hours = Math.floor(durationMinutes / 60)
                   const minutes = durationMinutes % 60
@@ -808,7 +770,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
                         <strong>{dictionary.effectiveDuration}</strong> {hours}h {minutes}m
                       </p>
                       <p>
-                        <strong>{dictionary.billableHours}</strong> {billingHours}h (arrotondato per eccesso)
+                        <strong>{dictionary.billableHours}</strong> {billingHours}h ({dictionary.roundedUp || "arrotondato per eccesso"})
                       </p>
                       <p>
                         <strong>{dictionary.hourlyRate}</strong>
@@ -851,3 +813,4 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     </Card>
   )
 }
+

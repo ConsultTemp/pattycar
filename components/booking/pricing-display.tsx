@@ -58,16 +58,16 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-semibold text-blue-800 flex items-center">
           <Calculator className="w-5 h-5 mr-2" />
-          {pricing.isOlympicPricing ? "Olympic Pricing" : pricing.isEventPricing ? "Event Pricing" : dictionary.totalPrice}
+          {pricing.isOlympicPricing ? dictionary.olympicPricing : pricing.isEventPricing ? dictionary.eventPricing : dictionary.totalPrice}
           {pricing.isOlympicPricing && (
             <Badge variant="secondary" className="ml-2 bg-gradient-to-r from-blue-500 to-green-500 text-white">
-              🏔️ Milano-Cortina 2026
+                              🏔️ {dictionary.milanoCortina2026}
             </Badge>
           )}
           {pricing.isEventPricing && !pricing.isOlympicPricing && (
             <Badge variant="secondary" className="ml-2">
               <Star className="w-3 h-3 mr-1" />
-              Special Event
+              {dictionary.specialEvent}
             </Badge>
           )}
         </h3>
@@ -88,19 +88,19 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
             <span className="font-medium text-blue-900">{pricing.eventRoute.name}</span>
           </div>
           <div className="text-sm text-blue-700">
-            <p><strong>Route:</strong> {pricing.eventRoute.from} → {pricing.eventRoute.to}</p>
+            <p><strong>{dictionary.route}</strong> {pricing.eventRoute.from} → {pricing.eventRoute.to}</p>
             {pricing.eventRoute.notes && (
               <p className="text-xs mt-1 text-blue-600">{pricing.eventRoute.notes}</p>
             )}
             {pricing.eventRoute.name?.includes('Cerimonia') && (
               <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                <p className="font-medium text-yellow-800">ℹ️ Pricing Cerimonia:</p>
+                <p className="font-medium text-yellow-800">ℹ️ {dictionary.ceremonySurcharge}:</p>
                 <p className="text-yellow-700">
-                  • <strong>PREZZO FISSO</strong> per servizio completo di cerimonia<br/>
-                  • Include: disponibilità da 2h prima + attesa durante cerimonia<br/>
-                  • Transfer extra solo se partenza da città diversa<br/>
-                  • <strong>NON include transfer di ritorno</strong><br/>
-                  • <em>Non si applicano ore aggiuntive per il servizio standard</em>
+                  • <strong>{dictionary.fixedPrice}</strong> per servizio completo di cerimonia<br/>
+                  • {dictionary.includes}: disponibilità da 2h prima + attesa durante cerimonia<br/>
+                  • {dictionary.transferExtraInfo}<br/>
+                  • <strong>{dictionary.noReturnTransfer}</strong><br/>
+                  • <em>{dictionary.noExtraHours}</em>
                 </p>
               </div>
             )}
@@ -116,8 +116,8 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
         (pricing.vehicleBreakdowns && pricing.vehicleBreakdowns.some((vb: any) => vb.nightSurcharge > 0))) && (
         <div className="mb-3 p-2 bg-orange-100 rounded-lg">
           <div className="text-sm text-orange-700">
-            <span className="font-medium">🌙 Night service surcharge applied</span>
-            <span className="text-xs block">Service time between 19:30 PM - 07:30 AM (+20%)</span>
+            <span className="font-medium">🌙 {dictionary.nightServiceSurcharge}</span>
+            <span className="text-xs block">{dictionary.nightServiceInfo}</span>
           </div>
         </div>
       )}
@@ -127,17 +127,17 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
         <div className="mb-3 p-3 bg-green-100 rounded-lg">
           <div className="flex items-center gap-2 mb-1">
             <Users className="w-4 h-4 text-green-600" />
-            <span className="font-medium text-green-900">Meet & Greet Service</span>
+            <span className="font-medium text-green-900">{dictionary.meetGreetService}</span>
           </div>
           <div className="text-sm text-green-700">
-            <p><strong>Total Service Price:</strong> €{pricing.meetGreetPrice}</p>
+            <p><strong>{dictionary.totalServicePrice}:</strong> €{pricing.meetGreetPrice}</p>
             {pricing.breakdown.vehicleCount > 1 && (
               <p className="text-xs text-green-600">
-                Applied to {pricing.breakdown.vehicleCount} vehicle{pricing.breakdown.vehicleCount > 1 ? 's' : ''} 
-                (€{formatPrice(pricing.meetGreetPrice / pricing.breakdown.vehicleCount)} per vehicle)
+                {dictionary.appliedToVehicles.replace('{count}', pricing.breakdown.vehicleCount.toString())} 
+                (€{formatPrice(pricing.meetGreetPrice / pricing.breakdown.vehicleCount)} {dictionary.perVehicle})
               </p>
             )}
-            <p className="text-xs text-green-600">Included in total price above</p>
+            <p className="text-xs text-green-600">{dictionary.includedInTotal}</p>
           </div>
         </div>
       )}
@@ -145,7 +145,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
       {showBreakdown && (
         <div className="text-sm space-y-2">
           <div className="bg-white p-4 rounded-lg border space-y-3">
-            <div className="font-bold text-lg text-gray-800">💰 DETTAGLIO SERVIZI</div>
+            <div className="font-bold text-lg text-gray-800">💰 {dictionary.serviceDetails || "DETTAGLIO SERVIZI"}</div>
             <div className="space-y-2">
               
               {/* CERIMONIA: Disposizione base SEMPRE per cerimonie */}
