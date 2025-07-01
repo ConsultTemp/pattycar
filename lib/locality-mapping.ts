@@ -111,12 +111,12 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
     aliases: ['Orio', 'BGY', 'Bergamo Orio']
   },
   
-  // Olympic Period Additional Airports and Stations - All mapped to base cities
+  // FIXED: MEET & GREET LOCATION MAPPINGS - NON DEGRADARE A CITTÀ BASE!
   {
     googleNames: ['Venezia Marco Polo', 'Marco Polo Airport', 'Venice Airport'],
-    locationId: 'venezia',
+    locationId: 'venezia-marco-polo', // CORRETTO: mantieni location specifica con Meet & Greet
     priority: 95,
-    aliases: ['VCE', 'Venezia VCE', 'Marco Polo', 'Venice Marco Polo']
+    aliases: ['VCE', 'Venezia VCE', 'Marco Polo', 'Venice Marco Polo', 'venezia-marco-polo']
   },
   {
     googleNames: ['Treviso Airport', 'Antonio Canova Airport'],
@@ -126,17 +126,23 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
   },
   {
     googleNames: ['Venezia Santa Lucia', 'Santa Lucia Station', 'Venice Santa Lucia'],
-    locationId: 'venezia',
+    locationId: 'venezia-santa-lucia', // CORRETTO: mantieni location specifica con Meet & Greet
     priority: 95,
     aliases: ['Santa Lucia', 'Venezia SL', 'Venice Station', 'venezia-santa-lucia']
   },
 
-  // Stazioni ferroviarie - MIGLIORATI
+  // Stazioni ferroviarie - CORRETTI per mantenere Meet & Greet
+  {
+    googleNames: ['Milano Centrale', 'Stazione Centrale Milano', 'Milano Central Station', 'Centrale Milano'],
+    locationId: 'milano-centrale', // CORRETTO: mantieni location specifica con Meet & Greet
+    priority: 98, // PRIORITÀ ALTA per evitare degrading a "milano"
+    aliases: ['Milano Centrale FS', 'Stazione Milano Centrale', 'Central Station Milan', 'milano-centrale']
+  },
   {
     googleNames: ['Verona Porta Nuova', 'Stazione di Verona', 'Verona Station', 'Porta Nuova Verona'],
-    locationId: 'verona-porta-nuova',
-    priority: 85, // Increased priority
-    aliases: ['Verona PN', 'Stazione Verona', 'Verona Stazione']
+    locationId: 'verona-porta-nuova', // CORRETTO: mantieni location specifica con Meet & Greet
+    priority: 98, // PRIORITÀ ALTA per evitare degrading a "verona" 
+    aliases: ['Verona PN', 'Stazione Verona', 'Verona Stazione', 'verona-porta-nuova']
   },
 
   // Area metropolitana Milano (comuni limitrofi che dovrebbero usare Milano) - PRIORITÀ AUMENTATA
@@ -344,7 +350,17 @@ function findLocationsByGeography(
   return nearbyLocations
 }
 
-// Trova il match migliore per una località Google - MIGLIORATA CON ESTRAZIONE CITTÀ
+// LOCATION SPECIFICHE MEET & GREET CHE NON DEVONO ESSERE DEGRADATE
+const MEET_GREET_LOCATIONS = [
+  'venezia-marco-polo',
+  'milano-centrale', 
+  'verona-porta-nuova',
+  'venezia-santa-lucia',
+  'malpensa',
+  'linate'
+]
+
+// Trova il match migliore per una località Google - CORRETTO PER MEET & GREET
 export function findLocationByLocality(
   googleLocality: string | null,
   addressComponents: any[] = [],
@@ -375,8 +391,8 @@ export function findLocationByLocality(
     matchedText: string
   } | null = null
 
-  // NUOVO: Tenta prima l'estrazione di città dall'indirizzo (solo se non è già un'estrazione)
-  if (!skipExtraction) {
+  // CORRETTO: NON degradare location Meet & Greet specifiche
+  if (!skipExtraction && !MEET_GREET_LOCATIONS.includes(googleLocality.toLowerCase())) {
     const extractedCity = extractCityFromAddress(googleLocality)
     if (extractedCity && extractedCity !== googleLocality) { // Evita ricorsione se è la stessa città
       console.log(`🏙️ Attempting match with extracted city: ${extractedCity}`)
@@ -392,6 +408,8 @@ export function findLocationByLocality(
         }
       }
     }
+  } else if (MEET_GREET_LOCATIONS.includes(googleLocality.toLowerCase())) {
+    console.log(`🎯 MEET & GREET LOCATION DETECTED: "${googleLocality}" - avoiding city extraction degradation`)
   }
 
   // 1. Cerca match esatti (unchanged)

@@ -1497,39 +1497,48 @@ export function calculateCeremonyPrice(
     return transferPrice
   }
   
-  // Helper function to calculate custom transfer price based on distance
+  // Helper function to calculate custom transfer price using complete transfer algorithm
   const calculateCustomTransferPrice = (fromCoords: { lat: number; lng: number }, toCoords: { lat: number; lng: number }, vehicleType: keyof OlympicRoute['prices']): number => {
     const distanceKm = calculateDistanceKm(fromCoords, toCoords)
     
-    // Olympic period km rates (higher than regular rates)
-    const olympicKmRates: Record<keyof OlympicRoute['prices'], number> = {
-      'olympic-sedan': 2.5,      // €2.50 per km
-      'olympic-minivan': 2.8,    // €2.80 per km  
-      'olympic-van': 3.2,        // €3.20 per km
-      'olympic-luxury': 3.0      // €3.00 per km
+    // Map Olympic vehicle type to standard vehicle type for pricing calculation
+    const vehicleTypeMapping: Record<keyof OlympicRoute['prices'], string> = {
+      'olympic-sedan': 'berlina',
+      'olympic-minivan': 'monovolume', 
+      'olympic-van': 'minibus',
+      'olympic-luxury': 'luxury-sedan'
     }
     
-    // Minimum charge (same as regular transfers)
-    const minimumCharges: Record<keyof OlympicRoute['prices'], number> = {
-      'olympic-sedan': 80,
-      'olympic-minivan': 90,
-      'olympic-van': 120,
-      'olympic-luxury': 100
-    }
+    const standardVehicleType = vehicleTypeMapping[vehicleType]
     
-    const kmRate = olympicKmRates[vehicleType]
-    const calculatedPrice = distanceKm * kmRate
-    const minimumCharge = minimumCharges[vehicleType]
+    // Use the complete transfer pricing algorithm (same as regular transfers)
+    const { calculateTotalPrice } = require('@/lib/pricing-config')
     
-    console.log("🎪 CUSTOM TRANSFER CALCULATION:", {
+    // Calculate transfer using complete algorithm with default passenger/luggage config
+    const transferPricing = calculateTotalPrice(
+      distanceKm,
+      standardVehicleType,
+      1, // passengers - default to 1 for transfer calculation
+      0, // luggage - default to 0 for transfer calculation  
+      1, // vehicleCount - single vehicle for this calculation
+      undefined, // hour - no specific time for custom transfer
+      undefined, // minutes
+      undefined, // ampm
+      fromCoords,
+      toCoords
+    )
+    
+    console.log("🎪 CUSTOM TRANSFER CALCULATION (COMPLETE ALGORITHM):", {
       distanceKm: Math.round(distanceKm * 100) / 100,
-      kmRate,
-      calculatedPrice: Math.round(calculatedPrice * 100) / 100,
-      minimumCharge,
-      finalPrice: Math.max(calculatedPrice, minimumCharge)
+      vehicleType: vehicleType,
+      standardVehicleType: standardVehicleType,
+      basePrice: transferPricing.basePrice,
+      finalPrice: transferPricing.basePrice, // Use basePrice (without VAT) for ceremony calculation
+      breakdown: transferPricing.breakdown
     })
     
-    return Math.max(calculatedPrice, minimumCharge)
+    // Return basePrice (without VAT) since ceremony calculation applies its own VAT
+    return transferPricing.basePrice
   }
   
   // Helper function to get location display name

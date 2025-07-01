@@ -284,7 +284,7 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     }
   },
 
-  // Railway Stations
+  // Railway Stations - CORRECTED: Solo departures secondo il listino
   "milano-centrale": {
     id: "milano-centrale",
     name: "Milano Centrale",
@@ -292,10 +292,7 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     coordinates: { lat: 45.4868, lng: 9.2037 },
     type: "station",
     services: {
-      meetGreetArrivals: {
-        enabled: true,
-        serviceId: "milano-centrale-arrivals"
-      },
+      // REMOVED: meetGreetArrivals - non nel listino per stazioni
       meetGreetDepartures: {
         enabled: true,
         serviceId: "milano-centrale-departures"
@@ -310,10 +307,7 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     coordinates: { lat: 45.4280, lng: 10.9823 },
     type: "station",
     services: {
-      meetGreetArrivals: {
-        enabled: true,
-        serviceId: "verona-arrivals"
-      },
+      // REMOVED: meetGreetArrivals - non nel listino per stazioni
       meetGreetDepartures: {
         enabled: true,
         serviceId: "verona-departures"
@@ -328,10 +322,7 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     coordinates: { lat: 45.4408, lng: 12.3208 },
     type: "station",
     services: {
-      meetGreetArrivals: {
-        enabled: true,
-        serviceId: "venezia-rail-arrivals"
-      },
+      // REMOVED: meetGreetArrivals - non nel listino per stazioni
       meetGreetDepartures: {
         enabled: true,
         serviceId: "venezia-rail-departures"
@@ -911,85 +902,8 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     ]
   },
 
-  // RAILWAY ARRIVALS - Olympic Period rates
-  "milano-centrale-arrivals": {
-    type: "railway-arrivals",
-    location: "Milano Centrale",
-    coordinates: { lat: 45.4868, lng: 9.2037 },
-    basePrice: 250, // Greeter + Porter + 2 luggages incl. for 1 PASSENGER
-    extraPassengerPrice: 70, // Each extra PASSENGER
-    extraLuggagePrice: 25, // Each extra LUGGAGE
-    nightSurchargePrice: 175, // Night surcharge porter (06:30 PM / 9:00 AM) | max 5 pieces of luggage
-    extraHourPrice: 90, // Each extra HOUR for delay or disruption (AFTER 2 HOURS INCLUDED)
-    includedHours: 2,
-    includedLuggage: 2,
-    maxPassengers: 8,
-    maxLuggageForNightSurcharge: 5,
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
-    details: [
-      "The greeter and porter will meet the client/s directly at the train platform in front of the right coach",
-      "They will escort passenger/s to the reserved PATTY CAR vehicle, helping them with the luggages"
-    ],
-    constraints: [
-      "Groups of more than 8 people will be quoted on request",
-      "Maximum 5 pieces of luggage per operator for night surcharge",
-      "Night surcharge hours: 18:30 PM - 09:00 AM"
-    ]
-  },
-
-  "verona-arrivals": {
-    type: "railway-arrivals",
-    location: "Verona Porta Nuova",
-    coordinates: { lat: 45.4280, lng: 10.9823 },
-    basePrice: 250,
-    extraPassengerPrice: 70,
-    extraLuggagePrice: 25,
-    nightSurchargePrice: 175,
-    extraHourPrice: 90,
-    includedHours: 2,
-    includedLuggage: 2,
-    maxPassengers: 8,
-    maxLuggageForNightSurcharge: 5,
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
-    details: [
-      "The greeter and porter will meet the client/s directly at the train platform in front of the right coach",
-      "They will escort passenger/s to the reserved PATTY CAR vehicle, helping them with the luggages"
-    ],
-    constraints: [
-      "Groups of more than 8 people will be quoted on request",
-      "Maximum 5 pieces of luggage per operator for night surcharge",
-      "Night surcharge hours: 18:30 PM - 09:00 AM"
-    ]
-  },
-
-  "venezia-rail-arrivals": {
-    type: "railway-arrivals",
-    location: "Venezia Santa Lucia",
-    coordinates: { lat: 45.4408, lng: 12.3208 },
-    basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND
-    extraPassengerPrice: 70,
-    extraLuggagePrice: 25,
-    nightSurchargePrice: 0, // Porter ON DEMAND
-    extraHourPrice: 90,
-    includedHours: 2,
-    includedLuggage: 2,
-    maxPassengers: 8,
-    maxLuggageForNightSurcharge: 0, // Porter ON DEMAND
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
-    specialServices: {
-      greeterOnly: { price: 0 } // Greeter only service by default
-    },
-    details: [
-      "In Venezia only greeter | porter on demand",
-      "The greeter will meet the client/s at the train platform",
-      "They will escort passenger/s to the reserved PATTY CAR vehicle"
-    ],
-    constraints: [
-      "Groups of more than 8 people will be quoted on request",
-      "Porter service available on demand only",
-      "Greeter only service by default"
-    ]
-  },
+  // RAILWAY ARRIVALS REMOVED - Non esistono nel listino ufficiale
+  // Le stazioni ferroviarie hanno SOLO servizi departures secondo il listino Olympic Period
 
   // RAILWAY DEPARTURES - Olympic Period rates
   "milano-centrale-departures": {
@@ -1046,10 +960,10 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "railway-departures",
     location: "Venezia Santa Lucia",
     coordinates: { lat: 45.4408, lng: 12.3208 },
-    basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND
+    basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
     extraPassengerPrice: 70,
     extraLuggagePrice: 25,
-    nightSurchargePrice: 0, // Porter ON DEMAND
+    nightSurchargePrice: 0, // Porter ON DEMAND nel listino
     extraHourPrice: 90,
     includedHours: 2,
     includedLuggage: 2,
@@ -1057,7 +971,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     maxLuggageForNightSurcharge: 0, // Porter ON DEMAND
     nightSurchargeHours: { start: "18:30", end: "09:00" },
     specialServices: {
-      greeterOnly: { price: 0 } // Greeter only service by default
+      greeterOnly: { price: 0 } // Greeter only service by default secondo listino
     },
     details: [
       "In Venice only greeter | porter on demand",
