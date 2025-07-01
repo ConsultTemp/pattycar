@@ -22,10 +22,6 @@ interface SubmitSectionProps {
 export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, pricing, submitError, onSubmit, dictionary }) => {
   return (
     <div className="text-center space-y-4">
-      {/* Contact Information */}
-      <div className="text-sm text-gray-600 mb-4">
-        <p>{dictionary.contactInfo}</p>
-      </div>
 
       {/* Cancellation Policy */}
       <div className="text-xs text-gray-500 mb-6 max-w-2xl mx-auto">

@@ -249,7 +249,11 @@
         "selectedTime": "الوقت المحدد",
         "roundedUp": "مقرب للأعلى",
         "selectDestination": "اختر الوجهة",
-        "selectDropoffPoint": "اختر نقطة الإنزال"
+        "selectDropoffPoint": "اختر نقطة الإنزال",
+        "startTypingToSearch": "ابدأ بالكتابة للبحث عن موقع...",
+        "listinoResults": "وجهات بأسعار ثابتة",
+        "googleResults": "عناوين أخرى",
+        "noResultsFound": "لم يتم العثور على نتائج"
       },
       "vehicles": {
         "title": "تكوين المركبات",
@@ -307,12 +311,14 @@
         "specialEvent": "فعالية خاصة",
         "milanoCortina2026": "ميلانو-كورتينا 2026",
         "route": "الطريق:",
-        "ceremonySurcharge": "رسوم إضافية للحفل:",
+        "ceremonySurcharge": "رسوم إضافية للحفل",
         "fixedPrice": "سعر ثابت",
         "includes": "يشمل:",
         "transferExtraInfo": "نقل إضافي فقط إذا كان المغادرة من مدينة مختلفة",
         "noReturnTransfer": "لا يشمل نقل العودة",
         "noExtraHours": "لا تطبق ساعات إضافية للخدمة العادية",
+        "completeCeremonyService": "لخدمة الحفل الكاملة",
+        "includesRoundtripAndWaiting": "يشمل النقل ذهاباً وإياباً ووقت الانتظار المحدد أثناء الحدث",
         "nightServiceSurcharge": "رسوم إضافية للخدمة الليلية مطبقة",
         "nightServiceInfo": "الخدمة بين 19:30 مساءً - 07:30 صباحاً (+20%)",
         "meetGreetService": "خدمة الاستقبال",
@@ -340,7 +346,48 @@
         "subtotalLabel": "المجموع الفرعي",
         "vatLabel": "ضريبة القيمة المضافة",
         "vatCalculation": "10% على €{amount}",
-        "totalLabel": "الإجمالي"
+        "totalLabel": "الإجمالي",
+        "ceremonyDispositionOpening": "ترتيب حفل الافتتاح",
+        "ceremonyDispositionClosing": "ترتيب حفل الاختتام",
+        "ceremonyNames": {
+          "opening-ceremony": "ترتيب حفل الافتتاح",
+          "closing-ceremony": "ترتيب حفل الاختتام"
+        },
+        "sanSiroStadium": "استاد سان سيرو",
+        "arenaVerona": "أرينا فيرونا",
+        "ceremonyNotes": {
+          "milanoDeparture": "الترتيب يشمل المغادرة من ميلانو",
+          "veronaDeparture": "الترتيب يشمل المغادرة من فيرونا",
+          "twoHoursBefore": "يشمل توفر المركبة من ساعتين قبل بداية الحفل",
+          "waitingIncluded": "يشمل الانتظار في الموقع أثناء الحفل",
+          "extraRouteEvaluation": "إذا كانت المركبة تغادر من موقع مختلف عن {city}، سيحتاج الأمر لتقييم طريق إضافي",
+          "noReturnTransfer": "الخدمة لا تشمل نقل العودة"
+        },
+        "pricingBreakdownLabels": {
+          "ceremonyBaseDisposition": "ترتيب الحفل الأساسي",
+          "ceremonyCompleteService": "خدمة الحفل الكاملة (تشمل ساعتين قبل + انتظار أثناء الحفل)",
+          "extraLocationTransfer": "نقل موقع إضافي",
+          "extraLocationTransferDescription": "نقل للمواقع المختلفة عن مدينة قاعدة الحفل",
+          "routes": "الطرق:",
+          "hourlyDisposition": "ترتيب بالساعة",
+          "transfer": "نقل",
+          "serviceHours": "ساعات الخدمة",
+          "pointToPointTransfer": "نقل من نقطة إلى نقطة",
+          "milanoTransfer": "نقل ميلانو سنترالي",
+          "milanoTransferDescription": "نقل من ميلانو سنترالي إلى موقع الخدمة",
+          "nightSurcharge": "رسوم ليلية",
+          "nightServiceHours": "الخدمة 21:00-06:00",
+          "meetGreetService": "خدمة الاستقبال",
+          "receptionService": "خدمة الاستقبال",
+          "subtotalLabel": "المجموع الفرعي",
+          "vatLabel": "ضريبة القيمة المضافة",
+          "totalLabel": "الإجمالي",
+          "vehicles": "مركبات",
+          "vehicle": "مركبة",
+          "km": "كم",
+          "hours": "س",
+          "hourlyRate": "/س"
+        }
       },
       "meetGreet": {
         "notAvailable": "خدمات الاستقبال متاحة لمطارات ومحطات قطار محددة. رحلتك لا تشمل ميلانو مالبنسا، ميلانو ليناتي، فينيسيا ماركو بولو، ميلانو سنترالي، فيرونا بورتا نوفا، أو فينيسيا سانتا لوسيا.",
@@ -431,6 +478,12 @@
         "title": "تم إرسال الحجز بنجاح!",
         "description": "سنتصل بك قريباً لتأكيد الحجز.",
         "newBooking": "حجز جديد"
+      },
+      "locationSearch": {
+        "startTypingToSearch": "ابدأ بالكتابة للبحث عن موقع...",
+        "listinoResults": "وجهات بأسعار ثابتة",
+        "googleResults": "عناوين أخرى",
+        "noResultsFound": "لم يتم العثور على نتائج"
       }
     }
   },

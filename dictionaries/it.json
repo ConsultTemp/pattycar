@@ -248,7 +248,11 @@
         "selectedTime": "Tempo selezionato",
         "roundedUp": "arrotondato per eccesso",
         "selectDestination": "Seleziona destinazione",
-        "selectDropoffPoint": "Seleziona punto di rientro"
+        "selectDropoffPoint": "Seleziona punto di rientro",
+        "startTypingToSearch": "Inizia a digitare per cercare una posizione...",
+        "listinoResults": "Destinazioni del listino (prezzi fissi)",
+        "googleResults": "Altri indirizzi",
+        "noResultsFound": "Nessun risultato trovato"
       },
       "vehicles": {
         "title": "Configurazione Veicoli",
@@ -306,12 +310,14 @@
         "specialEvent": "Evento Speciale",
         "milanoCortina2026": "Milano-Cortina 2026",
         "route": "Percorso:",
-        "ceremonySurcharge": "Supplemento Cerimonia:",
+        "ceremonySurcharge": "Supplemento Cerimonia",
         "fixedPrice": "PREZZO FISSO",
         "includes": "Include:",
         "transferExtraInfo": "Transfer extra solo se partenza da città diversa",
         "noReturnTransfer": "NON include transfer di ritorno",
         "noExtraHours": "Non si applicano ore aggiuntive per il servizio standard",
+        "completeCeremonyService": "per servizio completo di cerimonia",
+        "includesRoundtripAndWaiting": "Include trasferimento andata/ritorno e il tempo di attesa selezionato durante l'evento",
         "nightServiceSurcharge": "Supplemento servizio notturno applicato",
         "nightServiceInfo": "Servizio tra 19:30 - 07:30 (+20%)",
         "meetGreetService": "Servizio Meet & Greet",
@@ -339,7 +345,48 @@
         "subtotalLabel": "SUBTOTALE",
         "vatLabel": "IVA",
         "vatCalculation": "10% su €{amount}",
-        "totalLabel": "TOTALE"
+        "totalLabel": "TOTALE",
+        "ceremonyDispositionOpening": "Disposizione per Cerimonia di Apertura",
+        "ceremonyDispositionClosing": "Disposizione per Cerimonia di Chiusura",
+        "ceremonyNames": {
+          "opening-ceremony": "Disposizione per Cerimonia di Apertura",
+          "closing-ceremony": "Disposizione per Cerimonia di Chiusura"
+        },
+        "sanSiroStadium": "Stadio San Siro",
+        "arenaVerona": "Arena di Verona",
+        "ceremonyNotes": {
+          "milanoDeparture": "La disposizione si intende con partenza da Milano",
+          "veronaDeparture": "La disposizione si intende con partenza da Verona",
+          "twoHoursBefore": "Comprende la disponibilità del mezzo da 2 ore prima dell'inizio della cerimonia",
+          "waitingIncluded": "Include l'attesa in loco durante la cerimonia",
+          "extraRouteEvaluation": "Nel caso il mezzo dovesse partire da una località differente da {city}, occorrerà valutare l'extra tratta",
+          "noReturnTransfer": "Il servizio NON include il transfer di ritorno"
+        },
+        "pricingBreakdownLabels": {
+          "ceremonyBaseDisposition": "Disposizione cerimonia base",
+          "ceremonyCompleteService": "Servizio completo cerimonia (include 2h prima + attesa durante cerimonia)",
+          "extraLocationTransfer": "Transfer extra località",
+          "extraLocationTransferDescription": "Transfer per località diverse dalla città base della cerimonia",
+          "routes": "Tratte:",
+          "hourlyDisposition": "Disposizione a tempo",
+          "transfer": "Transfer",
+          "serviceHours": "ore di servizio",
+          "pointToPointTransfer": "Trasferimento punto a punto",
+          "milanoTransfer": "Transfer Milano Centrale",
+          "milanoTransferDescription": "Transfer da Milano Centrale al punto servizio",
+          "nightSurcharge": "Supplemento notturno",
+          "nightServiceHours": "Servizio 21:00-06:00",
+          "meetGreetService": "Meet & Greet Service",
+          "receptionService": "Servizio di accoglienza",
+          "subtotalLabel": "SUBTOTALE",
+          "vatLabel": "IVA",
+          "totalLabel": "TOTALE",
+          "vehicles": "veicoli",
+          "vehicle": "veicolo",
+          "km": "km",
+          "hours": "h",
+          "hourlyRate": "/h"
+        }
       },
       "meetGreet": {
         "notAvailable": "I servizi Meet & Greet sono disponibili per aeroporti e stazioni ferroviarie specifiche. Il tuo viaggio non coinvolge Milano Malpensa, Milano Linate, Venezia Marco Polo, Milano Centrale, Verona Porta Nuova o Venezia Santa Lucia.",
@@ -432,6 +479,12 @@
         "title": "Prenotazione inviata con successo!",
         "description": "Ti contatteremo a breve per confermare la prenotazione.",
         "newBooking": "Nuova prenotazione"
+      },
+      "locationSearch": {
+        "startTypingToSearch": "Inizia a digitare per cercare una posizione...",
+        "listinoResults": "Destinazioni del listino (prezzi fissi)",
+        "googleResults": "Altri indirizzi",
+        "noResultsFound": "Nessun risultato trovato"
       }
     }
   },

@@ -248,7 +248,11 @@
         "selectedTime": "Selected time",
         "roundedUp": "rounded up",
         "selectDestination": "Select destination",
-        "selectDropoffPoint": "Select drop-off point"
+        "selectDropoffPoint": "Select drop-off point",
+        "startTypingToSearch": "Start typing to search for a location...",
+        "listinoResults": "Fixed price destinations",
+        "googleResults": "Other addresses",
+        "noResultsFound": "No results found"
       },
       "vehicles": {
         "title": "Vehicle Configuration",
@@ -306,12 +310,14 @@
         "specialEvent": "Special Event",
         "milanoCortina2026": "Milano-Cortina 2026",
         "route": "Route:",
-        "ceremonySurcharge": "Ceremony Surcharge:",
+        "ceremonySurcharge": "Ceremony Surcharge",
         "fixedPrice": "FIXED PRICE",
         "includes": "Includes:",
         "transferExtraInfo": "Extra transfer only if departure from different city",
         "noReturnTransfer": "Does NOT include return transfer",
         "noExtraHours": "No extra hours applied for standard service",
+        "completeCeremonyService": "for complete ceremony service",
+        "includesRoundtripAndWaiting": "Includes roundtrip transfer and the waiting time selected during the event",
         "nightServiceSurcharge": "Night service surcharge applied",
         "nightServiceInfo": "Service between 19:30 PM - 07:30 AM (+20%)",
         "meetGreetService": "Meet & Greet Service",
@@ -340,7 +346,48 @@
         "subtotalLabel": "SUBTOTAL",
         "vatLabel": "VAT",
         "vatCalculation": "10% on €{amount}",
-        "totalLabel": "TOTAL"
+        "totalLabel": "TOTAL",
+        "ceremonyDispositionOpening": "Opening Ceremony Disposition",
+        "ceremonyDispositionClosing": "Closing Ceremony Disposition",
+        "ceremonyNames": {
+          "opening-ceremony": "Opening Ceremony Disposition",
+          "closing-ceremony": "Closing Ceremony Disposition"
+        },
+        "sanSiroStadium": "San Siro Stadium",
+        "arenaVerona": "Verona Arena",
+        "ceremonyNotes": {
+          "milanoDeparture": "The disposition includes departure from Milan",
+          "veronaDeparture": "The disposition includes departure from Verona",
+          "twoHoursBefore": "Includes vehicle availability from 2 hours before the ceremony start",
+          "waitingIncluded": "Includes waiting on site during the ceremony",
+          "extraRouteEvaluation": "If the vehicle departs from a location different from {city}, an extra route will need to be evaluated",
+          "noReturnTransfer": "The service does NOT include return transfer"
+        },
+        "pricingBreakdownLabels": {
+          "ceremonyBaseDisposition": "Base ceremony disposition",
+          "ceremonyCompleteService": "Complete ceremony service (includes 2h before + waiting during ceremony)",
+          "extraLocationTransfer": "Extra location transfer",
+          "extraLocationTransferDescription": "Transfer for locations different from the ceremony base city",
+          "routes": "Routes:",
+          "hourlyDisposition": "Hourly disposition",
+          "transfer": "Transfer",
+          "serviceHours": "service hours",
+          "pointToPointTransfer": "Point-to-point transfer",
+          "milanoTransfer": "Milano Centrale Transfer",
+          "milanoTransferDescription": "Transfer from Milano Centrale to service location",
+          "nightSurcharge": "Night surcharge",
+          "nightServiceHours": "Service 21:00-06:00",
+          "meetGreetService": "Meet & Greet Service",
+          "receptionService": "Reception service",
+          "subtotalLabel": "SUBTOTAL",
+          "vatLabel": "VAT",
+          "totalLabel": "TOTAL",
+          "vehicles": "vehicles",
+          "vehicle": "vehicle",
+          "km": "km",
+          "hours": "h",
+          "hourlyRate": "/h"
+        }
       },
       "meetGreet": {
         "notAvailable": "Meet & Greet services are available for specific airports and railway stations. Your journey does not involve Milano Malpensa, Milano Linate, Venezia Marco Polo, Milano Centrale, Verona Porta Nuova, or Venezia Santa Lucia.",
@@ -434,6 +481,12 @@
         "title": "Booking submitted successfully!",
         "description": "We will contact you shortly to confirm the booking.",
         "newBooking": "New booking"
+      },
+      "locationSearch": {
+        "startTypingToSearch": "Start typing to search for a location...",
+        "listinoResults": "Fixed price destinations",
+        "googleResults": "Other addresses",
+        "noResultsFound": "No results found"
       }
     }
   },

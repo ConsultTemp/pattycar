@@ -524,7 +524,7 @@ export function LocationSelector({
               <>
                 <div className="px-3 py-2 text-xs font-semibold text-green-600 bg-green-50 border-b flex items-center gap-1">
                   <Star className="h-3 w-3" />
-                  {dictionary?.common?.listinoResults || dictionary?.listinoResults || "Destinazioni del listino (prezzi fissi)"}
+                  {dictionary?.listinoResults || dictionary?.locationSearch?.listinoResults || dictionary?.common?.listinoResults || dictionary?.listinoResults || "Destinazioni del listino (prezzi fissi)"}
                 </div>
                 {filteredListinoLocations.map((location) => (
                   <button
@@ -561,7 +561,7 @@ export function LocationSelector({
               <>
                 {filteredListinoLocations.length > 0 && (
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
-                    {dictionary?.common?.googleResults || dictionary?.googleResults || "Altri indirizzi"}
+                    {dictionary?.googleResults || dictionary?.locationSearch?.googleResults || dictionary?.common?.googleResults || dictionary?.googleResults || "Altri indirizzi"}
                   </div>
                 )}
                 {googlePlaces.map((place) => {
@@ -595,14 +595,14 @@ export function LocationSelector({
         {/* No results message */}
         {showNoResults && (
           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 text-center text-gray-500 text-sm">
-            {dictionary?.common?.noResultsFound || dictionary?.noResultsFound || "Nessun risultato trovato"}
+            {dictionary?.noResultsFound || dictionary?.locationSearch?.noResultsFound || dictionary?.common?.noResultsFound || dictionary?.noResultsFound || "Nessun risultato trovato"}
           </div>
         )}
       </div>
 
       {/* Help text */}
       <p className="text-xs text-gray-500">
-        {dictionary?.common?.startTypingToSearch || "Start typing to search for a location..."}
+        {dictionary?.startTypingToSearch || dictionary?.locationSearch?.startTypingToSearch || dictionary?.common?.startTypingToSearch || "Start typing to search for a location..."}
       </p>
 
       {/* Error message */}
