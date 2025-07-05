@@ -33,7 +33,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center text-sm text-gray-400 mb-2">
               <Phone size={16} className="mr-2" />
-              <span>{dictionary.contact?.phoneNumber || "+39 366 400 7807"}</span>
+              <span>{dictionary.contact?.phoneNumber || "+39 339 418 7813"}</span>
             </div>
             <div className="flex items-center text-sm text-gray-400">
               <Mail size={16} className="mr-2" />
