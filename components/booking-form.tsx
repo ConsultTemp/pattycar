@@ -211,7 +211,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     e.preventDefault()
     
     if (userCaptchaInput.toLowerCase() === captchaText.toLowerCase()) {
-      // CAPTCHA is correct, proceed with form submission
+      // CAPTCHA is correct, proceed with Stripe checkout
       setCaptchaError(false)
       setIsSubmitting(true)
       
@@ -235,33 +235,31 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             formDataObj.append("pickupLocation", pickupLocation)
           }
 
-          // Add CSRF token
-          formDataObj.append("_csrf", csrfToken)
-
-          // Send to our API endpoint first
-          const response = await fetch('/api/submit-form', {
+          // Create booking and Stripe checkout session
+          const response = await fetch('/api/create-checkout-session', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              formData: Object.fromEntries(formDataObj),
-              captcha: userCaptchaInput,
-              csrfToken
-            })
+            body: JSON.stringify(Object.fromEntries(formDataObj))
           })
-console.log(response)
+
           if (!response.ok) {
-            throw new Error('Form submission failed')
+            throw new Error('Failed to create checkout session')
           }
 
-          // If successful, update UI
-          setIsSubmitting(false)
-          setSubmitStatus("success")
-          setShowFinalConfirmation(false)
+          const { sessionId } = await response.json()
+
+          // Redirect to Stripe checkout
+          const stripe = (await import('@stripe/stripe-js')).default
+          const stripeInstance = await stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+          
+          if (stripeInstance) {
+            await stripeInstance.redirectToCheckout({ sessionId })
+          }
         }
       } catch (error) {
-        console.error('Error submitting form:', error)
+        console.error('Error creating checkout session:', error)
         setIsSubmitting(false)
         setSubmitStatus("error")
       }
