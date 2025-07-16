@@ -1,6 +1,6 @@
 "use client"
 
-import { useReducer, useCallback, useMemo } from "react"
+import { useReducer, useCallback, useMemo, useState } from "react"
 import { timeUtils } from "@/lib/time-utils"
 import { useLanguage } from "@/components/language-provider"
 import { bookingReducer, initialBookingState } from "@/lib/booking-reducer"
@@ -48,13 +48,13 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
         value: "transfer", 
         label: dictionary?.serviceType?.transfer?.label || "Transfer", 
         description: dictionary?.serviceType?.transfer?.description || "Point-to-point transfer",
-        icon: "🚗"
+        icon: ""
       },
       { 
         value: "disposizione", 
         label: dictionary?.serviceType?.disposition?.label || "Disposition", 
         description: dictionary?.serviceType?.disposition?.description || "Time-based service with driver",
-        icon: "⏰"
+        icon: ""
       }
     ]
   }
@@ -64,16 +64,16 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
     { 
       value: "transfer", 
       label: dictionary?.serviceType?.transfer?.label || "Transfer", 
-      description: dictionary?.serviceType?.transfer?.olympicDescription || "Transfer with Olympic prices",
-      icon: "🚗",
-      badge: dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"
+      description: dictionary?.serviceType?.transfer?.olympicDescription || "Transfer with special prices",
+      icon: "",
+      badge: dictionary?.serviceType?.badges?.olympics || "WINTER EVENTS"
     },
     { 
       value: "altri-servizi", 
       label: dictionary?.serviceType?.otherServices?.label || "Other Services", 
       description: dictionary?.serviceType?.otherServices?.description || "Disposition and Inter-Cluster",
-      icon: "🏔️",
-      badge: dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"
+      icon: "",
+      badge: dictionary?.serviceType?.badges?.olympics || "WINTER EVENTS"
     }
   ]
 
@@ -83,8 +83,8 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
     olympicServices.push({
       value: "ceremony-disposition",
       label: dictionary?.serviceType?.dispositionCeremony || dictionary?.serviceType?.ceremony?.label || "Ceremony Disposition",
-      description: dictionary?.serviceType?.ceremony?.description || "Special service for Olympic ceremonies",
-      icon: "🏆",
+      description: dictionary?.serviceType?.ceremony?.description || "Special service for ceremonies and events",
+      icon: "",
       badge: dictionary?.serviceType?.badges?.ceremony || "CEREMONY"
     })
   }
@@ -95,6 +95,7 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
 export default function BookingForm({ dictionary }: { dictionary: any }) {
   const { lang } = useLanguage()
   const [state, dispatch] = useReducer(bookingReducer, initialBookingState)
+  const [cancellationAccepted, setCancellationAccepted] = useState(false)
 
   const { validateAll, isValid, getFieldErrors } = useFormValidation(state)
   const { pricing, isCalculating } = usePriceCalculation(state, dispatch)
@@ -117,6 +118,10 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   // Memoized handlers
   const handleCustomerChange = useCallback((customer: any) => {
     dispatch({ type: "SET_CUSTOMER", payload: customer })
+  }, [])
+
+  const handleCancellationChange = useCallback((accepted: boolean) => {
+    setCancellationAccepted(accepted)
   }, [])
 
   const handleServiceTypeChange = useCallback((serviceType: ServiceType) => {
@@ -181,6 +186,15 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
     // Validate form
     const errors = validateAll()
+    
+    // Check cancellation policy acceptance
+    if (!cancellationAccepted) {
+      errors.push({
+        field: "cancellationAccepted",
+        message: dictionary.submit.cancellationRequired || "You must accept the cancellation policy"
+      })
+    }
+    
     if (errors.length > 0) {
       dispatch({ type: "SET_VALIDATION_ERRORS", payload: errors })
       // Don't proceed with submission, but keep showing errors to user
@@ -307,6 +321,9 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         <p className="text-darkGray font-light">
           {dictionary.formSubtitle}
         </p>
+        <p className="text-sm text-gray-600 mt-4 font-medium">
+          {dictionary.requiredFieldsNote}
+        </p>
       </div>
 
       <div className="space-y-6">
@@ -336,7 +353,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 {dictionary.serviceType.title}
                 {state.journey.date && isOlympicPeriod(state.journey.date) && (
                   <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded-full">
-                    🏔️ {dictionary?.serviceType?.badges?.olympicPeriod || "OLYMPIC PERIOD"}
+                    {dictionary?.serviceType?.badges?.olympicPeriod || "EVENTS PERIOD"}
                   </span>
                 )}
               </CardTitle>
@@ -386,7 +403,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  🏔️ {dictionary?.serviceType?.subServices?.title || "Choose Service Type"}
+                  {dictionary?.serviceType?.subServices?.title || "Choose Service Type"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -402,7 +419,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">⏰</span>
+                        <span className="text-lg"></span>
                         <span className="font-medium">{dictionary?.serviceType?.disposition?.label || "Disposition"}</span>
                         <span className="px-2 py-0.5 text-xs rounded-full bg-gradient-to-r from-blue-500 to-green-500 text-white">
                           {dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"}
@@ -537,8 +554,11 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 ? dictionary.submit.error
                 : undefined
             }
+            cancellationAccepted={cancellationAccepted}
+            onCancellationChange={handleCancellationChange}
             onSubmit={handleSubmit}
             dictionary={dictionary.submit}
+            validationErrors={state.ui.errors}
           />
         </div>
       </div>

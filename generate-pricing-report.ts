@@ -299,7 +299,7 @@ htmlContent += `
             </tbody>
         </table>
 
-        <h2>🏔️ Olympics 2026 - Prezzi Transfer</h2>
+        <h2>Eventi Invernali - Prezzi Transfer</h2>
         <p style="color: #7f8c8d; font-style: italic;">IVA 10% - Supplemento notturno +25% (21:00-06:00)</p>
         
         <table>
@@ -349,7 +349,7 @@ olympicRouteTests.forEach(test => {
     row += `</tr>`
     htmlContent += row
   } else {
-    htmlContent += `<tr><td class="route-name">${test.desc}</td><td colspan="8">❌ Route non trovata</td></tr>`
+            htmlContent += `<tr><td class="route-name">${test.desc}</td><td colspan="8">Route non trovata</td></tr>`
   }
 })
 
@@ -357,8 +357,8 @@ htmlContent += `
             </tbody>
         </table>
 
-        <h2>🤝 Meet & Greet Services</h2>
-        <p style="color: #7f8c8d; font-style: italic;">Disponibili solo durante periodo Olimpico - IVA 22%</p>
+        <h2>Meet & Greet Services</h2>
+                  <p style="color: #7f8c8d; font-style: italic;">Disponibili solo durante periodo eventi - IVA 22%</p>
 `
 
 const meetGreetTests = [
@@ -473,7 +473,7 @@ htmlContent += `
             <h3>💡 Aliquote IVA Applicate</h3>
             <ul>
                 <li><strong>GP Monza 2025:</strong> 10% IVA</li>
-                <li><strong>Olympics 2026:</strong> 10% IVA</li>
+                <li><strong>Eventi Invernali:</strong> 10% IVA</li>
                 <li><strong>Meet & Greet:</strong> 22% IVA</li>
             </ul>
         </div>
@@ -482,7 +482,7 @@ htmlContent += `
             <h3>🌙 Supplementi Notturni</h3>
             <ul>
                 <li><strong>GP Monza:</strong> +20% (19:30-07:30)</li>
-                <li><strong>Olympics:</strong> +25% (21:00-06:00)</li>
+                <li><strong>Eventi Invernali:</strong> +25% (21:00-06:00)</li>
                 <li><strong>Meet & Greet:</strong> Importi fissi per servizio</li>
             </ul>
         </div>

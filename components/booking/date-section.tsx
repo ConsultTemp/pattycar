@@ -60,7 +60,7 @@ export function DateSection({ date, errors, hasAttemptedSubmit, onChange, dictio
 
         {/* Date picker */}
         <div className="space-y-2">
-          <Label htmlFor="date" className={hasFieldError("date") ? "text-red-500" : ""}>{dictionary.dateLabel} *</Label>
+          <Label htmlFor="date" className={hasFieldError("date") ? "text-red-500" : ""}>{dictionary.dateLabel}</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button

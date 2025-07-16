@@ -67,7 +67,7 @@
   "about": {
     "label": "Chi Siamo",
     "title": "Un servizio NCC di prestigio dal 1998",
-    "paragraph1": "Patty Car è un punto di riferimento nel settore del noleggio con conducente. Con sedi a Milano e Roma e una rete capillare di collaboratori, operiamo su tutto il territorio nazionale e internazionale Abbiamo avuto l'onore di servire eventi di prestigio come Expo 2015 e i Giochi Olimpici di Parigi 2024. La nostra missione è offrire un servizio impeccabile, disponibile 24 ore su 24, tutti i giorni della settimana, per garantirti un'esperienza di viaggio senza stress e con il massimo comfort."
+    "paragraph1": "Patty Car è un punto di riferimento nel settore del noleggio con conducente. Con sedi a Milano e Roma e una rete capillare di collaboratori, operiamo su tutto il territorio nazionale e internazionale Abbiamo avuto l'onore di servire eventi di prestigio come Expo 2015 e importanti eventi internazionali. La nostra missione è offrire un servizio impeccabile, disponibile 24 ore su 24, tutti i giorni della settimana, per garantirti un'esperienza di viaggio senza stress e con il massimo comfort."
   },
   "clients": {
     "title": "Alcuni dei nostri clienti"
@@ -146,11 +146,12 @@
       "title": "Prenotazione Riservata",
       "pageTitle": "Booking - Area Riservata",
       "pageDescription": "Form di prenotazione",
-      "formTitle": "Prenota il tuo trasferimento",
-      "formSubtitle": "Compila il modulo per prenotare il servizio",
+      "formTitle": "Prenotazione Transfer Privato",
+      "formSubtitle": "Benvenuto sulla piattaforma Patty Car per prenotare il tuo transfer privato. Avrai accesso ai servizi di trasporto tra l'aeroporto o la stazione ferroviaria e il tuo hotel durante il tuo soggiorno in Italia. Sono disponibili anche trasferimenti tra città (solo trasferimenti da Hotel a Hotel). Se hai altre esigenze, non esitare a contattarci all'indirizzo: gamestime@pattycar.com Nota: Se hai bisogno di trasferimenti sia per il tuo arrivo che per la partenza, completa il modulo di prenotazione due volte — una per ogni richiesta di trasferimento. Grazie!",
+      "requiredFieldsNote": "I campi contrassegnati con * sono obbligatori.",
       "date": {
-        "title": "Data del Servizio",
-        "dateLabel": "Seleziona data del servizio *",
+        "title": "Data del Transfer",
+                  "dateLabel": "Seleziona data del transfer *",
         "dateRequired": "Data richiesta",
         "selectDate": "Seleziona data",
         "dateImportance": "La data è fondamentale: da essa dipendono i prezzi e la disponibilità dei servizi. Seleziona prima la data per procedere.",
@@ -161,12 +162,12 @@
         "transfer": {
           "label": "Transfer",
           "description": "Trasferimento punto a punto",
-          "olympicDescription": "Trasferimento con prezzi olimpici"
+          "olympicDescription": "Trasferimento con prezzi speciali"
         },
         "disposition": {
           "label": "Disposizione",
           "description": "Servizio a tempo con autista",
-          "olympicDescription": "Servizio a tempo con tariffe olimpiche"
+          "olympicDescription": "Servizio a tempo con tariffe speciali"
         },
         "otherServices": {
           "label": "Altri Servizi",
@@ -174,16 +175,16 @@
         },
         "ceremony": {
           "label": "Disposizione Cerimonia",
-          "description": "Servizio speciale per cerimonie olimpiche"
+          "description": "Servizio speciale per cerimonie ed eventi"
         },
         "interCluster": {
           "label": "Inter-Cluster",
-          "description": "Transfer tra sedi olimpiche"
+          "description": "Transfer tra sedi eventi"
         },
         "badges": {
-          "olympics": "OLIMPIADI 2026",
+          "olympics": "EVENTI INVERNALI",
           "ceremony": "CERIMONIA",
-          "olympicPeriod": "PERIODO OLIMPICO"
+          "olympicPeriod": "PERIODO EVENTI"
         },
         "dispositionCeremony": "Disposizione per Cerimonia di Apertura",
         "dispositionCeremonyDescription": "Disposizione per Cerimonia di Apertura - Stadio San Siro, Milano",
@@ -194,7 +195,7 @@
       "customer": {
         "title": "Informazioni Cliente",
         "nameLabel": "Nome completo *",
-        "nameHelperText": "Questo nome verrà visualizzato alla reception",
+        "nameHelperText": "Questo è il nome che sarà utilizzato per il ritiro.",
         "nameRequired": "Nome richiesto (minimo 2 caratteri)",
         "emailLabel": "Email *",
         "emailRequired": "Email non valida",
@@ -305,7 +306,7 @@
         "subtotal": "Subtotale:",
         "vat": "IVA",
         "vatIncluded": "IVA inclusa",
-        "olympicPricing": "Tariffe Olimpiche",
+        "olympicPricing": "Tariffe Speciali",
         "eventPricing": "Tariffe Evento",
         "specialEvent": "Evento Speciale",
         "milanoCortina2026": "Milano-Cortina 2026",
@@ -391,12 +392,25 @@
       "meetGreet": {
         "notAvailable": "I servizi Meet & Greet sono disponibili per aeroporti e stazioni ferroviarie specifiche. Il tuo viaggio non coinvolge Milano Malpensa, Milano Linate, Venezia Marco Polo, Milano Centrale, Verona Porta Nuova o Venezia Santa Lucia.",
         "autoDetected": "Servizio Meet & Greet rilevato automaticamente:",
+        "autoDetectedService": "Servizio Meet & Greet rilevato automaticamente:",
         "arrivals": "Arrivi",
         "departures": "Partenze",
         "includesService": "Include: Accoglienza + Porter + {luggage} bagagli",
         "extraPassenger": "Passeggero extra: €{price}",
         "extraLuggage": "Bagaglio extra: €{price}",
         "nightServiceDetected": "Servizio notturno rilevato ({start} - {end})",
+        "nightServiceDetectedSimple": "Servizio notturno rilevato ({start} - {end})",
+        "adults": "Adulti",
+        "children": "Bambini",
+        "infants": "Neonati",
+        "fullRate": "Tariffa completa",
+        "halfRate": "Tariffa 50%",
+        "luggageConfiguration": "Configurazione Bagagli",
+        "extraHoursForDelays": "Ore extra per ritardi",
+        "afterHoursIncluded": "Dopo {hours} ore incluse",
+        "includedLuggage": "Include {count} bagagli per persona",
+        "childrenAge": "fino a 12 anni",
+        "infantsAge": "0-2 anni",
         "passengerConfiguration": "Configurazione Passeggeri",
         "maxPassengersAllowed": "Massimo {max} passeggeri consentiti. I gruppi di più di 8 richiedono un preventivo speciale.",
         "tarmacLimitExceeded": "Il servizio TARMAC è limitato al massimo 6 passeggeri. Totale attuale: {total}",
@@ -415,6 +429,7 @@
         "vatPercentage": "IVA ({rate}%)",
         "totalMeetGreet": "Totale Meet & Greet",
         "enableService": "Abilita Servizio Meet & Greet",
+        "enableMeetGreetService": "Abilita Servizio Meet & Greet",
         "groupsQuoteRequest": "Gruppi di più di 8 persone saranno quotati su richiesta",
         "tarmacAvailability": "Servizio TARMAC disponibile solo se l'aereo è parcheggiato (su richiesta)",
         "maxLuggageForNightSurcharge": "Massimo {max} pezzi di bagaglio per operatore per supplemento notturno",
@@ -442,6 +457,14 @@
         "pricePerPassenger": "Prezzo per passeggero (esclusi neonati)",
         "porterOnDemand": "Facchino Su Richiesta",
         "nightSurchargeApplied": "* Supplemento notturno applicato ({start} - {end})",
+        "nightSurchargeWithPercentage": "Supplemento notturno {percentage}% ({start} - {end})",
+        "holidaySurcharge": "Supplemento festivo {percentage}%",
+        "holidayServiceDetected": "HOLIDAY SUPPLEMENT APPLIED",
+        "holidaySurchargeApplied": "HOLIDAY SUPPLEMENT APPLIED",
+        "sundayService": "Servizio domenicale",
+        "epiphanyService": "6 gennaio 2026 - Epifania",
+        "nightService": "SERVIZIO NOTTURNO",
+        "holidayService": "SERVIZIO FESTIVO",
         "constraintTranslations": {
           "Groups of more than 8 people will be quoted on request": "Gruppi di più di 8 persone saranno quotati su richiesta",
           "TARMAC service available only if aircraft is parked (on demand)": "Servizio TARMAC disponibile solo se l'aereo è parcheggiato (su richiesta)",
@@ -468,7 +491,9 @@
       },
       "submit": {
         "contactInfo": "Per informazioni contattare pattycar@pattycar.com",
+        "cancellationPolicyTitle": "Ho letto e accetto la politica di cancellazione",
         "cancellationPolicy": "Politica di cancellazione: Le cancellazioni effettuate entro il 31 ottobre 2025 saranno gratuite. Cancellazioni tra il 1 novembre 2025 e il 5 gennaio 2026: le prenotazioni possono essere modificate, inclusi cambi di date, orari e voli, verrà applicata una penale del 50% per le prenotazioni completamente cancellate. Cancellazioni dopo il 5 gennaio 2026: le modifiche alle prenotazioni saranno soggette a disponibilità, verrà applicata una penale del 100% per le prenotazioni completamente cancellate.",
+        "cancellationRequired": "Devi accettare la politica di cancellazione per procedere",
         "processing": "Creazione sessione pagamento...",
         "button": "Procedi al Pagamento",
         "validationMessage": "Compila tutti i campi obbligatori (*) per procedere al pagamento",
@@ -911,5 +936,119 @@
     "listinoResults": "Destinazioni del listino (prezzi fissi)",
     "googleResults": "Altri indirizzi",
     "noResultsFound": "Nessun risultato trovato"
+  },
+  "admin": {
+    "login": {
+      "title": "Accesso Admin",
+      "description": "Accedi al pannello di controllo amministrativo",
+      "emailLabel": "Email",
+      "emailPlaceholder": "admin@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Inserisci la password",
+      "loginButton": "Accedi",
+      "loggingIn": "Accesso in corso...",
+      "invalidCredentials": "Credenziali non valide",
+      "loginError": "Errore durante l'accesso. Riprova.",
+      "loginSuccess": "Accesso effettuato con successo",
+      "restrictedAccess": "ACCESSO RISERVATO",
+      "securityPortal": "Portale di Sicurezza",
+      "accessCode": "Codice di Accesso",
+      "accessCodePlaceholder": "Inserisci il codice di accesso",
+      "authenticate": "Autentica",
+      "authenticating": "Autenticazione in corso...",
+      "securityNotice": "🔒 Questa è un'area sicura. Tutti i tentativi di accesso sono registrati e monitorati.",
+      "footerText": "Patty Car Booking Portal • Accesso non autorizzato vietato",
+      "showPassword": "Mostra password",
+      "hidePassword": "Nascondi password"
+    },
+    "dashboard": {
+      "title": "Dashboard Admin",
+      "description": "Gestisci tutte le prenotazioni pagate e le informazioni clienti",
+      "error": "Errore",
+      "errorDescription": "Impossibile caricare le prenotazioni",
+      "errorMessage": "Impossibile recuperare le prenotazioni dal database",
+      "totalBookings": "Prenotazioni Totali",
+      "totalRevenue": "Ricavi Totali",
+      "filters": "Filtri",
+      "searchPlaceholder": "Cerca prenotazioni...",
+      "serviceType": "Tipo di Servizio",
+      "allServices": "Tutti i Servizi",
+      "fromDate": "Data Inizio",
+      "toDate": "Data Fine",
+      "bookings": "Prenotazioni",
+      "bookingsCount": "Prenotazioni ({count})",
+      "bookingsDescription": "Tutte le prenotazioni pagate dai clienti",
+      "date": "Data",
+      "customer": "Cliente",
+      "service": "Servizio",
+      "route": "Percorso",
+      "vehicle": "Veicolo",
+      "amount": "Importo",
+      "status": "Stato",
+      "actions": "Azioni",
+      "passengers": "passeggeri",
+      "vehicles": "veicoli",
+      "viewInvoice": "Visualizza Fattura",
+      "paid": "Pagato",
+      "completed": "Completato",
+      "vatRate": "Aliquota IVA",
+      "createdAt": "Creato il",
+      "serviceDate": "Data Servizio",
+      "serviceTime": "Ora Servizio",
+      "pickupAddress": "Indirizzo Ritiro",
+      "destinationAddress": "Indirizzo Destinazione",
+      "customerName": "Nome Cliente",
+      "customerEmail": "Email Cliente",
+      "customerPhone": "Telefono Cliente",
+      "noBookings": "Nessuna prenotazione trovata",
+      "loadingBookings": "Caricamento prenotazioni...",
+      "refreshData": "Aggiorna Dati",
+      "exportData": "Esporta Dati",
+      "sortBy": "Ordina per",
+      "ascending": "Crescente",
+      "descending": "Decrescente"
+    },
+    "header": {
+      "brand": "Patty Car",
+      "subtitle": "Portale Amministrativo",
+      "secureSession": "Sessione Sicura Attiva",
+      "logout": "Esci",
+      "logoutConfirm": "Sei sicuro di voler uscire?",
+      "logoutSuccess": "Logout effettuato con successo",
+      "logoutError": "Errore durante il logout"
+    },
+    "serviceTypes": {
+      "transfer": "Transfer",
+      "disposizione": "Disposizione",
+      "ceremony-disposition": "Disposizione Cerimonia",
+      "inter-cluster": "Inter-Cluster",
+      "altri-servizi": "Altri Servizi"
+    },
+    "common": {
+      "loading": "Caricamento...",
+      "error": "Errore",
+      "success": "Successo",
+      "cancel": "Annulla",
+      "confirm": "Conferma",
+      "save": "Salva",
+      "edit": "Modifica",
+      "delete": "Elimina",
+      "view": "Visualizza",
+      "search": "Cerca",
+      "filter": "Filtra",
+      "sort": "Ordina",
+      "export": "Esporta",
+      "refresh": "Aggiorna",
+      "noData": "Nessun dato disponibile",
+      "noResults": "Nessun risultato trovato",
+      "selectAll": "Seleziona tutto",
+      "clearAll": "Cancella tutto",
+      "showMore": "Mostra di più",
+      "showLess": "Mostra meno",
+      "required": "Richiesto",
+      "optional": "Facoltativo",
+      "yes": "Sì",
+      "no": "No"
+    }
   }
 }

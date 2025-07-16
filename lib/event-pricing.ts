@@ -1142,14 +1142,15 @@ export function calculateMeetGreetPrice(
     specialServices: any
     isNight: boolean
     serviceDate?: Date // NEW: Add optional service date for holiday surcharge
-  }
+  },
+  dictionary?: any
 ): { total: number; breakdown: Array<{ description: string; amount: number }> } {
   const breakdown: Array<{ description: string; amount: number }> = []
 
   // Base price for 1 passenger (includes greeter + porter + included luggage)
   let totalPrice = service.basePrice
   breakdown.push({
-    description: `Base service (1 passenger, ${service.includedLuggage} luggage included)`,
+    description: dictionary?.meetGreet?.baseServicePrice?.replace('{passengers}', '1').replace('{luggage}', service.includedLuggage.toString()) || `Base service (1 passenger, ${service.includedLuggage} luggage included)`,
     amount: service.basePrice
   })
 
@@ -1262,7 +1263,7 @@ export function calculateMeetGreetPrice(
     const nightSurchargeAmount = totalPrice * nightSurchargePercentage
     totalPrice += nightSurchargeAmount
     breakdown.push({
-      description: `Night surcharge 30% (${service.nightSurchargeHours.start} - ${service.nightSurchargeHours.end})`,
+      description: dictionary?.meetGreet?.nightSurchargeWithPercentage?.replace('{percentage}', '30').replace('{start}', service.nightSurchargeHours.start).replace('{end}', service.nightSurchargeHours.end) || `Night surcharge 30% (${service.nightSurchargeHours.start} - ${service.nightSurchargeHours.end})`,
       amount: nightSurchargeAmount
     })
   }
@@ -1274,14 +1275,14 @@ export function calculateMeetGreetPrice(
     const holidaySurchargeAmount = totalPrice * holidaySurchargePercentage
     totalPrice += holidaySurchargeAmount
     
-    let holidayDescription = 'Holiday surcharge 30%'
-    if (config.serviceDate) {
-      if (config.serviceDate.getDay() === 0) {
-        holidayDescription += ' (Sunday service)'
-      } else if (config.serviceDate.getFullYear() === 2026 && config.serviceDate.getMonth() === 0 && config.serviceDate.getDate() === 6) {
-        holidayDescription += ' (January 6, 2026 - Epiphany)'
+    let holidayDescription = dictionary?.meetGreet?.holidaySurcharge?.replace('{percentage}', '30') || 'Holiday surcharge 30%'
+          if (config.serviceDate) {
+        if (config.serviceDate.getDay() === 0) {
+          holidayDescription += ' (' + (dictionary?.meetGreet?.sundayService || 'Sunday service') + ')'
+        } else if (config.serviceDate.getFullYear() === 2026 && config.serviceDate.getMonth() === 0 && config.serviceDate.getDate() === 6) {
+          holidayDescription += ' (' + (dictionary?.meetGreet?.epiphanyService || 'January 6, 2026 - Epiphany') + ')'
+        }
       }
-    }
     
     breakdown.push({
       description: holidayDescription,
@@ -1292,7 +1293,7 @@ export function calculateMeetGreetPrice(
   // VAT 22%
   const vatAmount = totalPrice * 0.22
   breakdown.push({
-    description: 'VAT (22%)',
+    description: dictionary?.meetGreet?.vatLabel?.replace('{rate}', '22') || 'VAT (22%)',
     amount: vatAmount
   })
 
@@ -1330,7 +1331,7 @@ export function calculateMeetGreetPriceLegacy(
     specialServices,
     isNight,
     serviceDate
-  })
+  }, undefined)
 
   // Convert to legacy format
   const legacyBreakdown = {

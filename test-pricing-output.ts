@@ -256,7 +256,7 @@ gpTransferTests.forEach(test => {
     prices.push(route.notes || '-')
     gpTransferRows.push(prices)
   } else {
-    gpTransferRows.push([test.desc, '❌ Route non trovata', '', '', '', '', '', ''])
+          gpTransferRows.push([test.desc, 'Route non trovata', '', '', '', '', '', ''])
   }
 })
 
@@ -333,7 +333,7 @@ addTable(dispositionHeaders, dispositionRows)
 // =============================================================================
 // 2. OLYMPIC PERIOD 2026 TESTING
 // =============================================================================
-addSection("🏔️ Milano-Cortina 2026 Olympics Pricing", "Prezzi per il periodo Olimpico (10% IVA, +25% supplemento notturno 21:00-06:00)")
+      addSection("Eventi Invernali Milano-Cortina Pricing", "Prezzi per il periodo eventi (10% IVA, +25% supplemento notturno 21:00-06:00)")
 
 const olympicDate = testDates.olympics
 const olympicLocations = getAvailableLocations(olympicDate)
@@ -372,14 +372,14 @@ olympicRouteTests.forEach(test => {
     
     olympicRows.push(prices)
   } else {
-    olympicRows.push([test.desc, '❌ Route non trovata', '', '', '', '', '', '', ''])
+          olympicRows.push([test.desc, 'Route non trovata', '', '', '', '', '', '', ''])
   }
 })
 
 addTable(olympicHeaders, olympicRows)
 
 // Olympic Disposition
-addSection("", "Prezzi Disposizione Olympics (tariffe orarie)")
+      addSection("", "Prezzi Disposizione Eventi (tariffe orarie)")
 
 const olympicDispositionTests = [
   { vehicle: 'olympic-sedan', hours: 8, desc: 'Olympic Sedan - 8h' },
@@ -418,7 +418,7 @@ addTable(olympicDispHeaders, olympicDispRows)
 // =============================================================================
 // 3. MEET & GREET SERVICES TESTING
 // =============================================================================
-addSection("🤝 Meet & Greet Services Pricing", "Servizi disponibili solo durante il periodo Olimpico (22% IVA)")
+      addSection("Meet & Greet Services Pricing", "Servizi disponibili solo durante il periodo eventi (22% IVA)")
 
 const meetGreetTests = [
   {
@@ -539,7 +539,7 @@ htmlContent += `
             <h3>💡 Aliquote IVA Applicate</h3>
             <ul>
                 <li><strong>GP Monza 2025:</strong> 10% IVA</li>
-                <li><strong>Olympics 2026:</strong> 10% IVA</li>
+                <li><strong>Eventi Invernali:</strong> 10% IVA</li>
                 <li><strong>Meet & Greet:</strong> 22% IVA</li>
                 <li><strong>Cerimonie:</strong> 10% IVA</li>
             </ul>
@@ -549,7 +549,7 @@ htmlContent += `
             <h3>🌙 Supplementi Notturni</h3>
             <ul>
                 <li><strong>GP Monza:</strong> +20% (19:30-07:30)</li>
-                <li><strong>Olympics:</strong> +25% (21:00-06:00)</li>
+                <li><strong>Eventi Invernali:</strong> +25% (21:00-06:00)</li>
                 <li><strong>Meet & Greet:</strong> Importi fissi per servizio</li>
             </ul>
         </div>

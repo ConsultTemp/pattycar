@@ -100,17 +100,25 @@ export function MeetGreetSection({
       specialServices: config.specialServices,
       isNight: isNightService,
       serviceDate: journey.date // Pass service date for holiday surcharge
-    })
+    }, dictionary)
   }, [selectedService, config, isNightService, journey.date])
+
+  // Detect if journey is on a holiday
+  const isHolidayService = useMemo(() => {
+    if (!journey.date) return false
+    // Check if the date is a holiday based on pricing calculation
+    // This will be determined by the pricing system
+    return meetGreetPricing?.breakdown.some(item => 
+      item.description?.toLowerCase().includes('festiv') || 
+      item.description?.toLowerCase().includes('holiday') ||
+      item.description?.toLowerCase().includes('domenica') ||
+      item.description?.toLowerCase().includes('sabato')
+    ) || false
+  }, [journey.date, meetGreetPricing])
 
   // Validation functions
   const getPassengerLimit = (serviceType?: string) => {
     if (!selectedService) return 8
-    
-    // TARMAC has special limit of 6 passengers
-    if (config.specialServices?.tarmac && selectedService.specialServices?.tarmac) {
-      return selectedService.specialServices.tarmac.maxPassengers
-    }
     
     return selectedService.maxPassengers
   }
@@ -127,7 +135,6 @@ export function MeetGreetSection({
   
   const isPassengerLimitExceeded = totalPassengers > passengerLimit
   const isLuggageLimitExceeded = config.extraLuggage > luggageLimit
-  const isTarmacPassengerLimitExceeded = config.specialServices?.tarmac && totalPassengers > 6
 
   // Service selection is now automatic - no need for this function
   // Keeping for backward compatibility but it's not used anymore
@@ -206,10 +213,10 @@ export function MeetGreetSection({
             <p>• {dictionary.extraPassenger.replace('{price}', availableService.extraPassengerPrice)}</p>
             <p>• {dictionary.extraLuggage.replace('{price}', availableService.extraLuggagePrice)}</p>
             {isNightService && (
-              <div className="flex items-center gap-1 text-orange-600 mt-1">
-                <Clock className="h-3 w-3" />
-                <span>{dictionary.nightServiceDetected.replace('{start}', availableService.nightSurchargeHours.start).replace('{end}', availableService.nightSurchargeHours.end)}</span>
-              </div>
+              <p>• <strong>{dictionary.nightServiceDetected.replace('{start}', availableService.nightSurchargeHours.start).replace('{end}', availableService.nightSurchargeHours.end)}</strong></p>
+            )}
+            {isHolidayService && (
+              <p>• <strong>{dictionary.meetGreet?.holidayServiceDetected || "HOLIDAY SUPPLEMENT APPLIED"}</strong></p>
             )}
           </div>
 
@@ -238,14 +245,11 @@ export function MeetGreetSection({
         <h4 className="font-medium">{dictionary.passengerConfiguration}</h4>
         
         {/* Passenger limits warning */}
-        {(isPassengerLimitExceeded || isTarmacPassengerLimitExceeded) && (
+        {isPassengerLimitExceeded && (
           <Alert className="border-red-200 bg-red-50">
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-700">
-              {isTarmacPassengerLimitExceeded 
-                ? dictionary.tarmacLimitExceeded.replace('{total}', totalPassengers.toString())
-                : dictionary.maxPassengersAllowed.replace('{max}', passengerLimit.toString())
-              }
+              {dictionary.maxPassengersAllowed.replace('{max}', passengerLimit.toString())}
             </AlertDescription>
           </Alert>
         )}
@@ -253,7 +257,7 @@ export function MeetGreetSection({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              {dictionary.adults} ({dictionary.fullRate})
+              {dictionary.meetGreet?.adults || dictionary.adults} ({dictionary.meetGreet?.fullRate || dictionary.fullRate})
             </label>
             <input
               type="number"
@@ -285,7 +289,7 @@ export function MeetGreetSection({
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              {dictionary.children} <Badge variant="secondary">{dictionary.halfRate}</Badge>
+              {dictionary.meetGreet?.children || dictionary.children} ({dictionary.meetGreet?.childrenAge || "حتى 12 سنة"}) <Badge variant="secondary">{dictionary.meetGreet?.halfRate || dictionary.halfRate}</Badge>
             </label>
             <input
               type="number"
@@ -311,7 +315,7 @@ export function MeetGreetSection({
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              {dictionary.infants} <Badge variant="secondary">{dictionary.freeRate}</Badge>
+              {dictionary.meetGreet?.infants || dictionary.infants} ({dictionary.meetGreet?.infantsAge || "0-2 سنة"}) <Badge variant="secondary">{dictionary.freeRate}</Badge>
             </label>
             <input
               type="number"
@@ -352,7 +356,7 @@ export function MeetGreetSection({
 
     return (
       <div className="space-y-4">
-        <h4 className="font-medium">{dictionary.luggageConfiguration}</h4>
+                    <h4 className="font-medium">{dictionary.meetGreet?.luggageConfiguration || dictionary.luggageConfiguration}</h4>
         
         <div className="text-sm text-green-600 mb-2">
           <CheckCircle2 className="h-4 w-4 inline mr-1" />
@@ -402,7 +406,7 @@ export function MeetGreetSection({
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            {dictionary.extraHoursLabel} <Badge variant="outline">{dictionary.eachPrice.replace('{price}', selectedService.extraHourPrice.toString())}</Badge>
+            {dictionary.meetGreet?.extraHoursForDelays || dictionary.extraHoursLabel} <Badge variant="outline">{dictionary.eachPrice.replace('{price}', selectedService.extraHourPrice.toString())}</Badge>
           </label>
           <input
             type="number"
@@ -438,39 +442,18 @@ export function MeetGreetSection({
     // Calculate number of passengers counting for special services (adults + children, excluding infants)
     const passengersForSpecialServices = config.passengers + config.children
 
+    // Check if there are any available special services (excluding TARMAC)
+    const hasAvailableServices = services.combo || services.fastTrack || services.vipLounge || services.greeterOnly
+
+    // If no special services are available, don't render anything
+    if (!hasAvailableServices) return null
+
     return (
       <div className="space-y-4">
         <h4 className="font-medium">{dictionary.specialServices}</h4>
 
         <div className="space-y-3">
-          {/* TARMAC Service */}
-          {services.tarmac && (
-            <div className="p-3 border rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={!!config.specialServices?.tarmac}
-                    onChange={(e) => handleSpecialServiceChange('tarmac', e.target.checked)}
-                    disabled={totalPassengers > services.tarmac.maxPassengers}
-                    className="text-black"
-                  />
-                  <span className="font-medium">TARMAC Service</span>
-                  <Badge variant="secondary">€{services.tarmac.price}</Badge>
-                  {services.tarmac.onDemand && <Badge variant="outline">{dictionary.onDemand}</Badge>}
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 mb-2">{dictionary.tarmacServiceDescription || services.tarmac.description}</p>
-              {totalPassengers > services.tarmac.maxPassengers && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-700">
-                    {dictionary.tarmacServiceLimited.replace('{max}', services.tarmac.maxPassengers.toString()).replace('{total}', totalPassengers.toString())}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
+
 
           {/* Venice Combo Service */}
           {services.combo && (
@@ -584,12 +567,6 @@ export function MeetGreetSection({
             <span>{dictionary.totalMeetGreetLabel}</span>
             <span>€{meetGreetPricing.total.toFixed(2)}</span>
           </div>
-          
-          {isNightService && (
-            <div className="text-xs text-orange-600">
-              {dictionary.nightSurchargeApplied.replace('{start}', selectedService?.nightSurchargeHours.start || '').replace('{end}', selectedService?.nightSurchargeHours.end || '')}
-            </div>
-          )}
         </div>
       </div>
     )
@@ -601,9 +578,15 @@ export function MeetGreetSection({
         <CardTitle className="flex items-center gap-2">
           {dictionary.meetGreetService}
           {isNightService && (
-            <Badge variant="outline" className="text-orange-600 border-orange-600">
-              <Clock className="h-3 w-3 mr-1" />
-              {dictionary.nightService || "Night Service"}
+            <Badge variant="outline" className="text-orange-600 border-orange-600 text-lg font-bold px-3 py-1">
+              <Clock className="h-4 w-4 mr-1" />
+              {dictionary.nightService || "SERVIZIO NOTTURNO"}
+            </Badge>
+          )}
+          {isHolidayService && (
+            <Badge variant="outline" className="text-purple-600 border-purple-600 text-lg font-bold px-3 py-1">
+              <AlertTriangle className="h-4 w-4 mr-1" />
+                              {dictionary.meetGreet?.holidayService || "HOLIDAY SERVICE"}
             </Badge>
           )}
         </CardTitle>

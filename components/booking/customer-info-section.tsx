@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useState } from "react"
+import { memo, useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -56,7 +56,7 @@ const countryCodes = [
   { value: "+257", label: "🇧🇮 Burundi (+257)", country: "Burundi" },
   { value: "+855", label: "🇰🇭 Cambodia (+855)", country: "Cambodia" },
   { value: "+237", label: "🇨🇲 Cameroon (+237)", country: "Cameroon" },
-  { value: "+1", label: "🇨🇦 Canada (+1)", country: "Canada" },
+  { value: "+1-CA", label: "🇨🇦 Canada (+1)", country: "Canada" },
   { value: "+238", label: "🇨🇻 Cape Verde (+238)", country: "Cape Verde" },
   { value: "+1-345", label: "🇰🇾 Cayman Islands (+1-345)", country: "Cayman Islands" },
   { value: "+236", label: "🇨🇫 Central African Republic (+236)", country: "Central African Republic" },
@@ -251,7 +251,7 @@ const countryCodes = [
   { value: "+380", label: "🇺🇦 Ukraine (+380)", country: "Ukraine" },
   { value: "+971", label: "🇦🇪 United Arab Emirates (+971)", country: "United Arab Emirates" },
   { value: "+44", label: "🇬🇧 United Kingdom (+44)", country: "United Kingdom" },
-  { value: "+1", label: "🇺🇸 United States (+1)", country: "United States" },
+  { value: "+1-US", label: "🇺🇸 United States (+1)", country: "United States" },
   { value: "+598", label: "🇺🇾 Uruguay (+598)", country: "Uruguay" },
   { value: "+998", label: "🇺🇿 Uzbekistan (+998)", country: "Uzbekistan" },
   { value: "+678", label: "🇻🇺 Vanuatu (+678)", country: "Vanuatu" },
@@ -267,6 +267,31 @@ const countryCodes = [
 
 export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, errors, hasAttemptedSubmit, onChange, dictionary }) => {
   const [open, setOpen] = useState(false)
+  // Funzione per ottenere il prefisso effettivo (rimuove i suffissi -US, -CA, etc.)
+  const getActualPrefix = (value: string) => {
+    if (value === "+1-US" || value === "+1-CA") return "+1"
+    if (value === "+7-RU" || value === "+7-KZ") return "+7"
+    return value
+  }
+
+  const [selectedCountryCode, setSelectedCountryCode] = useState("+1-US") // Default to USA
+
+  // Sincronizza selectedCountryCode quando customer.phonePrefix cambia dall'esterno
+  useEffect(() => {
+    if (customer.phonePrefix) {
+      if (customer.phonePrefix === "+1") {
+        // Default to USA for +1 prefix
+        setSelectedCountryCode("+1-US")
+      } else {
+        const matchingCountry = countryCodes.find(country => 
+          getActualPrefix(country.value) === customer.phonePrefix
+        )
+        if (matchingCountry) {
+          setSelectedCountryCode(matchingCountry.value)
+        }
+      }
+    }
+  }, [customer.phonePrefix])
 
   const getFieldError = (field: string) => {
     const error = errors.find((error) => error.field === `customer.${field}`)
@@ -289,14 +314,7 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
     return hasAttemptedSubmit && !!getFieldError(field)
   }
 
-  const selectedCountry = countryCodes.find((country) => country.value === customer.phonePrefix)
-
-  // Funzione per ottenere il prefisso effettivo (rimuove i suffissi -us, -ca, etc.)
-  const getActualPrefix = (value: string) => {
-    if (value === "+1-us" || value === "+1-ca") return "+1"
-    if (value === "+7-ru" || value === "+7-kz") return "+7"
-    return value
-  }
+  const selectedCountry = countryCodes.find((country) => country.value === selectedCountryCode)
 
   return (
     <div className="space-y-6">
@@ -371,14 +389,15 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
                           value={`${country.country} ${country.value}`}
                           onSelect={() => {
                             console.log("🔍 DEBUG CustomerInfoSection - phonePrefix changed to:", country.value)
-                            onChange({ phonePrefix: country.value })
+                            setSelectedCountryCode(country.value)
+                            onChange({ phonePrefix: getActualPrefix(country.value) })
                             setOpen(false)
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              customer.phonePrefix === country.value ? "opacity-100" : "opacity-0"
+                              selectedCountryCode === country.value ? "opacity-100" : "opacity-0"
                             )}
                           />
                           {country.label}

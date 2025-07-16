@@ -67,7 +67,7 @@
   "about": {
     "label": "About Us",
     "title": "A prestigious NCC service since 1998",
-    "paragraph1": "Patty Car is a reference point in the chauffeur service sector. With offices in Milan and Rome and a widespread network of collaborators, we operate throughout the national and international territory. We have had the honor of serving prestigious events such as Expo 2015 and the Paris 2024 Olympic Games. Our mission is to offer impeccable service, available 24 hours a day, every day of the week, to guarantee you a stress-free travel experience with maximum comfort."
+    "paragraph1": "Patty Car is a reference point in the chauffeur service sector. With offices in Milan and Rome and a widespread network of collaborators, we operate throughout the national and international territory. We have had the honor of serving prestigious events such as Expo 2015 and important international events. Our mission is to offer impeccable service, available 24 hours a day, every day of the week, to guarantee you a stress-free travel experience with maximum comfort."
   },
   "clients": {
     "title": "Some of our clients"
@@ -146,11 +146,12 @@
       "title": "Reserved Booking",
       "pageTitle": "Booking - Restricted Area",
       "pageDescription": "Booking form",
-      "formTitle": "Book your transfer",
-      "formSubtitle": "Fill out the form to book the service",
+      "formTitle": "Private Transfer Booking",
+      "formSubtitle": "Welcome to the Patty Car platform for booking your private transfer. You will have access to transport services between the airport or train station and your hotel during your stay in Italy. Transfer between cities (Hotel to Hotel transfers only) are also available. If you have any other needs, feel free to contact us at: gamestime@pattycar.com Note: If you need transfers for both your arrival and departure, please complete the booking form twice — once for each transfer request. Thank you!",
+      "requiredFieldsNote": "Fields marked with * are required.",
       "date": {
-        "title": "Service Date",
-        "dateLabel": "Select service date *",
+        "title": "Transfer Date",
+                  "dateLabel": "Select transfer date *",
         "dateRequired": "Date required",
         "selectDate": "Select date",
         "dateImportance": "The date is fundamental: prices and service availability depend on it. Please select the date before to proceed.",
@@ -161,12 +162,12 @@
         "transfer": {
           "label": "Transfer",
           "description": "Point-to-point transfer",
-          "olympicDescription": "Transfer with Olympic prices"
+          "olympicDescription": "Transfer with special prices"
         },
         "disposition": {
           "label": "Disposition",
           "description": "Time-based service with driver",
-          "olympicDescription": "Time-based service with Olympic rates"
+          "olympicDescription": "Time-based service with special rates"
         },
         "otherServices": {
           "label": "Other Services",
@@ -174,16 +175,16 @@
         },
         "ceremony": {
           "label": "Ceremony Disposition",
-          "description": "Special service for Olympic ceremonies"
+          "description": "Special service for ceremonies and events"
         },
         "interCluster": {
           "label": "Inter-Cluster",
-          "description": "Transfer between Olympic venues"
+          "description": "Transfer between event venues"
         },
         "badges": {
-          "olympics": "OLYMPICS 2026",
+          "olympics": "WINTER EVENTS",
           "ceremony": "CEREMONY",
-          "olympicPeriod": "OLYMPIC PERIOD"
+          "olympicPeriod": "EVENTS PERIOD"
         },
         "subServices": {
           "title": "Choose Service Type"
@@ -194,7 +195,7 @@
       "customer": {
         "title": "Customer Information",
         "nameLabel": "Full name *",
-        "nameHelperText": "This name will be displayed at reception",
+        "nameHelperText": "This is the name that will be used upon pickup.",
         "nameRequired": "Name required (minimum 2 characters)",
         "emailLabel": "Email *",
         "emailRequired": "Invalid email",
@@ -305,7 +306,7 @@
         "subtotal": "Subtotal:",
         "vat": "VAT",
         "vatIncluded": "VAT included",
-        "olympicPricing": "Olympic Pricing",
+        "olympicPricing": "Special Pricing",
         "eventPricing": "Event Pricing",
         "specialEvent": "Special Event",
         "milanoCortina2026": "Milano-Cortina 2026",
@@ -392,12 +393,25 @@
       "meetGreet": {
         "notAvailable": "Meet & Greet services are available for specific airports and railway stations. Your journey does not involve Milano Malpensa, Milano Linate, Venezia Marco Polo, Milano Centrale, Verona Porta Nuova, or Venezia Santa Lucia.",
         "autoDetected": "Meet & Greet service automatically detected:",
+        "autoDetectedService": "Meet & Greet service automatically detected:",
         "arrivals": "Arrivals",
         "departures": "Departures",
         "includesService": "Includes: Greeter + Porter + {luggage} luggage",
         "extraPassenger": "Extra passenger: €{price}",
         "extraLuggage": "Extra luggage: €{price}",
         "nightServiceDetected": "Night service detected ({start} - {end})",
+        "nightServiceDetectedSimple": "Night service detected ({start} - {end})",
+        "adults": "Adults",
+        "children": "Children",
+        "infants": "Infants",
+        "fullRate": "Full rate",
+        "halfRate": "50% rate",
+        "luggageConfiguration": "Luggage Configuration",
+        "extraHoursForDelays": "Extra hours for delays",
+        "afterHoursIncluded": "After {hours} hours included",
+        "includedLuggage": "Includes {count} luggage per person",
+        "childrenAge": "up to 12 years",
+        "infantsAge": "0-2 years",
         "passengerConfiguration": "Passenger Configuration",
         "maxPassengersAllowed": "Maximum {max} passengers allowed. Groups of more than 8 require special quotation.",
         "tarmacLimitExceeded": "TARMAC service is limited to maximum 6 passengers. Current total: {total}",
@@ -416,6 +430,7 @@
         "vatPercentage": "VAT ({rate}%)",
         "totalMeetGreet": "Total Meet & Greet",
         "enableService": "Enable Meet & Greet Service",
+        "enableMeetGreetService": "Enable Meet & Greet Service",
         "groupsQuoteRequest": "Groups of more than 8 people will be quoted on request",
         "tarmacAvailability": "TARMAC service available only if aircraft is parked (on demand)",
         "maxLuggageNightSurcharge": "Maximum {max} pieces of luggage per operator for night surcharge",
@@ -444,6 +459,14 @@
         "pricePerPassenger": "Price is per passenger (excluding infants)",
         "porterOnDemand": "Porter on Demand",
         "nightSurchargeApplied": "* Night service surcharge applied ({start} - {end})",
+        "nightSurchargeWithPercentage": "Night surcharge {percentage}% ({start} - {end})",
+        "holidaySurcharge": "Holiday surcharge {percentage}%",
+        "holidayServiceDetected": "HOLIDAY SURCHARGE APPLIED",
+        "holidaySurchargeApplied": "HOLIDAY SURCHARGE APPLIED",
+        "sundayService": "Sunday service",
+        "epiphanyService": "January 6, 2026 - Epiphany",
+        "nightService": "NIGHT SERVICE",
+        "holidayService": "HOLIDAY SERVICE",
         "constraintTranslations": {
           "Groups of more than 8 people will be quoted on request": "Groups of more than 8 people will be quoted on request",
           "TARMAC service available only if aircraft is parked (on demand)": "TARMAC service available only if aircraft is parked (on demand)",
@@ -470,7 +493,9 @@
       },
       "submit": {
         "contactInfo": "For information contact pattycar@pattycar.com",
+        "cancellationPolicyTitle": "I have read and accept the cancellation policy",
         "cancellationPolicy": "Cancellation Policy: Cancellations on or before 31 October 2025 shall be free of charge. Cancellations between 1 November 2025 and 5 January 2026: bookings may be adjusted, including changes in dates, times, and flights, a 50% cancellation fee shall apply for fully cancelled bookings. Cancellations after 5 January 2026: adjustments to bookings shall be subject to availability, a 100% cancellation fee shall apply for fully cancelled bookings.",
+        "cancellationRequired": "You must accept the cancellation policy to proceed",
         "processing": "Creating payment session...",
         "button": "Proceed to Payment",
         "validationMessage": "Fill in all required fields (*) to proceed to payment",
@@ -913,5 +938,119 @@
     "listinoResults": "Fixed price destinations",
     "googleResults": "Other addresses",
     "noResultsFound": "No results found"
+  },
+  "admin": {
+    "login": {
+      "title": "Admin Login",
+      "description": "Access the administrative control panel",
+      "emailLabel": "Email",
+      "emailPlaceholder": "admin@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "loginButton": "Login",
+      "loggingIn": "Logging in...",
+      "invalidCredentials": "Invalid credentials",
+      "loginError": "Error during login. Please try again.",
+      "loginSuccess": "Login successful",
+      "restrictedAccess": "RESTRICTED ACCESS",
+      "securityPortal": "Security Portal",
+      "accessCode": "Access Code",
+      "accessCodePlaceholder": "Enter access code",
+      "authenticate": "Authenticate",
+      "authenticating": "Authenticating...",
+      "securityNotice": "🔒 This is a secure area. All access attempts are logged and monitored.",
+      "footerText": "Patty Car Booking Portal • Unauthorized access prohibited",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "description": "Manage all paid bookings and customer information",
+      "error": "Error",
+      "errorDescription": "Unable to load bookings",
+      "errorMessage": "Unable to fetch bookings from database",
+      "totalBookings": "Total Bookings",
+      "totalRevenue": "Total Revenue",
+      "filters": "Filters",
+      "searchPlaceholder": "Search bookings...",
+      "serviceType": "Service Type",
+      "allServices": "All Services",
+      "fromDate": "From Date",
+      "toDate": "To Date",
+      "bookings": "Bookings",
+      "bookingsCount": "Bookings ({count})",
+      "bookingsDescription": "All paid bookings from customers",
+      "date": "Date",
+      "customer": "Customer",
+      "service": "Service",
+      "route": "Route",
+      "vehicle": "Vehicle",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions",
+      "passengers": "passengers",
+      "vehicles": "vehicles",
+      "viewInvoice": "View Invoice",
+      "paid": "Paid",
+      "completed": "Completed",
+      "vatRate": "VAT Rate",
+      "createdAt": "Created at",
+      "serviceDate": "Service Date",
+      "serviceTime": "Service Time",
+      "pickupAddress": "Pickup Address",
+      "destinationAddress": "Destination Address",
+      "customerName": "Customer Name",
+      "customerEmail": "Customer Email",
+      "customerPhone": "Customer Phone",
+      "noBookings": "No bookings found",
+      "loadingBookings": "Loading bookings...",
+      "refreshData": "Refresh Data",
+      "exportData": "Export Data",
+      "sortBy": "Sort by",
+      "ascending": "Ascending",
+      "descending": "Descending"
+    },
+    "header": {
+      "brand": "Patty Car",
+      "subtitle": "Administrative Portal",
+      "secureSession": "Secure Session Active",
+      "logout": "Logout",
+      "logoutConfirm": "Are you sure you want to logout?",
+      "logoutSuccess": "Logout successful",
+      "logoutError": "Error during logout"
+    },
+    "serviceTypes": {
+      "transfer": "Transfer",
+      "disposizione": "Disposition",
+      "ceremony-disposition": "Ceremony Disposition",
+      "inter-cluster": "Inter-Cluster",
+      "altri-servizi": "Other Services"
+    },
+    "common": {
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "search": "Search",
+      "filter": "Filter",
+      "sort": "Sort",
+      "export": "Export",
+      "refresh": "Refresh",
+      "noData": "No data available",
+      "noResults": "No results found",
+      "selectAll": "Select all",
+      "clearAll": "Clear all",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "required": "Required",
+      "optional": "Optional",
+      "yes": "Yes",
+      "no": "No"
+    }
   }
 }

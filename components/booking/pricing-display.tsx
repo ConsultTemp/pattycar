@@ -61,7 +61,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
           {pricing.isOlympicPricing ? dictionary.olympicPricing : pricing.isEventPricing ? dictionary.eventPricing : dictionary.totalPrice}
           {pricing.isOlympicPricing && (
             <Badge variant="secondary" className="ml-2 bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                              🏔️ {dictionary.milanoCortina2026}
+                              {dictionary.milanoCortina2026}
             </Badge>
           )}
           {pricing.isEventPricing && !pricing.isOlympicPricing && (
@@ -125,7 +125,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
         (pricing.vehicleBreakdowns && pricing.vehicleBreakdowns.some((vb: any) => vb.nightSurcharge > 0))) && (
         <div className="mb-3 p-2 bg-orange-100 rounded-lg">
           <div className="text-sm text-orange-700">
-            <span className="font-medium">🌙 {dictionary.nightServiceSurcharge}</span>
+                          <span className="font-medium">{dictionary.nightServiceSurcharge}</span>
             <span className="text-xs block">{dictionary.nightServiceInfo}</span>
           </div>
         </div>

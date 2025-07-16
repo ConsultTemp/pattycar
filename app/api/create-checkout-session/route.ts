@@ -5,15 +5,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-05-28.basil",
 })
 
-// Funzione per convertire dal formato 24h al 12h con AM/PM
+// Function to convert from 24h format to 12h with AM/PM
 function convertTo12Hour(time24: string): string {
-  if (!time24) return "Non specificato"
-  
+  if (!time24) return "Not specified"
+
   try {
     const [hours, minutes] = time24.split(':')
     const hour24 = parseInt(hours)
     const min = minutes || "00"
-    
+
     if (hour24 === 0) return `12:${min} AM`
     if (hour24 < 12) return `${hour24}:${min} AM`
     if (hour24 === 12) return `12:${min} PM`
@@ -38,12 +38,12 @@ export async function POST(req: NextRequest) {
         customerName,
         hasBookingData: !!bookingData,
       })
-      return NextResponse.json({ error: "Campi obbligatori mancanti" }, { status: 400 })
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
     if (amount <= 0) {
       console.error("❌ Invalid amount:", amount)
-      return NextResponse.json({ error: "Importo non valido" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid amount" }, { status: 400 })
     }
 
     // Crea o recupera il cliente
@@ -71,20 +71,20 @@ export async function POST(req: NextRequest) {
         console.log("👤 Nuovo customer creato:", customer.id)
       }
     } catch (err) {
-      console.error("❌ Errore creazione cliente:", err)
-      return NextResponse.json({ error: "Errore creazione cliente" }, { status: 500 })
+      console.error("❌ Error creating customer:", err)
+      return NextResponse.json({ error: "Error creating customer" }, { status: 500 })
     }
 
     // Determina il tipo di servizio
     const serviceType = bookingData.serviceType || "transfer"
     const isDisposizione = serviceType === "disposizione"
 
-    // Formatta data e ora
+    // Format date and time
     const formatDate = (dateStr: string) => {
-      if (!dateStr) return "Non specificata"
+      if (!dateStr) return "Not specified"
       try {
         const date = new Date(dateStr)
-        return date.toLocaleDateString("it-IT", {
+        return date.toLocaleDateString("en-US", {
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -99,39 +99,41 @@ export async function POST(req: NextRequest) {
     const startTime = convertTo12Hour(bookingData.time)
     const endTime = bookingData.endTime ? convertTo12Hour(bookingData.endTime) : null
 
-    // Crea descrizione dettagliata del servizio
+    // Create detailed service description
     let serviceDescription = ""
     let detailedDescription = ""
 
     if (isDisposizione) {
-      serviceDescription = `🚗 Servizio Disposizione NCC`
-      detailedDescription = `Disposizione veicolo con autista
-📅 ${formattedDate}
-🕐 Dalle ${startTime}${endTime ? ` alle ${endTime}` : ""}
-📍 Da: ${bookingData.pickup}
-🎯 A: ${bookingData.destination}
-👥 ${bookingData.passengers} passeggeri
-🚙 ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} veicoli)` : ""}`
+      serviceDescription = `Private Driver Service - Disposition`
+      detailedDescription = `Private vehicle with driver service
+
+• Date: ${formattedDate}
+• Time: From ${startTime}${endTime ? ` to ${endTime}` : ""}
+• Pickup: ${bookingData.pickup}
+• Destination: ${bookingData.destination}
+• Passengers: ${bookingData.passengers}
+• Vehicle: ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`
     } else {
-      serviceDescription = `🚗 Servizio Transfer NCC`
-      detailedDescription = `Transfer con autista privato
-📅 ${formattedDate}
-🕐 Ore ${startTime}
-📍 Da: ${bookingData.pickup}
-🎯 A: ${bookingData.destination}
-👥 ${bookingData.passengers} passeggeri
-🚙 ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} veicoli)` : ""}`
+      serviceDescription = `Private Transfer Service`
+      detailedDescription = `Private transfer with professional driver
+
+• Date: ${formattedDate}
+• Time: ${startTime}
+• Pickup: ${bookingData.pickup}
+• Destination: ${bookingData.destination}
+• Passengers: ${bookingData.passengers}
+• Vehicle: ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`
     }
 
-    // Aggiungi servizi extra se presenti
+    // Add extra services if present
     const extras = []
-    if (bookingData.meetAndGreet) extras.push("✅ Meet & Greet")
-    if (bookingData.flight) extras.push(`✈️ Volo/Treno: ${bookingData.flight}`)
-    if (bookingData.departureCity) extras.push(`🏙️ Provenienza: ${bookingData.departureCity}`)
-    if (bookingData.luggage && bookingData.luggage > 0) extras.push(`🧳 ${bookingData.luggage} bagagli`)
+    if (bookingData.meetAndGreet) extras.push("• Meet & Greet service")
+    if (bookingData.flight) extras.push(`• Flight/Train: ${bookingData.flight}`)
+    if (bookingData.departureCity) extras.push(`• Departure city: ${bookingData.departureCity}`)
+    if (bookingData.luggage && bookingData.luggage > 0) extras.push(`• Luggage: ${bookingData.luggage} pieces`)
 
     if (extras.length > 0) {
-      detailedDescription += `\n\nServizi inclusi:\n${extras.join("\n")}`
+      detailedDescription += `\n\nAdditional services:\n${extras.join("\n")}`
     }
 
     // Prepare metadata - ONLY STRING VALUES
@@ -185,33 +187,33 @@ export async function POST(req: NextRequest) {
       ],
       mode: "payment",
 
-      // 🧾 CONFIGURAZIONE INVOICE AUTOMATICA CON DETTAGLI
+      // Invoice configuration with details
       invoice_creation: {
         enabled: true,
         invoice_data: {
           description: serviceDescription,
           custom_fields: [
             {
-              name: "Tipo Servizio",
-              value: isDisposizione ? "Disposizione con Autista" : "Transfer NCC",
+              name: "Service Type",
+              value: isDisposizione ? "Private Driver Service" : "Private Transfer",
             },
             {
-              name: "Data e Orario",
+              name: "Date & Time",
               value:
                 isDisposizione && endTime
-                  ? `${formattedDate} dalle ${startTime} alle ${endTime}`
-                  : `${formattedDate} ore ${startTime}`,
+                  ? `${formattedDate} from ${startTime} to ${endTime}`
+                  : `${formattedDate} at ${startTime}`,
             },
             {
-              name: "Percorso",
+              name: "Route",
               value: `${bookingData.pickup} → ${bookingData.destination}`,
             },
             {
-              name: "Dettagli",
-              value: `${bookingData.passengers} pax, ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} veicoli)` : ""}`,
+              name: "Details",
+              value: `${bookingData.passengers} passengers, ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`,
             },
           ],
-          footer: `Grazie per aver scelto i nostri servizi ${isDisposizione ? "di disposizione" : "transfer"} NCC!`,
+          footer: `Thank you for choosing our ${isDisposizione ? "private driver" : "transfer"} service!`,
           metadata: {
             service_type: serviceType,
             pickup: bookingData.pickup || "",
@@ -232,23 +234,23 @@ export async function POST(req: NextRequest) {
       cancel_url: `${req.headers.get("origin")}/payment-cancelled`,
     })
 
-    console.log("✅ Sessione creata:", session.id)
-    console.log("📄 Invoice creation abilitata con dettagli completi")
-    console.log("🎯 Servizio:", isDisposizione ? "Disposizione" : "Transfer")
-    console.log("👤 Con customer:", customer.id)
-    console.log("💰 Importo:", amount, "EUR")
+    console.log("✅ Session created:", session.id)
+    console.log("📄 Invoice creation enabled with complete details")
+    console.log("🎯 Service:", isDisposizione ? "Disposition" : "Transfer")
+    console.log("👤 With customer:", customer.id)
+    console.log("💰 Amount:", amount, "EUR")
 
     return NextResponse.json({ sessionId: session.id, url: session.url })
   } catch (err) {
-    console.error("❌ Errore creazione sessione:", err)
+    console.error("❌ Error creating session:", err)
 
     if (err instanceof Error) {
       if (err.message.includes("stripe")) {
-        return NextResponse.json({ error: "Errore del servizio di pagamento" }, { status: 502 })
+        return NextResponse.json({ error: "Payment service error" }, { status: 502 })
       }
       return NextResponse.json({ error: err.message }, { status: 500 })
     }
 
-    return NextResponse.json({ error: "Errore interno del server" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

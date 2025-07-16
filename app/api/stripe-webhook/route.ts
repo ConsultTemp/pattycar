@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { Resend } from "resend"
+import { insertBooking } from "@/lib/database"
 
 // Inizializza Stripe con la chiave segreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -233,29 +234,115 @@ export async function POST(req: NextRequest) {
       
       // Determina l'etichetta del servizio
       let serviceLabel = "Transfer"
-      let serviceIcon = "🚗"
+      let serviceIcon = ""
       let serviceBadge = ""
       
       if (isCeremony) {
         serviceLabel = "Disposizione Cerimonia"
-        serviceIcon = "🏆"
+        serviceIcon = ""
         serviceBadge = "CERIMONIA"
       } else if (isDisposizione) {
         serviceLabel = "Disposizione"
-        serviceIcon = "⏰"
-        serviceBadge = isOlympic ? "OLIMPIADI 2026" : ""
+        serviceIcon = ""
+        serviceBadge = isOlympic ? "EVENTI INVERNALI" : ""
       } else if (isInterCluster) {
         serviceLabel = "Inter-Cluster"
-        serviceIcon = "🏔️"
-        serviceBadge = "OLIMPIADI 2026"
+        serviceIcon = ""
+        serviceBadge = "EVENTI INVERNALI"
       } else if (isAltriServizi) {
         serviceLabel = "Altri Servizi"
-        serviceIcon = "🚙"
-        serviceBadge = "OLIMPIADI 2026"
+        serviceIcon = ""
+        serviceBadge = "EVENTI INVERNALI"
       } else {
         serviceLabel = "Transfer"
-        serviceIcon = "🚗"
-        serviceBadge = isOlympic ? "OLIMPIADI 2026" : ""
+        serviceIcon = ""
+        serviceBadge = isOlympic ? "EVENTI INVERNALI" : ""
+      }
+
+      // 💾 SALVA NEL DATABASE SUPABASE
+      try {
+        console.log("💾 Tentativo salvataggio booking nel database...")
+        
+        const bookingData = {
+          // Stripe/Payment info
+          stripe_session_id: session.id,
+          payment_intent_id: paymentIntentId || null,
+          amount_total: session.amount_total || 0,
+          currency: session.currency || "eur",
+          payment_status: "paid",
+          invoice_url: invoiceUrl || null,
+          
+          // Customer info
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: phoneNumber || null,
+          customer_phone_prefix: phonePrefix || null,
+          
+          // Service info
+          service_type: serviceType,
+          service_label: serviceLabel,
+          service_icon: serviceIcon,
+          service_badge: serviceBadge || null,
+          
+          // Journey info
+          pickup_address: pickup,
+          pickup_location_id: pickupLocationId || null,
+          pickup_is_custom: pickupIsCustom === "true",
+          destination_address: destination,
+          destination_location_id: destinationLocationId || null,
+          destination_is_custom: destinationIsCustom === "true",
+          
+          // Date & Time
+          service_date: date,
+          service_time: time,
+          service_end_time: endTime || null,
+          service_duration: serviceDuration || null,
+          
+          // Vehicle configuration
+          vehicle_type: vehicleType,
+          vehicle_count: parseInt(vehicleCount) || 1,
+          passengers: parseInt(passengers) || 1,
+          luggage: parseInt(luggage) || 0,
+          same_vehicle_type: sameVehicleType === "true",
+          individual_vehicles: parsedIndividualVehicles.length > 0 ? parsedIndividualVehicles : null,
+          
+          // Options
+          meet_and_greet: meetAndGreet === "true",
+          meet_greet_config: parsedMeetGreetConfig || null,
+          flight_info: flight || null,
+          departure_city: departureCity || null,
+          notes: notes !== "Nessuna nota" ? notes : null,
+          billing_info: billingInfo || null,
+          
+          // Pricing
+          distance: distance || null,
+          duration: duration || null,
+          transfer_cost: transferCost || null,
+          transfer_route: transferRoute || null,
+          event_route: eventRoute || null,
+          night_surcharge: nightSurcharge || null,
+          vat_rate: vatRate || null,
+          price_breakdown: priceBreakdown || null,
+          
+          // Olympic/Event pricing
+          is_olympic_pricing: isOlympic,
+          
+          // Metadata
+          raw_metadata: metadata
+        }
+        
+        const insertResult = await insertBooking(bookingData)
+        
+        if (insertResult.success) {
+          console.log("✅ Booking salvato nel database con ID:", insertResult.data?.id)
+        } else {
+          console.error("❌ Errore salvataggio booking:", insertResult.error)
+          // Continue with email sending even if database insert fails
+        }
+        
+      } catch (dbError) {
+        console.error("❌ Errore imprevisto salvataggio database:", dbError)
+        // Continue with email sending even if database insert fails
       }
 
       try {
@@ -287,12 +374,12 @@ export async function POST(req: NextRequest) {
               <!-- Content -->
               <div style="padding: 40px 30px;">
                 <p style="font-size: 18px; color: #333; margin: 0 0 30px 0; line-height: 1.6;">
-                  Dear <strong style="color: #1e3c72;">${customerName}</strong>,
+                  Dear Customer,
                 </p>
                 
                 <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 35px 0;">
-                  Thank you for making a reservation through our website. We are pleased to confirm your booking at Patty Car. 
-                  Your reservation for <strong>${serviceLabel}</strong> has been confirmed and payment has been processed successfully.
+                  Thank you for making a reservation through our website.<br>
+                  We are pleased to confirm your ${serviceLabel.toLowerCase()} booking with Patty Car.
                 </p>
                 
                 <!-- Service Type Badge -->
@@ -326,7 +413,7 @@ export async function POST(req: NextRequest) {
                   
                   <div style="display: grid; gap: 15px;">
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                      <span style="color: #ef4444; font-size: 18px; margin-right: 12px;">📍</span>
+                      <span style="color: #ef4444; font-size: 18px; margin-right: 12px;"></span>
                       <div>
                         <strong style="color: #374151;">Departure:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${pickup}</span>
@@ -343,7 +430,7 @@ export async function POST(req: NextRequest) {
                     </div>
                     
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                      <span style="color: #10b981; font-size: 18px; margin-right: 12px;">🎯</span>
+                      <span style="color: #10b981; font-size: 18px; margin-right: 12px;"></span>
                       <div>
                         <strong style="color: #374151;">${isDisposizione ? "Destination:" : "Arrival:"}</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${destination}</span>
@@ -393,12 +480,12 @@ export async function POST(req: NextRequest) {
                       serviceDuration && isOlympic
                         ? `
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                      <span style="color: #7c3aed; font-size: 18px; margin-right: 12px;">⏱️</span>
+                      <span style="color: #7c3aed; font-size: 18px; margin-right: 12px;"></span>
                       <div>
                         <strong style="color: #374151;">Service duration:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${serviceDuration} hours</span>
                         <span style="background: #ede9fe; color: #7c3aed; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px;">
-                          🏅 OLYMPICS 2026
+                          🏅 EVENTI INVERNALI
                         </span>
                       </div>
                     </div>
@@ -410,7 +497,7 @@ export async function POST(req: NextRequest) {
                       distance && !isDisposizione
                         ? `
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                      <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;">📏</span>
+                      <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;"></span>
                       <div>
                         <strong style="color: #374151;">Distance:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${distance}</span>
@@ -424,7 +511,7 @@ export async function POST(req: NextRequest) {
                       duration && !isDisposizione
                         ? `
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                      <span style="color: #84cc16; font-size: 18px; margin-right: 12px;">⏱️</span>
+                      <span style="color: #84cc16; font-size: 18px; margin-right: 12px;"></span>
                       <div>
                         <strong style="color: #374151;">Estimated duration:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${duration}</span>
@@ -435,7 +522,7 @@ export async function POST(req: NextRequest) {
                     }
                     
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                      <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;">👥</span>
+                      <span style="color: #06b6d4; font-size: 18px; margin-right: 12px;"></span>
                       <div>
                         <strong style="color: #374151;">Passengers:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${passengers}</span>
@@ -466,7 +553,7 @@ export async function POST(req: NextRequest) {
                         index < parsedIndividualVehicles.length - 1 ? "10px" : "0px"
                       };">
                         <div style="font-weight: 600; color: #1f2937; margin-bottom: 8px;">
-                          🚗 Vehicle ${index + 1}
+                          Vehicle ${index + 1}
                         </div>
                         <div style="display: grid; gap: 8px; font-size: 14px;">
                           <div style="color: #374151;">
@@ -499,7 +586,7 @@ export async function POST(req: NextRequest) {
                       isMultipleVehicles
                         ? `
                     <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                      <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">🚗</span>
+                      <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;"></span>
                       <div>
                         <strong style="color: #374151;">Number of vehicles:</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${vehicleCount} (all same type)</span>
@@ -516,7 +603,7 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
-                        <span style="color: #2563eb; font-size: 18px; margin-right: 12px;">🚗</span>
+                        <span style="color: #2563eb; font-size: 18px; margin-right: 12px;"></span>
                         <div>
                           <strong style="color: #1e40af;">Additional transfer included</strong>
                           <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Route: ${transferRoute}</p>
@@ -565,23 +652,23 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #dcfce7; border: 1px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
-                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🤝</span>
+                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;"></span>
                         <div>
                           <strong style="color: #166534;">Meet & Greet service included</strong>
                           ${parsedMeetGreetConfig ? `
                           <div style="margin-top: 8px; font-size: 13px; color: #166534;">
-                            ${parsedMeetGreetConfig.selectedService ? `<p>📍 Service: ${parsedMeetGreetConfig.selectedService}</p>` : ""}
-                            ${parsedMeetGreetConfig.passengers > 0 ? `<p>👥 Passengers: ${parsedMeetGreetConfig.passengers}</p>` : ""}
-                            ${parsedMeetGreetConfig.children > 0 ? `<p>👶 Children: ${parsedMeetGreetConfig.children}</p>` : ""}
-                            ${parsedMeetGreetConfig.infants > 0 ? `<p>🍼 Infants: ${parsedMeetGreetConfig.infants}</p>` : ""}
-                            ${parsedMeetGreetConfig.extraLuggage > 0 ? `<p>🧳 Extra luggage: ${parsedMeetGreetConfig.extraLuggage}</p>` : ""}
-                            ${parsedMeetGreetConfig.extraHours > 0 ? `<p>⏰ Extra hours: ${parsedMeetGreetConfig.extraHours}</p>` : ""}
+                            ${parsedMeetGreetConfig.selectedService ? `<p>Service: ${parsedMeetGreetConfig.selectedService}</p>` : ""}
+                            ${parsedMeetGreetConfig.passengers > 0 ? `<p>Passengers: ${parsedMeetGreetConfig.passengers}</p>` : ""}
+                            ${parsedMeetGreetConfig.children > 0 ? `<p>Children: ${parsedMeetGreetConfig.children}</p>` : ""}
+                            ${parsedMeetGreetConfig.infants > 0 ? `<p>Infants: ${parsedMeetGreetConfig.infants}</p>` : ""}
+                                                          ${parsedMeetGreetConfig.extraLuggage > 0 ? `<p>Extra luggage: ${parsedMeetGreetConfig.extraLuggage}</p>` : ""}
+                                                          ${parsedMeetGreetConfig.extraHours > 0 ? `<p>Extra hours: ${parsedMeetGreetConfig.extraHours}</p>` : ""}
                             ${parsedMeetGreetConfig.specialServices ? `
-                              ${parsedMeetGreetConfig.specialServices.tarmac ? `<p>✈️ TARMAC service included</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.fastTrack ? `<p>⚡ Fast Track included</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.vipLounge ? `<p>🥂 VIP Lounge included</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.veniceCombo ? `<p>🎭 Venice Combo (Fast Track + VIP) included</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.greeterOnly ? `<p>👋 Greeter only (without Porter)</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.tarmac ? `<p>TARMAC service included</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.fastTrack ? `<p>Fast Track included</p>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.vipLounge ? `<p>VIP Lounge included</p>` : ""}
+                                                              ${parsedMeetGreetConfig.specialServices.veniceCombo ? `<p>Venice Combo (Fast Track + VIP) included</p>` : ""}
+                                                              ${parsedMeetGreetConfig.specialServices.greeterOnly ? `<p>Greeter only (without Porter)</p>` : ""}
                             ` : ""}
                           </div>
                           ` : `
@@ -599,7 +686,7 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
-                        <span style="color: #2563eb; font-size: 18px; margin-right: 12px;">✈️</span>
+                        <span style="color: #2563eb; font-size: 18px; margin-right: 12px;"></span>
                         <div>
                           ${flight ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Flight/Train number:</strong> ${flight}</div>` : ""}
                           ${departureCity ? `<div style="color: #1e40af; margin-bottom: 5px;"><strong>Departure city:</strong> ${departureCity}</div>` : ""}
@@ -616,7 +703,7 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: flex-start;">
-                        <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">📝</span>
+                        <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;"></span>
                         <div>
                           <strong style="color: #92400e;">Additional notes:</strong>
                           <p style="color: #92400e; margin: 5px 0 0 0; line-height: 1.5;">${notes}</p>
@@ -693,7 +780,7 @@ export async function POST(req: NextRequest) {
                 <!-- Next Steps -->
                 <div style="background: #f1f5f9; border-radius: 12px; padding: 30px; margin: 35px 0;">
                   <h3 style="color: #1e3c72; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
-                    🚀 Next Steps
+                    Next Steps
                   </h3>
                   <ul style="color: #475569; line-height: 1.8; margin: 0; padding-left: 20px;">
                     <li style="margin-bottom: 8px;">We will contact you within <strong>24 hours</strong> to confirm all details</li>
@@ -708,8 +795,7 @@ export async function POST(req: NextRequest) {
                     📌 Cancellation Policy
                   </h3>
                   <p style="color: #92400e; margin: 0; line-height: 1.6;">
-                    Please note that any changes or cancellations can be made according to the terms outlined in our cancellation policy. 
-                    The applicable conditions and deadlines were provided during the booking process.
+                    Cancellations on or before 31 October 2025 shall be free of charge. Cancellations between 1 November 2025 and 5 January 2026: bookings may be adjusted, including changes in dates, times, and flights, a 50% cancellation fee shall apply for fully cancelled bookings. Cancellations after 5 January 2026: adjustments to bookings shall be subject to availability, a 100% cancellation fee shall apply for fully cancelled bookings.
                   </p>
                 </div>
                 
@@ -718,22 +804,19 @@ export async function POST(req: NextRequest) {
                   <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
                     📬 Customer Support
                   </h3>
-                  <p style="color: #1e40af; margin: 0 0 10px 0;">
-                    Should you require any assistance, wish to make changes, or cancel your reservation, please do not hesitate to contact us at:
+                  <p style="color: #1e40af; margin: 0; line-height: 1.6;">
+                    Should you require any assistance, wish to make changes, or cancel your reservation, please do not hesitate to contact us at:<br>
+                    gamestime@pattycar.com
                   </p>
-                  <ul style="color: #1e40af; margin: 0; padding-left: 20px; line-height: 1.6;">
-                    <li>📧 Email: gamestime@pattycar.com</li>
-                    <li>📱 Phone: ${phone !== "Not specified" ? phone : "+39 XXX XXX XXXX"}</li>
-                    <li>🌐 Website: www.pattycar.com</li>
-                  </ul>
                 </div>
                 
                 <div style="text-align: center; margin: 40px 0 20px 0;">
                   <p style="color: #1e3c72; font-size: 18px; font-weight: 600; margin: 0;">
-                    We sincerely thank you for choosing us and remain at your disposal for any further assistance. 🙏
+                    We sincerely thank you for choosing us and remain at your disposal for any further assistance.
                   </p>
                   <p style="color: #6b7280; font-size: 14px; margin: 10px 0 0 0;">
-                    Kind regards, The Patty Car Team
+                    Kind regards,<br>
+                    The Patty Car Team
                   </p>
                 </div>
               </div>
@@ -858,7 +941,7 @@ export async function POST(req: NextRequest) {
                       ${pickupIsCustom === "true" ? `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 8px; font-size: 10px; margin-left: 8px;">CUSTOM</span>` : ""}
                     </p>
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🎯 ${isDisposizione ? "Destinazione:" : "Arrivo:"}</strong> <span style="color: #3730a3;">${destination}</span>
+                      <strong>${isDisposizione ? "Destinazione:" : "Arrivo:"}</strong> <span style="color: #3730a3;">${destination}</span>
                       ${destinationLocationId ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 8px; font-size: 10px; margin-left: 8px;">ID: ${destinationLocationId}</span>` : ""}
                       ${destinationIsCustom === "true" ? `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 8px; font-size: 10px; margin-left: 8px;">CUSTOM</span>` : ""}
                     </p>
@@ -866,13 +949,13 @@ export async function POST(req: NextRequest) {
                       <strong>📅 Data:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedDate}</span>
                     </p>
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🕐 ${isDisposizione ? "Inizio:" : "Orario:"}</strong> <span style="color: #3730a3; font-weight: 600;">${formattedTime}</span>
+                      <strong>${isDisposizione ? "Inizio:" : "Orario:"}</strong> <span style="color: #3730a3; font-weight: 600;">${formattedTime}</span>
                     </p>
                     ${
                       isDisposizione && formattedEndTime
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🕐 Fine:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedEndTime}</span>
+                      <strong>Fine:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedEndTime}</span>
                     </p>
                     `
                         : ""
@@ -881,7 +964,7 @@ export async function POST(req: NextRequest) {
                       distance && !isDisposizione
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>📏 Distanza:</strong> <span style="color: #3730a3;">${distance}</span>
+                      <strong>Distanza:</strong> <span style="color: #3730a3;">${distance}</span>
                     </p>
                     `
                         : ""
@@ -890,16 +973,16 @@ export async function POST(req: NextRequest) {
                       duration && !isDisposizione
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>⏱️ Durata:</strong> <span style="color: #3730a3;">${duration}</span>
+                      <strong>Durata:</strong> <span style="color: #3730a3;">${duration}</span>
                     </p>
                     `
                         : ""
                     }
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>👥 Passeggeri:</strong> <span style="color: #3730a3;">${passengers}</span>
+                      <strong>Passeggeri:</strong> <span style="color: #3730a3;">${passengers}</span>
                     </p>
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🧳 Bagagli:</strong> <span style="color: #3730a3;">${luggage}</span>
+                      <strong>Bagagli:</strong> <span style="color: #3730a3;">${luggage}</span>
                     </p>
                     ${
                       hasIndividualVehicles
@@ -938,13 +1021,13 @@ export async function POST(req: NextRequest) {
                         : `
                     <!-- Configurazione Unica Veicolo Admin -->
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🚙 Veicolo:</strong> <span style="color: #3730a3;">${vehicleType}</span>
+                      <strong>Veicolo:</strong> <span style="color: #3730a3;">${vehicleType}</span>
                     </p>
                     ${
                       isMultipleVehicles
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🚗 N. Veicoli:</strong> <span style="color: #3730a3;">${vehicleCount} (tutti dello stesso tipo)</span>
+                      <strong>N. Veicoli:</strong> <span style="color: #3730a3;">${vehicleCount} (tutti dello stesso tipo)</span>
                     </p>
                     `
                         : ""
@@ -955,7 +1038,7 @@ export async function POST(req: NextRequest) {
                       serviceDuration && isOlympic
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>⏱️ Durata Servizio:</strong> <span style="color: #7c3aed; font-weight: 600;">${serviceDuration} ore (Olimpico)</span>
+                      <strong>Durata Servizio:</strong> <span style="color: #7c3aed; font-weight: 600;">${serviceDuration} ore (Speciale)</span>
                     </p>
                     `
                         : ""
@@ -1067,7 +1150,7 @@ export async function POST(req: NextRequest) {
                     </p>
                     ${vatRate ? `
                     <p style="margin: 0; color: #16a34a;">
-                      <strong>IVA:</strong> <span style="color: #15803d;">${vatRate}%${isOlympic ? " (Olimpica)" : ""}</span>
+                      <strong>IVA:</strong> <span style="color: #15803d;">${vatRate}%${isOlympic ? " (Speciale)" : ""}</span>
                     </p>
                     ` : ""}
                     <p style="margin: 0; color: #16a34a;">

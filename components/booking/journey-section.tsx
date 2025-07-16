@@ -299,11 +299,11 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
   const getServiceIcon = () => {
     switch (serviceType) {
       case "inter-cluster":
-        return "🚠"
+        return ""
       case "disposizione":
-        return "⏰"
+        return ""
       case "ceremony-disposition":
-        return "🏆"
+        return ""
       default:
         return <Route className="h-5 w-5" />
     }

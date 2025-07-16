@@ -2,6 +2,7 @@
 
 import { memo } from "react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { CreditCard, Loader2 } from "lucide-react"
 import type { PricingResult } from "@/lib/booking-types"
 
@@ -15,52 +16,92 @@ interface SubmitSectionProps {
   isSubmitting: boolean
   pricing: PricingResult | null
   submitError?: string
+  cancellationAccepted: boolean
+  onCancellationChange: (accepted: boolean) => void
   onSubmit: () => void
   dictionary: any
+  validationErrors?: Array<{field: string, message: string}>
 }
 
-export const SubmitSection = memo<SubmitSectionProps>(({ isValid, isSubmitting, pricing, submitError, onSubmit, dictionary }) => {
+export const SubmitSection = memo<SubmitSectionProps>(({ 
+  isValid, 
+  isSubmitting, 
+  pricing, 
+  submitError, 
+  cancellationAccepted,
+  onCancellationChange,
+  onSubmit, 
+  dictionary,
+  validationErrors = []
+}) => {
+  const cancellationError = validationErrors.find(error => error.field === "cancellationAccepted")
+
   return (
-    <div className="text-center space-y-4">
-
-      {/* Cancellation Policy */}
-      <div className="text-xs text-gray-500 mb-6 max-w-2xl mx-auto">
-        <p className="mb-2">{dictionary.cancellationPolicy}</p>
+    <div className="space-y-6">
+      {/* Cancellation Policy - Evidenziata e allineata a sinistra */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="cancellationAccepted"
+            checked={cancellationAccepted}
+            onCheckedChange={onCancellationChange}
+            className="mt-1"
+          />
+          <div className="flex-1">
+            <label 
+              htmlFor="cancellationAccepted" 
+              className="block text-sm font-medium text-gray-900 cursor-pointer"
+            >
+              {dictionary.cancellationPolicyTitle || "Cancellation Policy"}
+            </label>
+            <p className="text-sm text-gray-700 mt-1">
+              {dictionary.cancellationPolicy}
+            </p>
+            {cancellationError && (
+              <p className="text-red-600 text-sm mt-2" role="alert">
+                {cancellationError.message}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <Button
-        type="button"
-        onClick={onSubmit}
-        disabled={isSubmitting}
-        className={`px-8 py-3 flex items-center justify-center mx-auto text-white ${
-          isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-        }`}
-        size="lg"
-      >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            {dictionary.processing}
-          </>
-        ) : (
-          <>
-            <CreditCard className="w-5 h-5 mr-2" />
-            {dictionary.button}
-            {pricing && <span className="ml-2 font-bold">€{formatPrice(pricing.totalPrice)}</span>}
-          </>
+      {/* Submit Button */}
+      <div className="text-center">
+        <Button
+          type="button"
+          onClick={onSubmit}
+          disabled={isSubmitting}
+          className={`px-8 py-3 flex items-center justify-center mx-auto text-white ${
+            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+          }`}
+          size="lg"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              {dictionary.processing}
+            </>
+          ) : (
+            <>
+              <CreditCard className="w-5 h-5 mr-2" />
+              {dictionary.button}
+              {pricing && <span className="ml-2 font-bold">€{formatPrice(pricing.totalPrice)}</span>}
+            </>
+          )}
+        </Button>
+
+        {/* Additional Quotes Text */}
+        <div className="text-sm text-gray-600 mt-4">
+          <p>{dictionary.additionalQuotes}</p>
+        </div>
+
+        {submitError && (
+          <p className="text-red-600 text-sm mt-2" role="alert">
+            {submitError}
+          </p>
         )}
-      </Button>
-
-      {/* Additional Quotes Text */}
-      <div className="text-sm text-gray-600 mt-4">
-        <p>{dictionary.additionalQuotes}</p>
       </div>
-
-      {submitError && (
-        <p className="text-red-600 text-sm" role="alert">
-          {submitError}
-        </p>
-      )}
     </div>
   )
 })

@@ -274,10 +274,10 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         <div className="flex items-center gap-2">
                           {/* Category icon */}
                           {vehicle.category === 'ceremony' && (
-                            <span className="text-xs">🏆</span>
+                            <span className="text-xs"></span>
                           )}
                           {vehicle.category === 'luxury' && (
-                            <span className="text-xs">💎</span>
+                            <span className="text-xs"></span>
                           )}
                           
                           <span className="font-medium text-sm">{vehicle.label}</span>
@@ -294,9 +294,9 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                         <div className="text-xs text-gray-500">
                           <span>{vehicle.maxPassengers} {dictionary.passengers}</span>
                           {vehicle.maxSmallLuggage ? (
-                            <span> • {vehicle.maxLuggage} 🧳 + {vehicle.maxSmallLuggage} 🎒</span>
+                            <span> • {vehicle.maxLuggage} large + {vehicle.maxSmallLuggage} small</span>
                           ) : (
-                            <span> • {vehicle.maxLuggage} 🧳</span>
+                            <span> • {vehicle.maxLuggage} luggage</span>
                           )}
                         </div>
                       </div>
@@ -452,10 +452,10 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                               <div className="flex items-center gap-2">
                                 {/* Category icon */}
                                 {vehicle.category === 'ceremony' && (
-                                  <span className="text-xs">🏆</span>
+                                  <span className="text-xs"></span>
                                 )}
                                 {vehicle.category === 'luxury' && (
-                                  <span className="text-xs">💎</span>
+                                  <span className="text-xs"></span>
                                 )}
                                 
                                 <span className="font-medium text-sm">{vehicle.label}</span>
@@ -472,9 +472,9 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
                               <div className="text-xs text-gray-500">
                                 <span>{vehicle.maxPassengers} {dictionary.passengers}</span>
                                 {vehicle.maxSmallLuggage ? (
-                                  <span> • {vehicle.maxLuggage} 🧳 + {vehicle.maxSmallLuggage} 🎒</span>
+                                  <span> • {vehicle.maxLuggage} large + {vehicle.maxSmallLuggage} small</span>
                                 ) : (
-                                  <span> • {vehicle.maxLuggage} 🧳</span>
+                                  <span> • {vehicle.maxLuggage} luggage</span>
                                 )}
                               </div>
                             </div>

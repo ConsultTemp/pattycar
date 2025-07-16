@@ -9,6 +9,62 @@ import { isOlympicPeriod } from "@/lib/olympic-pricing"
 import { useDebounce } from "@/hooks/use-debounce"
 import { shouldUseListinoPricing } from "@/lib/locality-mapping"
 
+// EU Countries - ISO 3166-1 alpha-2 country codes
+const EU_COUNTRIES = new Set([
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 
+  'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 
+  'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE'
+])
+
+// Function to check if a Google Place is in the EU
+function isGooglePlaceInEU(place: Place): boolean {
+  // First check for non-EU keywords in the description (failsafe)
+  const nonEUKeywords = [
+    'switzerland', 'svizzera', 'schweiz', 'suisse', 'suiza',
+    'united kingdom', 'uk', 'regno unito', 'great britain',
+    'norway', 'norvegia', 'norge',
+    'serbia', 'albania', 'bosnia', 'kosovo', 'montenegro',
+    'russia', 'ukraine', 'belarus', 'moldova',
+    'turkey', 'turchia', 'türkiye'
+  ]
+  
+  const description = place.description.toLowerCase()
+  for (const keyword of nonEUKeywords) {
+    if (description.includes(keyword)) {
+      console.log(`🚫 Non-EU keyword found in description: ${place.description} -> ${keyword}`)
+      return false
+    }
+  }
+  
+  // If no address components, ACCEPT by default (assume EU)
+  if (!place.address_components || place.address_components.length === 0) {
+    console.log('✅ No address components, accepting by default:', place.description)
+    return true
+  }
+  
+  // Look for country component
+  for (const component of place.address_components) {
+    if (component.types?.includes('country')) {
+      const countryCode = component.short_name || component.long_name
+      
+      // Make sure countryCode is defined before using it
+      if (!countryCode) {
+        console.log('✅ Country component has no name, accepting by default:', component)
+        continue
+      }
+      
+      const isEU = EU_COUNTRIES.has(countryCode.toUpperCase())
+      
+      console.log(`🌍 Country check: ${place.description} -> ${countryCode} -> ${isEU ? 'EU ✅' : 'NON-EU 🚫'}`)
+      return isEU
+    }
+  }
+  
+  // No country component found, ACCEPT by default (assume EU)
+  console.log('✅ No country component, accepting by default:', place.description)
+  return true
+}
+
 interface Place {
   place_id: string
   description: string
@@ -272,7 +328,12 @@ export function LocationSelector({
       }
 
       console.log('🔍 Google Places results:', data.predictions)
-      setGooglePlaces(data.predictions || [])
+      
+      // Filter out non-EU locations silently
+      const euResults = (data.predictions || []).filter((place: Place) => isGooglePlaceInEU(place))
+      
+      console.log('✅ EU filtered results:', euResults.length, 'out of', (data.predictions || []).length)
+      setGooglePlaces(euResults)
     } catch (error) {
       console.error("Error fetching places:", error)
       setGoogleError(error instanceof Error ? error.message : "Errore nella ricerca")
@@ -543,7 +604,7 @@ export function LocationSelector({
                             <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">GP</span>
                           )}
                           {location.services.olympicVenue?.enabled && isOlympic && (
-                            <span className="px-1.5 py-0.5 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded">🏔️</span>
+                            <span className="px-1.5 py-0.5 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded"></span>
                           )}
                           {(location.services.meetGreetArrivals?.enabled || location.services.meetGreetDepartures?.enabled) && (
                             <span className="px-1.5 py-0.5 bg-green-100 text-green-800 text-xs rounded">M&G</span>

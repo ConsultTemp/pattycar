@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     console.log("Origins string:", originsStr)
     console.log("Destinations string:", destinationsStr)
 
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(originsStr)}&destinations=${encodeURIComponent(destinationsStr)}&key=${apiKey}&language=it&units=metric`
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(originsStr)}&destinations=${encodeURIComponent(destinationsStr)}&key=${apiKey}&language=en&units=metric`
 
     console.log("🌐 Calling Google Distance Matrix API")
     console.log("URL (without key):", url.replace(apiKey, "***"))
