@@ -57,4 +57,36 @@ export async function getCurrentUser() {
   } catch (error) {
     return null
   }
+}
+
+// Complete invite setup with password (client-side)
+export async function completeInviteSetup(tokenHash: string, password: string): Promise<AuthResult> {
+  try {
+    // First verify the invite token
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'invite'
+    })
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    if (!data.user || !data.session) {
+      return { success: false, error: 'No user data returned' }
+    }
+
+    // Then update the user's password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: password
+    })
+
+    if (updateError) {
+      return { success: false, error: updateError.message }
+    }
+
+    return { success: true, user: data.user, session: data.session }
+  } catch (error) {
+    return { success: false, error: 'Setup failed' }
+  }
 } 

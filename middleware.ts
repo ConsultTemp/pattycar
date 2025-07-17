@@ -46,14 +46,28 @@ export function middleware(request: NextRequest) {
 
   // For valid locales, proceed with the request
   const response = NextResponse.next()
+  
+  // Header di sicurezza base per tutte le pagine
+  response.headers.set("X-Content-Type-Options", "nosniff")
+  response.headers.set("X-Frame-Options", "DENY") 
+  response.headers.set("X-XSS-Protection", "1; mode=block")
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+  
+  // Header di sicurezza extra per le rotte admin
+  const isAdminRoute = pathname.includes('/admin')
+  if (isAdminRoute) {
+    response.headers.set("Cache-Control", "no-cache, no-store, must-revalidate")
+    response.headers.set("Pragma", "no-cache")
+    response.headers.set("Expires", "0")
+  }
 
   // Add cache headers for static assets
   if (pathname.includes("/images/") || pathname.includes("/fonts/") || pathname.includes("/_next/static/")) {
     response.headers.set("Cache-Control", "public, max-age=31536000, immutable")
   }
 
-  // Add cache headers for HTML pages
-  if (pathname.endsWith("/") || pathname.endsWith(".html")) {
+  // Add cache headers for HTML pages (non-admin)
+  if (!isAdminRoute && (pathname.endsWith("/") || pathname.endsWith(".html"))) {
     response.headers.set("Cache-Control", "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400")
   }
 

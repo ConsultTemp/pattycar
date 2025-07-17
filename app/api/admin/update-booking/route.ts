@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
 import { Database } from '@/types/database.types'
+import { getAuthenticatedUser } from '@/lib/auth-server'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -8,6 +9,10 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     
     const { id, ...updateData } = body
+
+    // Get the authenticated user
+    const authenticatedUser = await getAuthenticatedUser()
+    const currentUserId = authenticatedUser?.id || null
 
     if (!id) {
       return NextResponse.json(
@@ -19,7 +24,8 @@ export async function PUT(request: NextRequest) {
     // Prepare update data
     const bookingUpdateData = {
       ...updateData,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      modified_by: currentUserId
     }
 
     // Remove undefined values

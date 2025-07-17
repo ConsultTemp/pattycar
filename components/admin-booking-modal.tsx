@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Loader2, Edit } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Database } from "@/types/database.types"
 
 type BookingRow = Database['public']['Tables']['bookings']['Row']
+type DriverRow = Database['public']['Tables']['drivers']['Row']
 
 interface BookingModalProps {
   dictionary: any
@@ -23,6 +25,10 @@ interface BookingModalProps {
 export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode = 'create' }: BookingModalProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [drivers, setDrivers] = useState<DriverRow[]>([])
+  const [loadingDrivers, setLoadingDrivers] = useState(false)
+  const [customers, setCustomers] = useState<any[]>([])
+  const [loadingCustomers, setLoadingCustomers] = useState(false)
   const { toast } = useToast()
   
   const getInitialFormData = () => {
@@ -50,7 +56,9 @@ export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode 
         billing_info: booking.billing_info || "",
         amount_total: booking.amount_total ? booking.amount_total / 100 : 0,
         vat_rate: booking.vat_rate || "22",
-        is_olympic_pricing: booking.is_olympic_pricing || false
+        is_olympic_pricing: booking.is_olympic_pricing || false,
+        driver_id: (booking as any).driver_id || "none",
+        customer_id: (booking as any).customer_id || "none"
       }
     }
     
@@ -77,16 +85,80 @@ export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode 
       billing_info: "",
       amount_total: 0,
       vat_rate: "22",
-      is_olympic_pricing: false
+      is_olympic_pricing: false,
+      driver_id: "none",
+      customer_id: "none"
     }
   }
 
   const [formData, setFormData] = useState(getInitialFormData())
 
+  // Fetch drivers
+  const fetchDrivers = async () => {
+    try {
+      setLoadingDrivers(true)
+      const response = await fetch('/api/admin/drivers')
+      const result = await response.json()
+
+      if (result.success) {
+        setDrivers(result.data)
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to fetch drivers",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch drivers",
+        variant: "destructive"
+      })
+    } finally {
+      setLoadingDrivers(false)
+    }
+  }
+
+  // Fetch customers
+  const fetchCustomers = async () => {
+    try {
+      setLoadingCustomers(true)
+      const response = await fetch('/api/admin/customers')
+      const result = await response.json()
+
+      if (result.success) {
+        setCustomers(result.data)
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to fetch customers",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch customers",
+        variant: "destructive"
+      })
+    } finally {
+      setLoadingCustomers(false)
+    }
+  }
+
   // Update form data when booking changes
   useEffect(() => {
     setFormData(getInitialFormData())
   }, [booking, mode])
+
+  // Fetch drivers when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchDrivers()
+      fetchCustomers()
+    }
+  }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,6 +171,8 @@ export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode 
       const requestBody: any = {
         ...formData,
         amount_total: Math.round(formData.amount_total * 100), // Convert to cents
+        driver_id: formData.driver_id === "none" ? null : formData.driver_id, // Convert "none" to null
+        customer_id: formData.customer_id === "none" ? null : formData.customer_id, // Convert "none" to null
       }
 
       // For edit mode, include the booking ID
@@ -155,7 +229,7 @@ export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="text-white">
+        <Button className="text-white" size="sm">
           {mode === 'edit' ? <Edit className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
           {mode === 'edit' ? 'Modifica' : 'Nuova Prenotazione'}
         </Button>
@@ -334,6 +408,44 @@ export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode 
                 />
               </div>
             </div>
+            
+            {/* Driver and Customer Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="driver_id">{dictionary.admin?.drivers?.assignedDriver || "Assigned Driver"}</Label>
+                <Combobox
+                  options={[
+                    { value: "none", label: dictionary.admin?.drivers?.noDriverAssigned || "No driver assigned" },
+                    ...drivers.map(driver => ({ 
+                      value: driver.id, 
+                      label: driver.name 
+                    }))
+                  ]}
+                  value={formData.driver_id || "none"}
+                  onChange={(value) => handleInputChange('driver_id', value === "none" ? "" : value)}
+                  placeholder={loadingDrivers ? "Loading drivers..." : dictionary.admin?.drivers?.selectDriver || "Select driver"}
+                  searchPlaceholder={dictionary.admin?.dashboard?.searchDrivers || "Search drivers..."}
+                  emptyMessage={dictionary.admin?.dashboard?.noDriversFound || "No drivers found"}
+                />
+              </div>
+              <div>
+                <Label htmlFor="customer_id">{dictionary.admin?.customers?.assignedCustomer || "Assigned Customer"}</Label>
+                <Combobox
+                  options={[
+                    { value: "none", label: dictionary.admin?.customers?.noCustomerAssigned || "No customer assigned" },
+                    ...customers.map(customer => ({ 
+                      value: customer.id, 
+                      label: customer.name 
+                    }))
+                  ]}
+                  value={formData.customer_id || "none"}
+                  onChange={(value) => handleInputChange('customer_id', value === "none" ? "" : value)}
+                  placeholder={loadingCustomers ? "Loading customers..." : dictionary.admin?.customers?.selectCustomer || "Select customer"}
+                  searchPlaceholder={dictionary.admin?.dashboard?.searchCustomers || "Search customers..."}
+                  emptyMessage={dictionary.admin?.dashboard?.noCustomersFound || "No customers found"}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Additional Information */}
@@ -412,7 +524,7 @@ export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode 
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               Annulla
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="bg-black text-white hover:bg-gray-800">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

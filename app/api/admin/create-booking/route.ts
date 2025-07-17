@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
 import { Database } from '@/types/database.types'
 import { randomUUID } from 'crypto'
+import { getAuthenticatedUser } from '@/lib/auth-server'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient()
     const body = await request.json()
+
+    // Get the authenticated user
+    const authenticatedUser = await getAuthenticatedUser()
+    const currentUserId = authenticatedUser?.id || null
 
     // Validate required fields
     const requiredFields = [
@@ -98,6 +103,16 @@ export async function POST(request: NextRequest) {
       
       // Metadata
       raw_metadata: body.raw_metadata || null,
+      
+      // Driver assignment
+      driver_id: body.driver_id || null,
+      
+      // Customer assignment
+      customer_id: body.customer_id || null,
+      
+      // Audit fields
+      created_by: currentUserId,
+      modified_by: currentUserId,
       
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()

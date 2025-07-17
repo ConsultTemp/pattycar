@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertTriangle } from "lucide-react"
 
 interface AdminLoginFormProps {
   lang: string
@@ -23,6 +23,8 @@ export default function AdminLoginFormSupabase({ lang, dictionary }: AdminLoginF
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [isBlocked, setIsBlocked] = useState(false)
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,19 +47,38 @@ export default function AdminLoginFormSupabase({ lang, dictionary }: AdminLoginF
             })
           })
           
+          const data = await response.json()
+          
           if (response.ok) {
             router.push(`/${lang}/admin/dashboard`)
           } else {
-            setError(dictionary.admin?.login?.loginError || "Failed to set authentication cookies")
+            // Gestione errori con rate limiting
+            if (response.status === 429) {
+              setError(data.error || "Troppi tentativi di login. Riprova più tardi.")
+              setIsBlocked(true)
+            } else {
+              setError(data.error || dictionary.admin?.login?.loginError || "Errore durante l'autenticazione")
+              setRemainingAttempts(data.remainingAttempts)
+            }
           }
         } else {
-          setError(dictionary.admin?.login?.loginError || "No session data received")
+          setError(dictionary.admin?.login?.loginError || "Errore di autenticazione")
         }
       } else {
-        setError(result.error || dictionary.admin?.login?.invalidCredentials || "Login failed")
+        // Login fallito da Supabase - registra il tentativo fallito
+        await fetch('/api/auth/set-cookies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            accessToken: null,
+            refreshToken: null
+          })
+        }).catch(() => {}) // Ignora errori per questo logging
+        
+        setError(result.error || dictionary.admin?.login?.invalidCredentials || "Credenziali non valide")
       }
     } catch (err) {
-      setError(dictionary.admin?.login?.loginError || "An unexpected error occurred")
+      setError(dictionary.admin?.login?.loginError || "Errore durante il login")
     } finally {
       setIsLoading(false)
     }
@@ -75,7 +96,18 @@ export default function AdminLoginFormSupabase({ lang, dictionary }: AdminLoginF
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {/* Avviso tentativi rimanenti */}
+      {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 2 && !isBlocked && (
+        <Alert className="border-yellow-500 bg-yellow-50">
+          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800">
+            Attenzione: {remainingAttempts} tentativi rimanenti
+          </AlertDescription>
         </Alert>
       )}
       
@@ -88,7 +120,7 @@ export default function AdminLoginFormSupabase({ lang, dictionary }: AdminLoginF
           value={formData.email}
           onChange={handleInputChange}
           required
-          disabled={isLoading}
+          disabled={isLoading || isBlocked}
           placeholder={dictionary.admin?.login?.emailPlaceholder || "admin@example.com"}
           className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
         />
@@ -104,7 +136,7 @@ export default function AdminLoginFormSupabase({ lang, dictionary }: AdminLoginF
             value={formData.password}
             onChange={handleInputChange}
             required
-            disabled={isLoading}
+            disabled={isLoading || isBlocked}
             placeholder={dictionary.admin?.login?.passwordPlaceholder || "Enter your password"}
             className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 pr-10"
           />
@@ -114,7 +146,7 @@ export default function AdminLoginFormSupabase({ lang, dictionary }: AdminLoginF
             size="sm"
             className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-100 text-gray-500"
             onClick={() => setShowPassword(!showPassword)}
-            disabled={isLoading}
+            disabled={isLoading || isBlocked}
             title={showPassword ? dictionary.admin?.login?.hidePassword : dictionary.admin?.login?.showPassword}
           >
             {showPassword ? (
@@ -129,15 +161,15 @@ export default function AdminLoginFormSupabase({ lang, dictionary }: AdminLoginF
       <Button 
         type="submit" 
         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium" 
-        disabled={isLoading}
+        disabled={isLoading || isBlocked}
       >
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {dictionary.admin?.login?.loggingIn || "Logging in..."}
+            {dictionary.admin?.login?.loggingIn || "Accesso in corso..."}
           </>
         ) : (
-          dictionary.admin?.login?.loginButton || "Login"
+          dictionary.admin?.login?.loginButton || "Accedi"
         )}
       </Button>
     </form>

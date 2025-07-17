@@ -96,7 +96,7 @@ export function AdminDeleteModal({ booking, onBookingDeleted, dictionary }: Dele
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isLoading}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-red-600 hover:bg-red-700 text-white"
           >
             {isLoading ? (
               <>
