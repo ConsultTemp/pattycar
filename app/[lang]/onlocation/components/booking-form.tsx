@@ -120,9 +120,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     dispatch({ type: "SET_CUSTOMER", payload: customer })
   }, [])
 
-  const handleCancellationChange = useCallback((accepted: boolean) => {
-    setCancellationAccepted(accepted)
-  }, [])
+
 
   const handleServiceTypeChange = useCallback((serviceType: ServiceType) => {
     dispatch({ type: "SET_SERVICE_TYPE", payload: serviceType })
@@ -292,7 +290,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       dispatch({ type: "SET_SUBMIT_STATUS", payload: "error" })
       console.error("Booking submission error:", getErrorMessage(bookingError))
     }
-  }, [state, validateAll, handleError, getErrorMessage, pricing])
+  }, [state, validateAll, handleError, getErrorMessage, pricing, cancellationAccepted])
 
   // Success state
   if (state.ui.submitStatus === "success") {
@@ -555,7 +553,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 : undefined
             }
             cancellationAccepted={cancellationAccepted}
-            onCancellationChange={handleCancellationChange}
+            onCancellationChange={setCancellationAccepted}
             onSubmit={handleSubmit}
             dictionary={dictionary.submit}
             validationErrors={state.ui.errors}
