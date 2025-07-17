@@ -23,7 +23,18 @@ import {
   FileText,
   ExternalLink,
   UserCheck,
-  UserX
+  UserX,
+  Clock2,
+  Settings,
+  Bell,
+  Star,
+  Shield,
+  Zap,
+  X,
+  Baby,
+  UserPlus,
+  Briefcase,
+  Timer
 } from "lucide-react"
 
 interface BookingViewModalProps {
@@ -78,6 +89,24 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
     return colors[type] || 'bg-gray-100 text-gray-800'
   }
 
+  // Parse individual vehicles if available
+  const individualVehicles = booking.individual_vehicles ? 
+    (typeof booking.individual_vehicles === 'string' ? 
+      JSON.parse(booking.individual_vehicles) : 
+      booking.individual_vehicles) : null
+
+  // Parse meet & greet config if available
+  const meetGreetConfig = booking.meet_greet_config ? 
+    (typeof booking.meet_greet_config === 'string' ? 
+      JSON.parse(booking.meet_greet_config) : 
+      booking.meet_greet_config) : null
+
+  // Parse raw metadata if available
+  const rawMetadata = booking.raw_metadata ? 
+    (typeof booking.raw_metadata === 'string' ? 
+      JSON.parse(booking.raw_metadata) : 
+      booking.raw_metadata) : null
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -86,11 +115,11 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
           {dictionary.admin?.dashboard?.view || "View"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl bg-white max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl bg-white max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <FileText className="mr-2 h-5 w-5" />
-            {dictionary.admin?.dashboard?.bookingDetails || "Booking Details"}
+            {dictionary.admin?.dashboard?.bookingDetails || "Booking Details"} - {booking.id}
           </DialogTitle>
         </DialogHeader>
         
@@ -109,16 +138,16 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                   <p className="font-mono text-sm">{booking.id}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Stripe Session:</span>
-                  <p className="font-mono text-sm">{booking.stripe_session_id}</p>
-                </div>
-                <div>
                   <span className="text-sm text-gray-500">Payment Status:</span>
                   <Badge className="ml-2 bg-green-100 text-green-800">{booking.payment_status}</Badge>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Amount:</span>
                   <p className="font-semibold text-green-600">{formatCurrency(booking.amount_total)}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Currency:</span>
+                  <p className="uppercase">{booking.currency}</p>
                 </div>
               </div>
               {booking.invoice_url && (
@@ -176,7 +205,7 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
-                <Car className="mr-2 h-5 w-5" />
+                <Settings className="mr-2 h-5 w-5" />
                 {dictionary.admin?.dashboard?.serviceInfo || "Service Information"}
               </CardTitle>
             </CardHeader>
@@ -196,17 +225,37 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                   </p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Time:</span>
+                  <span className="text-sm text-gray-500">Start Time:</span>
                   <p className="flex items-center">
                     <Clock className="mr-1 h-3 w-3" />
                     {booking.service_time}
-                    {booking.service_end_time && ` - ${booking.service_end_time}`}
                   </p>
                 </div>
+                {booking.service_end_time && (
+                  <div>
+                    <span className="text-sm text-gray-500">End Time:</span>
+                    <p className="flex items-center">
+                      <Clock2 className="mr-1 h-3 w-3" />
+                      {booking.service_end_time}
+                    </p>
+                  </div>
+                )}
                 {booking.service_duration && (
                   <div>
                     <span className="text-sm text-gray-500">Duration:</span>
-                    <p>{booking.service_duration}h</p>
+                    <p className="flex items-center">
+                      <Timer className="mr-1 h-3 w-3" />
+                      {booking.service_duration}h
+                    </p>
+                  </div>
+                )}
+                {booking.is_olympic_pricing && (
+                  <div>
+                    <span className="text-sm text-gray-500">Olympic Pricing:</span>
+                    <Badge variant="outline" className="ml-2">
+                      <Star className="mr-1 h-3 w-3" />
+                      Olympic
+                    </Badge>
                   </div>
                 )}
               </div>
@@ -228,6 +277,12 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                   <MapPin className="mr-1 h-3 w-3 text-green-600" />
                   {booking.pickup_address}
                 </p>
+                {booking.pickup_location_id && (
+                  <p className="text-xs text-gray-500 ml-4">Location ID: {booking.pickup_location_id}</p>
+                )}
+                {booking.pickup_is_custom && (
+                  <Badge variant="outline" className="ml-4 text-xs">Custom Location</Badge>
+                )}
               </div>
               <div>
                 <span className="text-sm text-gray-500">Destination Address:</span>
@@ -235,6 +290,12 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                   <MapPin className="mr-1 h-3 w-3 text-red-600" />
                   {booking.destination_address}
                 </p>
+                {booking.destination_location_id && (
+                  <p className="text-xs text-gray-500 ml-4">Location ID: {booking.destination_location_id}</p>
+                )}
+                {booking.destination_is_custom && (
+                  <Badge variant="outline" className="ml-4 text-xs">Custom Location</Badge>
+                )}
               </div>
               {booking.distance && (
                 <div>
@@ -248,43 +309,120 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                   <p>{booking.duration}</p>
                 </div>
               )}
+              {booking.event_route && (
+                <div>
+                  <span className="text-sm text-gray-500">Event Route:</span>
+                  <p>{booking.event_route}</p>
+                </div>
+              )}
+              {booking.transfer_route && (
+                <div>
+                  <span className="text-sm text-gray-500">Transfer Route:</span>
+                  <p>{booking.transfer_route}</p>
+                </div>
+              )}
+              {booking.transfer_cost && (
+                <div>
+                  <span className="text-sm text-gray-500">Transfer Cost:</span>
+                  <p>{booking.transfer_cost}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Vehicle Information */}
+          {/* Detailed Vehicle Information */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Car className="mr-2 h-5 w-5" />
-                {dictionary.admin?.dashboard?.vehicleInfo || "Vehicle Information"}
+                Informazioni Dettagliate Veicoli
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <span className="text-sm text-gray-500">Vehicle Type:</span>
-                  <p className="font-medium">{booking.vehicle_type}</p>
-                </div>
-                <div>
                   <span className="text-sm text-gray-500">Vehicle Count:</span>
-                  <p>{booking.vehicle_count}</p>
+                  <p className="font-medium">{booking.vehicle_count}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Passengers:</span>
+                  <span className="text-sm text-gray-500">Same Vehicle Type:</span>
+                  <Badge variant={booking.same_vehicle_type ? "default" : "secondary"} className="ml-2">
+                    {booking.same_vehicle_type ? "Yes" : "No"}
+                  </Badge>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Total Passengers:</span>
                   <p className="flex items-center">
                     <Users className="mr-1 h-3 w-3" />
                     {booking.passengers}
                   </p>
                 </div>
-                <div>
-                  <span className="text-sm text-gray-500">Luggage:</span>
-                  <p className="flex items-center">
-                    <Luggage className="mr-1 h-3 w-3" />
-                    {booking.luggage || 0}
-                  </p>
-                </div>
               </div>
-              
+
+              {booking.same_vehicle_type || booking.vehicle_count === 1 ? (
+                /* Single Vehicle Configuration */
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-3">Configurazione Veicolo Unico</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <span className="text-sm text-gray-600">Tipo:</span>
+                      <p className="font-medium">{booking.vehicle_type}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-600">Passeggeri:</span>
+                      <p className="flex items-center">
+                        <Users className="mr-1 h-3 w-3" />
+                        {booking.passengers}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-600">Bagagli:</span>
+                      <p className="flex items-center">
+                        <Luggage className="mr-1 h-3 w-3" />
+                        {booking.luggage || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Multiple Vehicle Configuration */
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Configurazioni Veicoli Individuali</h4>
+                  {individualVehicles && individualVehicles.length > 0 ? (
+                    individualVehicles.map((vehicle: any, index: number) => (
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-gray-800 mb-2">Veicolo {index + 1}</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600">Tipo:</span>
+                            <p className="font-medium">{vehicle.type}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600">Passeggeri:</span>
+                            <p className="flex items-center">
+                              <Users className="mr-1 h-3 w-3" />
+                              {vehicle.passengers}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600">Bagagli:</span>
+                            <p className="flex items-center">
+                              <Luggage className="mr-1 h-3 w-3" />
+                              {vehicle.luggage || 0}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      <p>Nessuna configurazione individuale disponibile</p>
+                      <p className="text-sm">Veicoli multipli con tipo: {booking.vehicle_type}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Driver Information */}
               <Separator />
               <div>
@@ -316,6 +454,134 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
             </CardContent>
           </Card>
 
+          {/* Detailed Meet & Greet Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Bell className="mr-2 h-5 w-5" />
+                Configurazione Completa Meet & Greet
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-gray-500">Meet & Greet Enabled:</span>
+                  {booking.meet_and_greet ? (
+                    <Badge variant="default" className="ml-2">
+                      <CheckCircle className="mr-1 h-3 w-3" />
+                      Yes
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="ml-2">
+                      <X className="mr-1 h-3 w-3" />
+                      No
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {meetGreetConfig && meetGreetConfig.enabled && (
+                <div className="bg-yellow-50 p-4 rounded-lg space-y-3">
+                  <h4 className="font-medium text-yellow-900 mb-3">Configurazione Dettagliata</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {meetGreetConfig.serviceId && (
+                      <div>
+                        <span className="text-sm text-gray-600">Service ID:</span>
+                        <p className="font-medium">{meetGreetConfig.serviceId}</p>
+                      </div>
+                    )}
+                    {meetGreetConfig.selectedService && (
+                      <div>
+                        <span className="text-sm text-gray-600">Selected Service:</span>
+                        <p className="font-medium">{meetGreetConfig.selectedService}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <span className="text-sm text-gray-600">Passengers:</span>
+                      <p className="flex items-center">
+                        <Users className="mr-1 h-3 w-3" />
+                        {meetGreetConfig.passengers || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-600">Children:</span>
+                      <p className="flex items-center">
+                        <Baby className="mr-1 h-3 w-3" />
+                        {meetGreetConfig.children || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-600">Infants:</span>
+                      <p className="flex items-center">
+                        <UserPlus className="mr-1 h-3 w-3" />
+                        {meetGreetConfig.infants || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-600">Extra Luggage:</span>
+                      <p className="flex items-center">
+                        <Briefcase className="mr-1 h-3 w-3" />
+                        {meetGreetConfig.extraLuggage || 0}
+                      </p>
+                    </div>
+                  </div>
+
+                  {meetGreetConfig.extraHours && meetGreetConfig.extraHours > 0 && (
+                    <div>
+                      <span className="text-sm text-gray-600">Extra Hours:</span>
+                      <p className="flex items-center">
+                        <Clock className="mr-1 h-3 w-3" />
+                        {meetGreetConfig.extraHours}h
+                      </p>
+                    </div>
+                  )}
+
+                  {meetGreetConfig.specialServices && Object.keys(meetGreetConfig.specialServices).length > 0 && (
+                    <div>
+                      <span className="text-sm text-gray-600 block mb-2">Special Services:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {meetGreetConfig.specialServices.tarmac && (
+                          <Badge variant="outline" className="bg-blue-50">
+                            <Plane className="mr-1 h-3 w-3" />
+                            Tarmac Access
+                          </Badge>
+                        )}
+                        {meetGreetConfig.specialServices.fastTrack && (
+                          <Badge variant="outline" className="bg-green-50">
+                            <Zap className="mr-1 h-3 w-3" />
+                            Fast Track
+                          </Badge>
+                        )}
+                        {meetGreetConfig.specialServices.vipLounge && (
+                          <Badge variant="outline" className="bg-purple-50">
+                            <Star className="mr-1 h-3 w-3" />
+                            VIP Lounge
+                          </Badge>
+                        )}
+                        {meetGreetConfig.specialServices.greeterOnly && (
+                          <Badge variant="outline" className="bg-gray-50">
+                            <User className="mr-1 h-3 w-3" />
+                            Greeter Only
+                          </Badge>
+                        )}
+                        {meetGreetConfig.specialServices.veniceCombo && (
+                          <Badge variant="outline" className="bg-orange-50">
+                            <Shield className="mr-1 h-3 w-3" />
+                            Venice Combo
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Additional Information */}
           <Card>
             <CardHeader>
@@ -341,24 +607,19 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                     <p>{booking.departure_city}</p>
                   </div>
                 )}
-                <div>
-                  <span className="text-sm text-gray-500">Meet & Greet:</span>
-                  {booking.meet_and_greet ? (
-                    <Badge variant="outline" className="ml-2">
-                      <CheckCircle className="mr-1 h-3 w-3" />
-                      Yes
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="ml-2">
-                      No
-                    </Badge>
-                  )}
-                </div>
-                {booking.is_olympic_pricing && (
+                {booking.night_surcharge && (
                   <div>
-                    <span className="text-sm text-gray-500">Olympic Pricing:</span>
+                    <span className="text-sm text-gray-500">Night Surcharge:</span>
                     <Badge variant="outline" className="ml-2">
-                      Olympic
+                      {booking.night_surcharge}
+                    </Badge>
+                  </div>
+                )}
+                {booking.service_badge && (
+                  <div>
+                    <span className="text-sm text-gray-500">Service Badge:</span>
+                    <Badge variant="outline" className="ml-2">
+                      {booking.service_badge}
                     </Badge>
                   </div>
                 )}
@@ -367,18 +628,80 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
               {booking.notes && (
                 <div>
                   <span className="text-sm text-gray-500">Notes:</span>
-                  <p className="bg-gray-50 p-3 rounded mt-1">{booking.notes}</p>
+                  <div className="bg-gray-50 p-3 rounded mt-1">
+                    <p className="whitespace-pre-wrap">{booking.notes}</p>
+                  </div>
                 </div>
               )}
               
               {booking.billing_info && (
                 <div>
                   <span className="text-sm text-gray-500">Billing Info:</span>
-                  <p className="bg-gray-50 p-3 rounded mt-1">{booking.billing_info}</p>
+                  <div className="bg-gray-50 p-3 rounded mt-1">
+                    <p className="whitespace-pre-wrap">{booking.billing_info}</p>
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Pricing Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Euro className="mr-2 h-5 w-5" />
+                {dictionary.admin?.dashboard?.pricingDetails || "Pricing Details"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-gray-500">Total Amount:</span>
+                  <p className="text-lg font-semibold text-green-600">{formatCurrency(booking.amount_total)}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">VAT Rate:</span>
+                  <p>{booking.vat_rate}%</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Currency:</span>
+                  <p className="uppercase">{booking.currency}</p>
+                </div>
+                {booking.payment_intent_id && (
+                  <div>
+                    <span className="text-sm text-gray-500">Payment Intent ID:</span>
+                    <p className="font-mono text-sm">{booking.payment_intent_id}</p>
+                  </div>
+                )}
+              </div>
+              
+              {booking.price_breakdown && (
+                <div>
+                  <span className="text-sm text-gray-500">Price Breakdown:</span>
+                  <div className="bg-gray-50 p-3 rounded mt-1">
+                    <p className="text-sm whitespace-pre-wrap">{booking.price_breakdown}</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Raw Metadata (if available) */}
+          {rawMetadata && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Raw Metadata
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gray-50 p-3 rounded">
+                  <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(rawMetadata, null, 2)}</pre>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Audit Information */}
           <Card>
@@ -411,47 +734,6 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Pricing Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Euro className="mr-2 h-5 w-5" />
-                {dictionary.admin?.dashboard?.pricingDetails || "Pricing Details"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm text-gray-500">Total Amount:</span>
-                  <p className="text-lg font-semibold text-green-600">{formatCurrency(booking.amount_total)}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">VAT Rate:</span>
-                  <p>{booking.vat_rate}%</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Currency:</span>
-                  <p className="uppercase">{booking.currency}</p>
-                </div>
-                {booking.night_surcharge && (
-                  <div>
-                    <span className="text-sm text-gray-500">Night Surcharge:</span>
-                    <Badge variant="outline" className="ml-2">
-                      Yes
-                    </Badge>
-                  </div>
-                )}
-              </div>
-              
-              {booking.price_breakdown && (
-                <div>
-                  <span className="text-sm text-gray-500">Price Breakdown:</span>
-                  <p className="bg-gray-50 p-3 rounded mt-1 text-sm">{booking.price_breakdown}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

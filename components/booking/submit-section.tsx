@@ -44,7 +44,7 @@ export const SubmitSection = memo<SubmitSectionProps>(({
           <Checkbox
             id="cancellationAccepted"
             checked={cancellationAccepted}
-            onCheckedChange={onCancellationChange}
+            onCheckedChange={(checked) => onCancellationChange(checked === true)}
             className="mt-1"
           />
           <div className="flex-1">
