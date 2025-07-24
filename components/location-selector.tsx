@@ -4,10 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { MapPin, Plane, Train, Loader2, AlertCircle, Star } from "lucide-react"
-import { getAllLocations, getLocationById, getAvailableLocations, type Location } from "@/lib/event-pricing"
-import { isOlympicPeriod } from "@/lib/olympic-pricing"
 import { useDebounce } from "@/hooks/use-debounce"
-import { shouldUseListinoPricing } from "@/lib/locality-mapping"
+import { matchGooglePlaceToService, hasMeetGreetService, hasOlympicPricing, type LocationMatchResult } from "@/lib/location-matching-corrected"
 
 // EU Countries - ISO 3166-1 alpha-2 country codes
 const EU_COUNTRIES = new Set([
@@ -41,70 +39,57 @@ function isGooglePlaceInEU(place: Place): boolean {
     console.log('✅ No address components, accepting by default:', place.description)
     return true
   }
-  
-  // Look for country component
+
+  // Check address components for country code
   for (const component of place.address_components) {
-    if (component.types?.includes('country')) {
-      const countryCode = component.short_name || component.long_name
-      
-      // Make sure countryCode is defined before using it
-      if (!countryCode) {
-        console.log('✅ Country component has no name, accepting by default:', component)
-        continue
-      }
-      
-      const isEU = EU_COUNTRIES.has(countryCode.toUpperCase())
-      
-      console.log(`🌍 Country check: ${place.description} -> ${countryCode} -> ${isEU ? 'EU ✅' : 'NON-EU 🚫'}`)
+    if (component.types.includes('country')) {
+      const countryCode = component.short_name
+      const isEU = EU_COUNTRIES.has(countryCode)
+      console.log(`🏳️ Country found: ${component.long_name} (${countryCode}) -> EU: ${isEU}`)
       return isEU
     }
   }
   
-  // No country component found, ACCEPT by default (assume EU)
-  console.log('✅ No country component, accepting by default:', place.description)
+  // If no country found in address components, accept by default
+  console.log('✅ No country found in address components, accepting by default:', place.description)
   return true
 }
 
+// Place interface from Google Places API
 interface Place {
   place_id: string
   description: string
-  main_text: string
-  secondary_text: string
-  address_components?: any[]
-  coordinates?: { lat: number; lng: number }
-  extracted_locality?: string | null
-  locality_info?: {
-    locality: string | null
-    administrative_area: string | null
+  matched_substrings?: Array<{ offset: number; length: number }>
+  structured_formatting?: {
+    main_text: string
+    secondary_text: string
   }
-}
-
-interface ListinoLocation {
-  id: string
-  displayName: string
-  type: Location['type']
-  services: Location['services']
+  address_components: Array<{
+    long_name: string
+    short_name: string
+    types: string[]
+  }>
   coordinates?: { lat: number; lng: number }
 }
 
 interface LocationSelectorProps {
-  label: string
-  value: {
+  label?: string
+  value?: {
     address: string
-    placeId: string
-    coordinates?: { lat: number; lng: number }
+    placeId: string | null
+    coordinates: { lat: number; lng: number } | null
     locationId?: string
-    isCustom?: boolean
+    isCustom: boolean
   }
-  onChange: (value: {
+  onLocationSelect: (location: {
     address: string
-    placeId: string
-    coordinates?: { lat: number; lng: number }
+    placeId: string | null
+    coordinates: { lat: number; lng: number } | null
     locationId?: string
-    isCustom?: boolean
+    isCustom: boolean
   }) => void
-  placeholder: string
-  customPlaceholder: string
+  placeholder?: string
+  customPlaceholder?: string
   error?: string
   className?: string
   journeyDate?: Date
@@ -113,8 +98,8 @@ interface LocationSelectorProps {
 
 export function LocationSelector({
   label,
-  value,
-  onChange,
+  value = { address: "", placeId: null, coordinates: null, locationId: undefined, isCustom: false },
+  onLocationSelect,
   placeholder,
   customPlaceholder,
   error,
@@ -142,243 +127,138 @@ export function LocationSelector({
   // Debounce per aggiornamenti al parent - più lungo per evitare interferenze
   const debouncedInputForParent = useDebounce(inputValue, 800)
 
-  // Get available locations based on journey date
-  const locations = getAvailableLocations(journeyDate)
-  const isOlympic = journeyDate ? isOlympicPeriod(journeyDate) : false
-
-  // Filter listino locations based on input
-  const filteredListinoLocations = locations.filter(location => {
-    if (!inputValue || inputValue.length < 1) return false
-    
-    const searchTerm = inputValue.toLowerCase().trim()
-    
-    // Search in displayName
-    if (location.displayName.toLowerCase().includes(searchTerm)) {
-      return true
-    }
-    
-    // Search in name (contains full names like "Aeroporto di Milano Linate")
-    if (location.name.toLowerCase().includes(searchTerm)) {
-      return true
-    }
-    
-    // Search by type keywords
-    const typeKeywords = {
-      'airport': ['aeroporto', 'airport', 'aereoporto', 'areoporto'],
-      'station': ['stazione', 'station', 'centrale', 'ferroviaria', 'treno'],
-      'city': ['città', 'city', 'centro', 'center']
-    }
-    
-    const locationTypeKeywords = typeKeywords[location.type] || []
-    if (locationTypeKeywords.some(keyword => searchTerm.includes(keyword))) {
-      return true
-    }
-    
-    // Search in specific location keywords
-    const locationKeywords: Record<string, string[]> = {
-      'linate': ['linate', 'lin'],
-      'malpensa': ['malpensa', 'mxp'],
-      'orio-al-serio': ['orio', 'bergamo', 'bgy'],
-      'milano': ['milano', 'milan', 'duomo'],
-      'cortina': ['cortina', 'ampezzo'],
-      'venezia': ['venezia', 'venice', 'venecia'],
-      'verona': ['verona', 'arena'],
-      'livigno': ['livigno'],
-      'bormio': ['bormio']
-    }
-    
-    const keywords = locationKeywords[location.id] || []
-    if (keywords.some(keyword => searchTerm.includes(keyword) || keyword.includes(searchTerm))) {
-      return true
-    }
-    
-    return false
-  })
-
-  // Sync input ONLY when prop changes from external source (not from our own updates)
+  // Sync with external value changes but avoid interference during user typing
   useEffect(() => {
-    const newPropValue = value.address || ""
+    const newAddress = value.address || ""
     
-    // Only sync if:
-    // 1. We're not currently typing
-    // 2. We're not selecting an option
-    // 3. The prop value actually changed from what we last knew
-    // 4. The current input value is different from the new prop value
-    if (!isTypingRef.current && 
+    // Only update if:
+    // 1. We're not currently selecting an option
+    // 2. We're not actively typing
+    // 3. The prop value actually changed from what we remember
+    if (!isSelectingOptionRef.current && 
+        !isTypingRef.current && 
+        newAddress !== lastPropValueRef.current) {
+      console.log('📥 Syncing with external value change:', lastPropValueRef.current, '->', newAddress)
+      setInputValue(newAddress)
+      lastPropValueRef.current = newAddress
+    }
+  }, [value.address])
+
+  // Notify parent of manual typing (delayed to avoid conflicts)
+  useEffect(() => {
+    if (isTypingRef.current && 
         !isSelectingOptionRef.current && 
-        newPropValue !== lastPropValueRef.current &&
-        inputValue !== newPropValue) {
+        debouncedInputForParent !== lastPropValueRef.current) {
       
-      console.log('🔄 Syncing input with prop value:', newPropValue)
-      setInputValue(newPropValue)
-    }
-    
-    lastPropValueRef.current = newPropValue
-  }, [value.address, inputValue])
-
-  // Update parent with debounced input (only when user stops typing)
-  useEffect(() => {
-    // Don't update parent if we're selecting an option or typing
-    if (isSelectingOptionRef.current || isTypingRef.current) {
-      return
-    }
-    
-    // Don't update if the debounced value is the same as current parent value
-    if (debouncedInputForParent === value.address) {
-      return
-    }
-    
-    // CRITICAL: Don't update if we have a valid selection (locationId or placeId)
-    // This prevents overwriting a valid selection with a "custom" one
-    if (value.locationId || (value.placeId && value.placeId !== "")) {
-      return
-    }
-    
-    console.log('📤 Updating parent with debounced value:', debouncedInputForParent)
-    
-    if (!debouncedInputForParent.trim()) {
-      // If input is empty, clear the selection
-      onChange({
-        address: "",
-        placeId: "",
-        coordinates: undefined,
-        locationId: undefined,
-        isCustom: true
-      })
-    } else {
-      // If input has content, mark as custom (will be updated if they select an option)
-      onChange({
+      console.log('⌨️ Notifying parent of manual typing:', debouncedInputForParent)
+      
+      // Update with basic custom location data
+      onLocationSelect({
         address: debouncedInputForParent,
-        placeId: "",
-        coordinates: undefined,
+        placeId: null,
+        coordinates: null,
         locationId: undefined,
         isCustom: true
       })
+      
+      lastPropValueRef.current = debouncedInputForParent
     }
-  }, [debouncedInputForParent, onChange, value.address, value.locationId, value.placeId])
+  }, [debouncedInputForParent, onLocationSelect])
 
-  // Search Google Places when input changes
-  useEffect(() => {
-    // Don't search if we're selecting an option
-    if (isSelectingOptionRef.current) {
-      return
+  // Handle input changes
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    console.log('✏️ Input change:', newValue)
+    
+    // Mark as typing and clear selection flag
+    isTypingRef.current = true
+    isSelectingOptionRef.current = false
+    
+    // Clear any existing typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
     }
     
-    if (debouncedInputValue && debouncedInputValue.length >= 3) {
+    // Set timeout to clear typing flag
+    typingTimeoutRef.current = setTimeout(() => {
+      console.log('⏰ Typing timeout reached')
+      isTypingRef.current = false
+    }, 1000)
+    
+    setInputValue(newValue)
+    
+    if (newValue.length > 0) {
+      setIsOpen(true)
+    } else {
+      setIsOpen(false)
+      setGooglePlaces([])
+      setGoogleError(null)
+    }
+  }, [])
+
+  // Handle input focus
+  const handleInputFocus = useCallback(() => {
+    console.log('🎯 Input focused')
+    if (inputValue.length > 0) {
+      setIsOpen(true)
+    }
+  }, [inputValue])
+
+  // Handle input blur with delay
+  const handleInputBlur = useCallback(() => {
+    setTimeout(() => {
+      if (!containerRef.current?.contains(document.activeElement)) {
+        console.log('👋 Input blurred - closing dropdown')
+        setIsOpen(false)
+      }
+    }, 200)
+  }, [])
+
+  // Google Places API search
+  useEffect(() => {
+    const searchGooglePlaces = async (query: string) => {
+      if (query.length < 2) return
+
+      console.log('🔍 Searching Google Places for:', query)
+      setIsLoadingGoogle(true)
+      setGoogleError(null)
+
+      try {
+        const response = await fetch(`/api/places-autocomplete?input=${encodeURIComponent(query)}`)
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log('📍 Google Places API response:', data)
+
+        if (data.predictions && Array.isArray(data.predictions)) {
+          // Filter for EU locations only
+          const euPlaces = data.predictions.filter((place: Place) => isGooglePlaceInEU(place))
+          console.log(`🇪🇺 Filtered ${data.predictions.length} → ${euPlaces.length} EU places`)
+          setGooglePlaces(euPlaces)
+        } else {
+          console.warn('⚠️ Invalid Google Places response structure:', data)
+          setGooglePlaces([])
+        }
+      } catch (error) {
+        console.error('❌ Google Places API error:', error)
+        setGoogleError(`Errore nella ricerca: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`)
+        setGooglePlaces([])
+      } finally {
+        setIsLoadingGoogle(false)
+      }
+    }
+
+    if (debouncedInputValue && !isSelectingOptionRef.current) {
       searchGooglePlaces(debouncedInputValue)
     } else {
       setGooglePlaces([])
       setGoogleError(null)
-    }
-  }, [debouncedInputValue])
-
-  // Handle click outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-        // When clicking outside, mark as not typing
-        isTypingRef.current = false
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current)
-          typingTimeoutRef.current = null
-        }
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
-
-  // Cleanup typing timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  // Funzione per cercare su Google Places
-  const searchGooglePlaces = useCallback(async (query: string) => {
-    if (!query || query.length < 3) return
-
-    setIsLoadingGoogle(true)
-    setGoogleError(null)
-
-    try {
-      const response = await fetch("/api/places", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ input: query }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.details || data.error || `HTTP ${response.status}`)
-      }
-
-      if (data.error) {
-        throw new Error(data.details || data.error)
-      }
-
-      console.log('🔍 Google Places results:', data.predictions)
-      
-      // Filter out non-EU locations silently
-      const euResults = (data.predictions || []).filter((place: Place) => isGooglePlaceInEU(place))
-      
-      console.log('✅ EU filtered results:', euResults.length, 'out of', (data.predictions || []).length)
-      setGooglePlaces(euResults)
-    } catch (error) {
-      console.error("Error fetching places:", error)
-      setGoogleError(error instanceof Error ? error.message : "Errore nella ricerca")
-      setGooglePlaces([])
-    } finally {
       setIsLoadingGoogle(false)
     }
-  }, [])
-
-  // Handle listino location selection
-  const handleListinoLocationSelect = (location: Location) => {
-    console.log('🎯 Selecting listino location:', location.displayName)
-    
-    // Prevent any interference during selection
-    isSelectingOptionRef.current = true
-    isTypingRef.current = false
-    
-    // Clear any typing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-      typingTimeoutRef.current = null
-    }
-    
-    // Update input and parent state immediately
-    setInputValue(location.displayName)
-    lastPropValueRef.current = location.displayName
-    
-    onChange({
-      address: location.displayName,
-      placeId: `location_${location.id}`,
-      coordinates: location.coordinates,
-      locationId: location.id,
-      isCustom: false
-    })
-    
-    // Close dropdown and clear Google results
-    setIsOpen(false)
-    setGooglePlaces([])
-    setGoogleError(null)
-    
-    // Clear selection flag after a short delay
-    setTimeout(() => {
-      isSelectingOptionRef.current = false
-    }, 100)
-  }
+  }, [debouncedInputValue])
 
   // Handle Google Places selection
   const handleGooglePlaceSelect = (place: Place) => {
@@ -394,43 +274,28 @@ export function LocationSelector({
       typingTimeoutRef.current = null
     }
     
-    // Check se questo indirizzo Google dovrebbe usare il listino
-    const listinoCheck = shouldUseListinoPricing(
-      place.extracted_locality || null,
-      place.address_components || [],
-      place.coordinates || null,
-      0.60 // 60% confidence threshold
-    )
+    // Match the Google Place to our service locations
+    const matchResult = matchGooglePlaceToService({
+      placeId: place.place_id,
+      description: place.description,
+      coordinates: place.coordinates || null,
+      addressComponents: place.address_components || []
+    })
 
-    console.log('📊 Listino check result:', listinoCheck)
+    console.log('📊 Location matching result:', matchResult)
 
     // Update input immediately
     setInputValue(place.description)
     lastPropValueRef.current = place.description
 
-    if (listinoCheck.useListino && listinoCheck.location) {
-      // USA IL LISTINO - location mappata
-      console.log('✅ Using listino pricing for:', place.description, '-> mapped to:', listinoCheck.locationId)
-      
-      onChange({
-        address: place.description,
-        placeId: place.place_id,
-        coordinates: place.coordinates || listinoCheck.location.coordinates,
-        locationId: listinoCheck.locationId!,
-        isCustom: false
-      })
-    } else {
-      // USA LA DISTANZA - indirizzo custom
-      console.log('📏 Using distance calculation for:', place.description)
-      
-      onChange({
-        address: place.description,
-        placeId: place.place_id,
-        coordinates: place.coordinates,
-        locationId: undefined,
-        isCustom: true
-      })
-    }
+    // Always use the Google Place data with our matching result
+    onLocationSelect({
+      address: place.description,
+      placeId: place.place_id,
+      coordinates: place.coordinates || matchResult.coordinates,
+      locationId: matchResult.type === 'service-location' ? matchResult.serviceLocation?.id : undefined,
+      isCustom: matchResult.type === 'custom-location'
+    })
     
     // Close dropdown and clear results
     setIsOpen(false)
@@ -443,233 +308,219 @@ export function LocationSelector({
     }, 100)
   }
 
-  // Handle input change - COMPLETELY LOCAL NOW
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    
-    // Don't update if we're currently selecting an option
-    if (isSelectingOptionRef.current) {
-      return
-    }
-    
-    // Mark as typing and clear any previous typing timeout
-    isTypingRef.current = true
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-    }
-    
-    // Set timeout to mark as not typing after user stops
-    typingTimeoutRef.current = setTimeout(() => {
-      isTypingRef.current = false
-      typingTimeoutRef.current = null
-    }, 1000) // 1 second after stopping typing
-    
-    // Always update input value immediately for responsive UI
-    setInputValue(newValue)
-    
-    // Clear any previous Google error
-    setGoogleError(null)
+  // Get icon for location type
+  const getLocationIcon = (place: Place) => {
+    const matchResult = matchGooglePlaceToService({
+      placeId: place.place_id,
+      description: place.description,
+      coordinates: place.coordinates || null,
+      addressComponents: place.address_components || []
+    })
 
-    // If user is typing and we had a valid selection, clear it immediately
-    // (This prevents keeping old selections when user starts typing new text)
-    if (newValue !== value.address && (value.locationId || value.placeId)) {
-      onChange({
-        address: newValue,
-        placeId: "",
-        coordinates: undefined,
-        locationId: undefined,
-        isCustom: true
-      })
+    if (matchResult.type === 'service-location' && matchResult.serviceLocation) {
+      const location = matchResult.serviceLocation
+      
+      // Airports
+      if (location.id.includes('malpensa') || location.id.includes('linate') || 
+          location.id.includes('orio') || location.id.includes('venezia-marco-polo') ||
+          location.id.includes('treviso')) {
+        return <Plane className="h-4 w-4 text-blue-600" />
+      }
+      
+      // Train stations
+      if (location.id.includes('centrale') || location.id.includes('santa-lucia') || 
+          location.id.includes('porta-nuova')) {
+        return <Train className="h-4 w-4 text-green-600" />
+      }
+      
+      // Olympic venues
+      if (location.services.olympicTransfers) {
+        return <Star className="h-4 w-4 text-yellow-600" />
+      }
     }
-
-    // Open dropdown if there's content
-    if (newValue.length >= 1) {
-      setIsOpen(true)
-    } else {
-      setGooglePlaces([])
-      setIsOpen(false)
-    }
+    
+    // Default location icon
+    return <MapPin className="h-4 w-4 text-gray-500" />
   }
 
-  // Handle input focus
-  const handleInputFocus = () => {
-    if (inputValue.length >= 1) {
-      setIsOpen(true)
-    }
-  }
+  // Get special services info for location
+  const getSpecialServicesInfo = (place: Place) => {
+    const matchResult = matchGooglePlaceToService({
+      placeId: place.place_id,
+      description: place.description,
+      coordinates: place.coordinates || null,
+      addressComponents: place.address_components || []
+    })
 
-  // Handle input blur
-  const handleInputBlur = () => {
-    // Mark as not typing when losing focus
-    isTypingRef.current = false
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-      typingTimeoutRef.current = null
+    if (matchResult.type === 'service-location' && matchResult.serviceLocation) {
+      const services = []
+      
+      if (matchResult.serviceLocation.services.meetGreetArrivals || 
+          matchResult.serviceLocation.services.meetGreetDepartures) {
+        services.push('Meet & Greet')
+      }
+      
+      if (matchResult.serviceLocation.services.olympicTransfers) {
+        services.push('Olympic Pricing')
+      }
+      
+      if (matchResult.serviceLocation.services.specialPricing) {
+        services.push('Special Rates')
+      }
+      
+      return services
     }
     
-    // Close dropdown after a short delay to allow for option selection
-    setTimeout(() => {
-      if (!isSelectingOptionRef.current) {
+    return []
+  }
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
-    }, 200)
-  }
-
-  // Handle option mousedown - prevent blur
-  const handleOptionMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-  }
-
-  // Icon for location type
-  const getLocationIcon = (type: Location['type']) => {
-    switch (type) {
-      case 'airport':
-        return <Plane className="h-4 w-4" />
-      case 'station':
-        return <Train className="h-4 w-4" />
-      default:
-        return <MapPin className="h-4 w-4" />
     }
-  }
 
-  // Function to determine if a Google place will use listino pricing (for display)
-  const getGooglePlaceListinoInfo = (place: Place) => {
-    const listinoCheck = shouldUseListinoPricing(
-      place.extracted_locality || null,
-      place.address_components || [],
-      place.coordinates || null,
-      0.60 // Same threshold as selection (60%)
-    )
-    return listinoCheck
-  }
-
-  const hasResults = filteredListinoLocations.length > 0 || googlePlaces.length > 0
-  const showNoResults = isOpen && inputValue.length >= 3 && !hasResults && !isLoadingGoogle && !googleError
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
+    <div ref={containerRef} className={`relative w-full ${className || ''}`}>
+      {label && (
+        <Label htmlFor="location-input" className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </Label>
+      )}
       
-      <div className={`relative w-full ${className}`} ref={containerRef}>
-        <div className="relative">
-          <Input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            placeholder={placeholder}
-            className={`pr-10 ${error ? "border-red-500" : ""}`}
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            {isLoadingGoogle ? (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-            ) : googleError ? (
-              <AlertCircle className="h-4 w-4 text-red-500" />
-            ) : (
-              <MapPin className="h-4 w-4 text-gray-400" />
-            )}
-          </div>
-        </div>
-
-        {/* Error message */}
-        {googleError && <div className="mt-1 text-sm text-red-600">{googleError}</div>}
-
-        {/* Unified dropdown with both listino and Google results */}
-        {isOpen && (filteredListinoLocations.length > 0 || googlePlaces.length > 0) && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-            
-            {/* Listino Locations First - ALWAYS PRIORITIZED */}
-            {filteredListinoLocations.length > 0 && (
-              <>
-                <div className="px-3 py-2 text-xs font-semibold text-green-600 bg-green-50 border-b flex items-center gap-1">
-                  <Star className="h-3 w-3" />
-                  {dictionary?.listinoResults || dictionary?.locationSearch?.listinoResults || dictionary?.common?.listinoResults || dictionary?.listinoResults || "Destinazioni del listino (prezzi fissi)"}
-                </div>
-                {filteredListinoLocations.map((location) => (
-                  <button
-                    key={`listino-${location.id}`}
-                    type="button"
-                    className="w-full px-4 py-3 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-none border-b border-gray-100"
-                    onMouseDown={handleOptionMouseDown}
-                    onClick={() => handleListinoLocationSelect(location)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      {getLocationIcon(location.type)}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900">{location.displayName}</div>
-                        <div className="flex items-center gap-1 mt-1">
-                          {location.services.gpMonza?.enabled && (
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">GP</span>
-                          )}
-                          {location.services.olympicVenue?.enabled && isOlympic && (
-                            <span className="px-1.5 py-0.5 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded"></span>
-                          )}
-                          {(location.services.meetGreetArrivals?.enabled || location.services.meetGreetDepartures?.enabled) && (
-                            <span className="px-1.5 py-0.5 bg-green-100 text-green-800 text-xs rounded">M&G</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </>
-            )}
-
-            {/* Google Places Results */}
-            {googlePlaces.length > 0 && (
-              <>
-                {filteredListinoLocations.length > 0 && (
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
-                    {dictionary?.googleResults || dictionary?.locationSearch?.googleResults || dictionary?.common?.googleResults || dictionary?.googleResults || "Altri indirizzi"}
-                  </div>
-                )}
-                {googlePlaces.map((place) => {
-                  const listinoInfo = getGooglePlaceListinoInfo(place)
-                  const willUseListino = listinoInfo.useListino
-                  const isGeographical = listinoInfo.matchType === 'geographical'
-                  
-                  return (
-                    <button
-                      key={`google-${place.place_id}`}
-                      type="button"
-                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0`}
-                      onMouseDown={handleOptionMouseDown}
-                      onClick={() => handleGooglePlaceSelect(place)}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">{place.main_text}</div>
-                          {place.secondary_text && <div className="text-xs text-gray-500 truncate">{place.secondary_text}</div>}
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* No results message */}
-        {showNoResults && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 text-center text-gray-500 text-sm">
-            {dictionary?.noResultsFound || dictionary?.locationSearch?.noResultsFound || dictionary?.common?.noResultsFound || dictionary?.noResultsFound || "Nessun risultato trovato"}
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          id="location-input"
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          placeholder={placeholder || "Cerca una location..."}
+          className={`w-full ${error ? 'border-red-500' : ''}`}
+          autoComplete="off"
+        />
+        
+        {/* Loading indicator */}
+        {isLoadingGoogle && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
           </div>
         )}
       </div>
 
-      {/* Help text */}
-      <p className="text-xs text-gray-500">
-        {dictionary?.startTypingToSearch || dictionary?.locationSearch?.startTypingToSearch || dictionary?.common?.startTypingToSearch || "Start typing to search for a location..."}
-      </p>
-
       {/* Error message */}
       {error && (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="mt-1 text-sm text-red-600">{error}</p>
+      )}
+
+      {/* Dropdown with results */}
+      {isOpen && (googlePlaces.length > 0 || isLoadingGoogle || googleError) && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+          
+          {/* Loading state */}
+          {isLoadingGoogle && (
+            <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Ricerca in corso...
+            </div>
+          )}
+
+          {/* Error state */}
+          {googleError && (
+            <div className="px-4 py-3 text-sm text-red-600 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              {googleError}
+            </div>
+          )}
+
+          {/* Google Places Results */}
+          {googlePlaces.length > 0 && (
+            <>
+              <div className="px-3 py-2 text-xs font-semibold text-blue-600 bg-blue-50 border-b flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                Google Places (EU Only)
+              </div>
+              {googlePlaces.map((place) => {
+                const specialServices = getSpecialServicesInfo(place)
+                
+                return (
+                  <div
+                    key={place.place_id}
+                    className="px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleGooglePlaceSelect(place)}
+                  >
+                    <div className="flex items-start gap-3">
+                      {getLocationIcon(place)}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 truncate">
+                          {place.structured_formatting?.main_text || place.description}
+                        </div>
+                        {place.structured_formatting?.secondary_text && (
+                          <div className="text-xs text-gray-500 truncate">
+                            {place.structured_formatting.secondary_text}
+                          </div>
+                        )}
+                        {specialServices.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {specialServices.map((service) => (
+                              <span
+                                key={service}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                              >
+                                {service}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </>
+          )}
+
+          {/* No results */}
+          {!isLoadingGoogle && !googleError && googlePlaces.length === 0 && inputValue.length >= 2 && (
+            <div className="px-4 py-3 text-sm text-gray-500">
+              Nessun risultato trovato per "{inputValue}"
+            </div>
+          )}
+        </div>
       )}
     </div>
+  )
+}
+
+// Export a corrected version that matches the BookingForm expectations
+export function LocationSelectorCorrected({
+  onLocationSelect,
+  placeholder,
+  dictionary
+}: {
+  onLocationSelect: (location: {
+    address: string
+    placeId: string | null
+    coordinates: { lat: number; lng: number } | null
+    locationId?: string
+    isCustom: boolean
+  }) => void
+  placeholder?: string
+  dictionary?: any
+}) {
+  return (
+    <LocationSelector
+      onLocationSelect={onLocationSelect}
+      placeholder={placeholder}
+      dictionary={dictionary}
+    />
   )
 } 

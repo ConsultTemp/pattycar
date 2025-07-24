@@ -10,31 +10,22 @@ import {
   calculateDispositionPrice,
   calculateMultipleVehiclesDispositionPrice,
 } from "@/lib/pricing-config"
+// Updated imports for corrected pricing modules
 import {
-  GP_MONZA_2025,
-  MILANO_CORTINA_2026,
-  isEventPeriod,
-  getActiveEvent,
-  findMatchingEventRoute,
-  findEventRouteByLocation,
-  findMeetGreetService,
-  calculateMeetGreetPriceLegacy,
-  findAvailableMeetGreetServices,
-  findMeetGreetServiceByLocation,
-  resolveLocationForPricing,
-  type EventRoute,
-  type EventPricing
-} from "@/lib/event-pricing"
-import {
+  CORRECTED_OLYMPIC_ROUTES,
+  findOlympicRouteCorrected,
   isOlympicPeriod,
-  findOlympicRoute,
-  findOlympicCeremony,
-  getOlympicLocations,
-  OLYMPIC_PRICING_CONFIG,
-  calculateCeremonyPrice as calcOlympicCeremonyPrice,
-  type OlympicRoute,
-  type OlympicCeremony
-} from "@/lib/olympic-pricing"
+  type OlympicRoute
+} from "@/lib/olympic-pricing-corrected"
+import {
+  hasMeetGreetService,
+  hasOlympicPricing,
+  matchGooglePlaceToService
+} from "@/lib/location-matching-corrected"
+import {
+  calculateMeetGreetPriceCorrected,
+  MEET_GREET_SERVICES
+} from "@/lib/meet-greet-corrected"
 
 // Export PricingResult for use in other components
 export type { PricingResult } from "@/lib/booking-types"
@@ -232,191 +223,12 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     return true
   }, [])
 
-  // NEW: Calculate Olympic ceremony pricing
+  // UPDATED: Calculate Olympic ceremony pricing using corrected system
+  // This functionality is temporarily disabled as ceremonies are handled by Olympic transfer pricing
   const calculateCeremonyPriceForBooking = useCallback(
-    async (state: BookingState, ceremony: OlympicCeremony): Promise<PricingResult | null> => {
-      const { vehicles, journey, options } = state
-      
-      // Calculate service hours (minimum 2 hours included)
-      const startTimeConverted = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
-      const endTimeConverted = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
-      const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
-      const serviceHours = Math.ceil(durationMinutes / 60)
-      
-      // Check night time
-      const isNight = journey.time && journey.minutes && journey.timeAmPm 
-        ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
-        : false
-      
-      let totalPrice = 0
-      let basePrice = 0
-      let meetGreetPrice = 0
-      let meetGreetBreakdown = null
-      const vehicleBreakdowns: any[] = []
-      
-      // Ceremony pricing components (for detailed breakdown)
-      let ceremonyBasePrice = 0
-      let extraHours = 0
-      let extraHoursCost = 0
-      let transferCost = 0
-      let nightSurcharge = 0
-      let vatAmount = 0
-      let transferRoute = ''
-      
-      if (vehicles.count === 1 || vehicles.sameType) {
-        // Single vehicle type - calculate once and multiply
-        const ceremonyResult = calcOlympicCeremonyPrice(
-          ceremony,
-          vehicles.singleConfig.type,
-          serviceHours,
-          journey.pickup.locationId,
-          isNight,
-          journey.pickup.coordinates,
-          journey.destination.locationId,
-          journey.destination.coordinates
-        )
-        
-        totalPrice = ceremonyResult.total * vehicles.count
-        basePrice = ceremonyResult.basePrice * vehicles.count
-        
-        // Extract components for breakdown
-        ceremonyBasePrice = ceremonyResult.basePrice * vehicles.count
-        extraHours = ceremonyResult.extraHours
-        extraHoursCost = ceremonyResult.extraHoursCost * vehicles.count
-        transferCost = ceremonyResult.transferCost * vehicles.count
-        nightSurcharge = ceremonyResult.nightSurcharge * vehicles.count
-        vatAmount = ceremonyResult.vatAmount * vehicles.count
-        transferRoute = ceremonyResult.transferRoute || ''
-
-        // Populate vehicle breakdown for single vehicle type
-        if (vehicles.count === 1) {
-          vehicleBreakdowns.push({
-            vehicleIndex: 1,
-            type: vehicles.singleConfig.type,
-            passengers: vehicles.singleConfig.passengers,
-            luggage: vehicles.singleConfig.luggage,
-            ceremonyBasePrice: ceremonyResult.basePrice,
-            extraHours: ceremonyResult.extraHours,
-            extraHoursCost: ceremonyResult.extraHoursCost,
-            transferCost: ceremonyResult.transferCost,
-            nightSurcharge: ceremonyResult.nightSurcharge,
-            vatAmount: ceremonyResult.vatAmount,
-            total: ceremonyResult.total
-          })
-        } else {
-          // For multiple same type vehicles, create breakdown for each
-          for (let i = 1; i <= vehicles.count; i++) {
-            vehicleBreakdowns.push({
-              vehicleIndex: i,
-              type: vehicles.singleConfig.type,
-              passengers: vehicles.singleConfig.passengers,
-              luggage: vehicles.singleConfig.luggage,
-              ceremonyBasePrice: ceremonyResult.basePrice,
-              extraHours: ceremonyResult.extraHours,
-              extraHoursCost: ceremonyResult.extraHoursCost,
-              transferCost: ceremonyResult.transferCost,
-              nightSurcharge: ceremonyResult.nightSurcharge,
-              vatAmount: ceremonyResult.vatAmount,
-              total: ceremonyResult.total
-            })
-          }
-        }
-      } else {
-        // Multiple different vehicles - calculate for each
-        vehicles.multipleConfigs.forEach((config, index) => {
-          const ceremonyResult = calcOlympicCeremonyPrice(
-            ceremony,
-            config.type,
-            serviceHours,
-            journey.pickup.locationId,
-            isNight,
-            journey.pickup.coordinates,
-            journey.destination.locationId,
-            journey.destination.coordinates
-          )
-          
-          totalPrice += ceremonyResult.total
-          basePrice += ceremonyResult.basePrice
-          
-          // Accumulate components
-          ceremonyBasePrice += ceremonyResult.basePrice
-          extraHoursCost += ceremonyResult.extraHoursCost
-          transferCost += ceremonyResult.transferCost
-          nightSurcharge += ceremonyResult.nightSurcharge
-          vatAmount += ceremonyResult.vatAmount
-          
-          if (!transferRoute && ceremonyResult.transferRoute) {
-            transferRoute = ceremonyResult.transferRoute
-          }
-          if (!extraHours && ceremonyResult.extraHours) {
-            extraHours = ceremonyResult.extraHours
-          }
-          
-          vehicleBreakdowns.push({
-            vehicleIndex: index + 1,
-            type: config.type,
-            passengers: config.passengers,
-            luggage: config.luggage,
-            ceremonyBasePrice: ceremonyResult.basePrice,
-            extraHours: ceremonyResult.extraHours,
-            extraHoursCost: ceremonyResult.extraHoursCost,
-            transferCost: ceremonyResult.transferCost,
-            nightSurcharge: ceremonyResult.nightSurcharge,
-            vatAmount: ceremonyResult.vatAmount,
-            total: ceremonyResult.total
-          })
-        })
-      }
-
-      // Calculate Meet & Greet if enabled
-      if (options.meetGreetConfig.enabled && options.meetGreetConfig.serviceId) {
-        const meetGreetResult = calculateMeetGreetPriceLegacy(
-          options.meetGreetConfig.serviceId,
-          options.meetGreetConfig.passengers,
-          options.meetGreetConfig.children,
-          options.meetGreetConfig.infants,
-          options.meetGreetConfig.extraLuggage,
-          isNight,
-          options.meetGreetConfig.specialServices || {},
-          journey.date // Pass service date for holiday surcharge
-        )
-        
-        meetGreetPrice = meetGreetResult.price * vehicles.count
-        meetGreetBreakdown = {
-          ...meetGreetResult.breakdown,
-          total: meetGreetResult.breakdown.total * vehicles.count
-        }
-        totalPrice += meetGreetPrice
-      }
-
-      return {
-        basePrice,
-        totalPrice,
-        meetGreetPrice,
-        meetGreetBreakdown,
-        eventRoute: {
-          name: ceremony.name,
-          from: ceremony.baseCity,
-          to: ceremony.venue,
-          notes: transferRoute ? `${transferRoute} | ${serviceHours}h ceremony disposition` : `${serviceHours}h ceremony disposition`
-        },
-        isEventPricing: true,
-        isOlympicPricing: true,
-        breakdown: {
-          durationHours: serviceHours,
-          basePrice,
-          vehicleMultiplier: 1,
-          passengerMultiplier: 1,
-          luggageMultiplier: 1,
-          vehicleCount: vehicles.count,
-          pricePerVehicle: Math.round(basePrice / vehicles.count),
-          subtotal: totalPrice - vatAmount - (meetGreetPrice || 0),
-          vatAmount: vatAmount,
-          vatRate: 10,
-          nightSurcharge
-        },
-        vehicleBreakdowns: vehicleBreakdowns.length > 0 ? vehicleBreakdowns : undefined
-      }
+    async (state: BookingState): Promise<PricingResult | null> => {
+      console.log("⚠️ Ceremony pricing is now handled through Olympic transfer system")
+      return null
     },
     []
   )
@@ -438,107 +250,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     return mapping[standardType] || 'olympic-sedan'
   }
 
-  // NEW: Calculate Olympic transfer pricing
-  const calculateOlympicPrice = useCallback(
-    async (state: BookingState, olympicRoute: OlympicRoute): Promise<PricingResult | null> => {
-      const { vehicles, journey, options } = state
-      
-      let basePrice = 0
-      let vehicleBreakdowns: any[] = []
-      
-      if (vehicles.count === 1 || vehicles.sameType) {
-        // Single vehicle type - MAP TO OLYMPIC TYPE
-        const olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
-        const pricePerVehicle = olympicRoute.prices[olympicVehicleType] || 0
-        basePrice = pricePerVehicle * vehicles.count
-      } else {
-        // Multiple different vehicles - MAP TO OLYMPIC TYPES
-        vehicles.multipleConfigs.forEach((config, index) => {
-          const olympicVehicleType = mapToOlympicVehicleType(config.type)
-          const vehiclePrice = olympicRoute.prices[olympicVehicleType] || 0
-          basePrice += vehiclePrice
-          
-          vehicleBreakdowns.push({
-            vehicleIndex: index + 1,
-            type: config.type,
-            passengers: config.passengers,
-            luggage: config.luggage,
-            price: vehiclePrice
-          })
-        })
-      }
 
-      // Apply night surcharge if applicable (20% for Olympic period)
-      let nightSurcharge = 0
-      if (journey.time && journey.minutes && journey.timeAmPm && 
-          isNightTime(journey.time, journey.minutes, journey.timeAmPm)) {
-        nightSurcharge = basePrice * 0.20 // 20% Olympic night surcharge
-      }
-
-      const subtotal = basePrice + nightSurcharge
-      
-      // Apply Olympic VAT (10%)
-      const vatAmount = subtotal * (OLYMPIC_PRICING_CONFIG.vat.rate / 100)
-      let totalPrice = subtotal + vatAmount
-
-      // Calculate Meet & Greet if enabled (multiply by vehicle count)
-      let meetGreetPrice = 0
-      let meetGreetBreakdown = null
-      if (options.meetGreetConfig.enabled && options.meetGreetConfig.serviceId) {
-        const isNight = journey.time && journey.minutes && journey.timeAmPm 
-          ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
-          : false
-        
-        const meetGreetResult = calculateMeetGreetPriceLegacy(
-          options.meetGreetConfig.serviceId,
-          options.meetGreetConfig.passengers,
-          options.meetGreetConfig.children,
-          options.meetGreetConfig.infants,
-          options.meetGreetConfig.extraLuggage,
-          isNight,
-          options.meetGreetConfig.specialServices || {},
-          journey.date // Pass service date for holiday surcharge
-        )
-        
-        meetGreetPrice = meetGreetResult.price * vehicles.count
-        meetGreetBreakdown = {
-          ...meetGreetResult.breakdown,
-          total: meetGreetResult.breakdown.total * vehicles.count
-        }
-        totalPrice += meetGreetPrice
-      }
-
-      return {
-        basePrice,
-        totalPrice,
-        meetGreetPrice,
-        meetGreetBreakdown,
-        eventRoute: {
-          name: "Milano-Cortina 2026 Olympics",
-          from: olympicRoute.from,
-          to: olympicRoute.to,
-          notes: "Olympic period pricing - Transfer inter-cluster"
-        },
-        isEventPricing: true,
-        isOlympicPricing: true,
-        breakdown: {
-          basePrice,
-          vehicleMultiplier: 1,
-          passengerMultiplier: 1,
-          luggageMultiplier: 1,
-          nightSurcharge,
-          nightSurchargeRate: nightSurcharge > 0 ? 20 : 0,
-          vehicleCount: vehicles.count,
-          pricePerVehicle: basePrice / vehicles.count,
-          subtotal,
-          vatAmount,
-          vatRate: OLYMPIC_PRICING_CONFIG.vat.rate
-        },
-        vehicleBreakdowns: vehicleBreakdowns.length > 0 ? vehicleBreakdowns : undefined
-      }
-    },
-    []
-  )
 
   const calculateEventPrice = useCallback(
     async (state: BookingState, eventRoute: EventRoute, activeEvent: EventPricing): Promise<PricingResult | null> => {
@@ -915,14 +627,144 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     []
   )
 
+  // NEW: Calculate Olympic pricing using corrected system
+  const calculateOlympicPriceCorrected = useCallback(
+    async (state: BookingState, olympicRoute: OlympicRoute, meetGreetPrice: number, meetGreetBreakdown: any): Promise<PricingResult> => {
+      const { vehicles, journey, options } = state
+      
+      console.log("🏔️ CALCULATING OLYMPIC PRICE (CORRECTED):", {
+        route: `${olympicRoute.from} → ${olympicRoute.to}`,
+        category: olympicRoute.category,
+        prices: olympicRoute.prices
+      })
+      
+      // Check if it's night time for surcharge calculation
+      const isNight = journey.time && journey.minutes && journey.timeAmPm 
+        ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
+        : false
+      
+      let totalPrice = 0
+      let basePrice = 0
+      const vehicleBreakdowns: any[] = []
+      
+      if (vehicles.count === 1 || vehicles.sameType) {
+        // Single vehicle type
+        const config = vehicles.singleConfig
+        const olympicVehicleType = mapToOlympicVehicleType(config.type)
+        const routePrice = olympicRoute.prices[olympicVehicleType] || olympicRoute.prices['olympic-sedan']
+        
+        basePrice = routePrice * vehicles.count
+        
+        // Apply night surcharge (20%)
+        let nightSurcharge = 0
+        if (isNight) {
+          nightSurcharge = basePrice * 0.20 // 20% night surcharge
+        }
+        
+        const subtotal = basePrice + nightSurcharge
+        
+        // Apply VAT (10%)
+        const vatAmount = subtotal * 0.10
+        totalPrice = subtotal + vatAmount
+        
+        // Add Meet & Greet if applicable
+        totalPrice += meetGreetPrice
+        
+        // Create vehicle breakdown
+        for (let i = 1; i <= vehicles.count; i++) {
+          vehicleBreakdowns.push({
+            vehicleIndex: i,
+            type: config.type,
+            passengers: config.passengers,
+            luggage: config.luggage,
+            routePrice: routePrice,
+            nightSurcharge: isNight ? routePrice * 0.20 : 0,
+            vatAmount: (routePrice + (isNight ? routePrice * 0.20 : 0)) * 0.10,
+            total: routePrice + (isNight ? routePrice * 0.20 : 0) + ((routePrice + (isNight ? routePrice * 0.20 : 0)) * 0.10)
+          })
+        }
+        
+      } else {
+        // Multiple different vehicles
+        vehicles.multipleConfigs.forEach((config, index) => {
+          const olympicVehicleType = mapToOlympicVehicleType(config.type)
+          const routePrice = olympicRoute.prices[olympicVehicleType] || olympicRoute.prices['olympic-sedan']
+          
+          basePrice += routePrice
+          
+          // Apply night surcharge per vehicle
+          let vehicleNightSurcharge = 0
+          if (isNight) {
+            vehicleNightSurcharge = routePrice * 0.20
+          }
+          
+          const vehicleSubtotal = routePrice + vehicleNightSurcharge
+          const vehicleVat = vehicleSubtotal * 0.10
+          const vehicleTotal = vehicleSubtotal + vehicleVat
+          
+          totalPrice += vehicleTotal
+          
+          vehicleBreakdowns.push({
+            vehicleIndex: index + 1,
+            type: config.type,
+            passengers: config.passengers,
+            luggage: config.luggage,
+            routePrice: routePrice,
+            nightSurcharge: vehicleNightSurcharge,
+            vatAmount: vehicleVat,
+            total: vehicleTotal
+          })
+        })
+        
+        // Add Meet & Greet once for all vehicles
+        totalPrice += meetGreetPrice
+      }
+      
+      console.log("💰 OLYMPIC PRICING CALCULATED:", {
+        basePrice,
+        nightSurcharge: isNight ? basePrice * 0.20 : 0,
+        meetGreetPrice,
+        totalPrice
+      })
+      
+      return {
+        basePrice,
+        totalPrice,
+        meetGreetPrice,
+        meetGreetBreakdown,
+        eventRoute: {
+          name: `${olympicRoute.from} → ${olympicRoute.to}`,
+          from: olympicRoute.from,
+          to: olympicRoute.to,
+          notes: `Olympic Period Transfer (${olympicRoute.category})`
+        },
+        isEventPricing: true,
+        isOlympicPricing: true,
+        breakdown: {
+          durationHours: 0, // Not applicable for transfers
+          basePrice,
+          vehicleMultiplier: vehicles.count === 1 || vehicles.sameType ? vehicles.count : 1,
+          passengerMultiplier: 1,
+          subtotal: basePrice + (isNight ? basePrice * 0.20 : 0),
+          vatRate: 0.10,
+          vatAmount: (basePrice + (isNight ? basePrice * 0.20 : 0)) * 0.10,
+          nightSurcharge: isNight ? basePrice * 0.20 : 0,
+          distanceKm: 0, // Not applicable for Olympic fixed routes
+          vehicleBreakdowns
+        }
+      }
+    },
+    []
+  )
+
   const calculatePrice = useCallback(
     async (state: BookingState): Promise<PricingResult | null> => {
-      console.log("🔍 CALCULATE_PRICE - START:", {
+      console.log("🔍 CALCULATE_PRICE - START (CORRECTED SYSTEM):", {
         isReady: isReadyForPricing(state),
         serviceType: state.serviceType,
         date: state.journey.date,
         pickup: state.journey.pickup,
-        hasEndTime: !!state.journey.endTime
+        destination: state.journey.destination
       })
 
       if (!isReadyForPricing(state)) {
@@ -933,129 +775,139 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       const { journey, vehicles, serviceType, options } = state
 
       try {
-        // Check for Olympic pricing first (highest priority)
-        if (journey.date && isOlympicPeriod(journey.date)) {
-          console.log("🏔️ OLYMPIC PERIOD DETECTED:", {
-            date: journey.date,
-            serviceType: serviceType
+        // Check for Meet & Greet first (if enabled and pickup/destination has the service)
+        let meetGreetPrice = 0
+        let meetGreetBreakdown = null
+        
+        if (options.meetGreetConfig.enabled) {
+          console.log("🤝 CHECKING MEET & GREET SERVICE")
+          
+          // Check pickup location for Meet & Greet
+          const pickupMatchResult = matchGooglePlaceToService({
+            placeId: journey.pickup.placeId || null,
+            description: journey.pickup.address,
+            coordinates: journey.pickup.coordinates,
+            addressComponents: [] // We don't store this, but the function can work without it
           })
           
-          // Check for Olympic ceremony dates
-          const ceremony = findOlympicCeremony(journey.date)
-          if (ceremony && serviceType === "ceremony-disposition") {
-            const result = await calculateCeremonyPriceForBooking(state, ceremony)
-            return result
+          // Check destination location for Meet & Greet
+          const destinationMatchResult = matchGooglePlaceToService({
+            placeId: journey.destination.placeId || null,
+            description: journey.destination.address,
+            coordinates: journey.destination.coordinates,
+            addressComponents: []
+          })
+          
+          console.log("🎯 MEET & GREET LOCATION MATCHING:", {
+            pickup: pickupMatchResult,
+            destination: destinationMatchResult
+          })
+          
+          // Determine which location to use for Meet & Greet (prioritize pickup for arrivals, destination for departures)
+          let meetGreetServiceId = null
+          let isArrival = true
+          
+          if (pickupMatchResult.type === 'service-location' && 
+              (pickupMatchResult.serviceLocation?.services.meetGreetArrivals || 
+               pickupMatchResult.serviceLocation?.services.meetGreetDepartures)) {
+            meetGreetServiceId = pickupMatchResult.serviceLocation.id + (pickupMatchResult.serviceLocation.services.meetGreetArrivals ? '-arrivals' : '-departures')
+            isArrival = !!pickupMatchResult.serviceLocation.services.meetGreetArrivals
+          } else if (destinationMatchResult.type === 'service-location' && 
+                     (destinationMatchResult.serviceLocation?.services.meetGreetArrivals || 
+                      destinationMatchResult.serviceLocation?.services.meetGreetDepartures)) {
+            meetGreetServiceId = destinationMatchResult.serviceLocation.id + (destinationMatchResult.serviceLocation.services.meetGreetArrivals ? '-arrivals' : '-departures')
+            isArrival = !!destinationMatchResult.serviceLocation.services.meetGreetArrivals
           }
           
-          // For transfers (NOT dispositions), try Olympic routes first
-          if (serviceType !== "disposizione") {
-            console.log("🔍 RESOLVING LOCATIONS FOR OLYMPIC PRICING:", {
-              pickupLocationId: journey.pickup.locationId,
-              pickupAddress: journey.pickup.address,
-              destinationLocationId: journey.destination.locationId,
-              destinationAddress: journey.destination.address
-            })
+          if (meetGreetServiceId) {
+            console.log("✅ MEET & GREET SERVICE FOUND:", meetGreetServiceId)
             
-            const resolvedPickup = resolveLocationForPricing(
-              journey.pickup.locationId, 
-              journey.pickup.coordinates
+            // Check if it's night time for surcharge calculation
+            const isNight = journey.time && journey.minutes && journey.timeAmPm 
+              ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
+              : false
+            
+            const meetGreetResult = calculateMeetGreetPriceCorrected(
+              meetGreetServiceId,
+              options.meetGreetConfig.passengers || 1,
+              options.meetGreetConfig.luggage || 0,
+              options.meetGreetConfig.hours || 0,
+              isNight,
+              journey.date // for holiday surcharge
             )
-            const resolvedDestination = resolveLocationForPricing(
-              journey.destination.locationId, 
-              journey.destination.coordinates
-            )
             
-            console.log("✅ RESOLVED LOCATIONS:", {
-              pickup: resolvedPickup,
-              destination: resolvedDestination
+            meetGreetPrice = meetGreetResult.totalPrice * vehicles.count
+            meetGreetBreakdown = meetGreetResult.breakdown
+            
+            console.log("💰 MEET & GREET CALCULATED:", {
+              service: meetGreetServiceId,
+              price: meetGreetPrice,
+              breakdown: meetGreetBreakdown
             })
-            
-            if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
-              console.log("🏔️ SEARCHING OLYMPIC ROUTE:", {
-                from: resolvedPickup.resolvedLocationId,
-                to: resolvedDestination.resolvedLocationId
-              })
-              
-              const olympicRoute = findOlympicRoute(
-                resolvedPickup.resolvedLocationId,
-                resolvedDestination.resolvedLocationId
-              )
-              
-              console.log("🎯 OLYMPIC ROUTE RESULT:", olympicRoute)
-              
-              if (olympicRoute) {
-                console.log("🏔️ OLYMPIC TRANSFER ROUTE FOUND - Using calculateOlympicPrice")
-                return await calculateOlympicPrice(state, olympicRoute)
-              } else {
-                console.log("❌ NO OLYMPIC ROUTE FOUND - Will fallback to standard pricing")
-              }
-            } else {
-              console.log("❌ MISSING RESOLVED LOCATION IDs - Cannot search Olympic routes")
-            }
-          } else {
-            console.log("⏰ OLYMPIC DISPOSITION - Skipping Olympic route search, will use event pricing")
           }
         }
 
-        // Check for regular event pricing
-        const activeEvent = journey.date ? getActiveEvent(journey.date) : null
-        console.log("📅 ACTIVE EVENT CHECK:", {
-          activeEvent: activeEvent?.name,
-          serviceType: serviceType,
-          willCalculateDisposition: activeEvent && serviceType === "disposizione"
-        })
-        
-        if (activeEvent) {
+        // Check for Olympic pricing (if in Olympic period)
+        if (journey.date && isOlympicPeriod(journey.date)) {
+          console.log("🏔️ OLYMPIC PERIOD DETECTED - Checking for Olympic routes")
           
-          if (serviceType === "disposizione") {
-            console.log("⏰ CALLING calculateEventDispositionPrice")
-            // Use special event disposition pricing
-            return await calculateEventDispositionPrice(state, activeEvent)
+          // Try to find Olympic route based on pickup and destination addresses
+          const pickupMatchResult = matchGooglePlaceToService({
+            placeId: journey.pickup.placeId || null,
+            description: journey.pickup.address,
+            coordinates: journey.pickup.coordinates,
+            addressComponents: []
+          })
+          
+          const destinationMatchResult = matchGooglePlaceToService({
+            placeId: journey.destination.placeId || null,
+            description: journey.destination.address,
+            coordinates: journey.destination.coordinates,
+            addressComponents: []
+          })
+          
+          console.log("🎯 OLYMPIC LOCATION MATCHING:", {
+            pickup: pickupMatchResult,
+            destination: destinationMatchResult
+          })
+          
+          // Check if we can find an Olympic route
+          let fromLocationName = null
+          let toLocationName = null
+          
+          if (pickupMatchResult.type === 'service-location' && 
+              pickupMatchResult.serviceLocation?.services.olympicTransfers) {
+            fromLocationName = pickupMatchResult.serviceLocation.name
           }
           
-          // For transfers, try to find event routes (only for non-Olympic events)
-          if (!isOlympicPeriod(journey.date!)) {
-            let eventRoute: EventRoute | null = null
+          if (destinationMatchResult.type === 'service-location' && 
+              destinationMatchResult.serviceLocation?.services.olympicTransfers) {
+            toLocationName = destinationMatchResult.serviceLocation.name
+          }
+          
+          if (fromLocationName && toLocationName) {
+            console.log("🔍 SEARCHING OLYMPIC ROUTE:", {
+              from: fromLocationName,
+              to: toLocationName
+            })
             
-            const resolvedPickup = resolveLocationForPricing(
-              journey.pickup.locationId, 
-              journey.pickup.coordinates
-            )
-            const resolvedDestination = resolveLocationForPricing(
-              journey.destination.locationId, 
-              journey.destination.coordinates
-            )
+            const olympicRoute = findOlympicRouteCorrected(fromLocationName, toLocationName)
             
-            
-            // Try location-based matching first
-            if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
-              eventRoute = findEventRouteByLocation(
-                resolvedPickup.resolvedLocationId,
-                resolvedDestination.resolvedLocationId,
-                activeEvent
-              )
-            }
-            
-            // Fallback to coordinate-based matching
-            if (!eventRoute && resolvedPickup.resolvedCoordinates && resolvedDestination.resolvedCoordinates) {
-              eventRoute = await findMatchingEventRoute(
-                resolvedPickup.resolvedCoordinates,
-                resolvedDestination.resolvedCoordinates,
-                activeEvent
-              )
-            }
-            
-            if (eventRoute) {
-              return await calculateEventPrice(state, eventRoute, activeEvent)
+            if (olympicRoute) {
+              console.log("✅ OLYMPIC ROUTE FOUND:", olympicRoute)
+              return await calculateOlympicPriceCorrected(state, olympicRoute, meetGreetPrice, meetGreetBreakdown)
             }
           }
+          
+          console.log("❌ NO OLYMPIC ROUTE FOUND - Falling back to standard pricing")
         }
 
         // Fall back to standard pricing
+        console.log("📊 FALLING BACK TO STANDARD PRICING")
         let standardPricing: PricingResult | null = null
 
         if (serviceType === "transfer" || serviceType === "inter-cluster") {
-          // Transfer pricing (distance-based) OR Inter-cluster (fixed pricing during Olympic period)
+          // Transfer pricing (distance-based)
           if (vehicles.count === 1 || vehicles.sameType) {
             const config = vehicles.singleConfig
             standardPricing = calculateTotalPrice(
@@ -1108,196 +960,19 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               vehicles.multipleConfigs,
             )
           }
-
-          // STANDARD DISPOSITION: Add transfer cost from Milano Centrale to disposition start point
-          if (standardPricing) {
-            const resolvedPickup = resolveLocationForPricing(
-              journey.pickup.locationId, 
-              journey.pickup.coordinates
-            )
-            
-            // Calculate transfer from Milano Centrale to disposition start point
-            let transferCost = 0
-            let transferRoute = ''
-            
-            // Check if we need to calculate transfer (if not Milano Centrale and we have location data)
-            const needsTransferCalculation = resolvedPickup.resolvedLocationId !== 'milano-centrale' && 
-              (resolvedPickup.resolvedLocationId || resolvedPickup.resolvedCoordinates || journey.pickup.address)
-            
-            if (needsTransferCalculation) {
-              try {
-                // Get distance from Milano Centrale to disposition start point
-                const milanoCoordinates = { lat: 45.4868, lng: 9.2037 } // Milano Centrale coordinates
-                const milanoCentroCoordinates = { lat: 45.4642, lng: 9.1900 } // Milano centro coordinates for hinterland check
-                let pickupCoordinates = resolvedPickup.resolvedCoordinates
-                
-                // If we don't have resolved coordinates but have a locationId or address, try to get them
-                if (!pickupCoordinates && (resolvedPickup.resolvedLocationId || journey.pickup.address)) {
-                  // This case handles cities like Napoli that aren't in our registry
-                  // For now, we'll use the journey coordinates if available, or skip if not
-                  pickupCoordinates = journey.pickup.coordinates
-                }
-                
-                if (pickupCoordinates) {
-                  // Check if pickup location is within Milano hinterland (10km from Milano center)
-                  const distanceFromMilanoCenter = calculateDistanceKm(milanoCentroCoordinates, pickupCoordinates)
-                  
-                  console.log("🏙️ DISPOSITION MILANO HINTERLAND CHECK:", {
-                    pickupLocation: journey.pickup.address,
-                    pickupLocationId: resolvedPickup.resolvedLocationId,
-                    distanceFromMilanoCenter: distanceFromMilanoCenter.toFixed(1) + 'km',
-                    isInHinterland: distanceFromMilanoCenter <= 10
-                  })
-                  
-                  if (distanceFromMilanoCenter <= 10) {
-                    // Within Milano hinterland - NO transfer cost
-                    console.log("✅ DISPOSITION: Location within Milano hinterland (10km) - NO transfer cost applied")
-                    transferCost = 0
-                    transferRoute = ''
-                  } else {
-                    // Outside Milano hinterland - calculate transfer cost
-                    const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
-                    
-                    // Use standard pricing for the transfer
-                    let vehicleType = 'sedan' // default
-                    let passengers = 1
-                    let luggage = 0
-                    
-                    if (vehicles.count === 1 || vehicles.sameType) {
-                      vehicleType = vehicles.singleConfig.type
-                      passengers = vehicles.singleConfig.passengers
-                      luggage = vehicles.singleConfig.luggage
-                    } else {
-                      // For multiple vehicles, use the first one for transfer calculation
-                      vehicleType = vehicles.multipleConfigs[0].type
-                      passengers = vehicles.multipleConfigs[0].passengers
-                      luggage = vehicles.multipleConfigs[0].luggage
-                    }
-                    
-                    // Calculate transfer price using standard pricing
-                    const transferPricing = calculateTotalPrice(
-                      distance,
-                      vehicleType,
-                      passengers,
-                      luggage,
-                      vehicles.count,
-                      journey.time,
-                      journey.minutes,
-                      journey.timeAmPm,
-                      milanoCoordinates, // Milano Centrale coordinates
-                      pickupCoordinates  // Pickup coordinates
-                    )
-                    
-                    transferCost = transferPricing.basePrice
-                    transferRoute = `Milano Centrale → ${journey.pickup.address}`
-                    
-                    console.log("🚗 STANDARD DISPOSITION TRANSFER (OUTSIDE HINTERLAND):", {
-                      distance: distance.toFixed(1) + 'km',
-                      vehicleType,
-                      cost: transferCost,
-                      route: transferRoute
-                    })
-                  }
-                }
-              } catch (error) {
-                console.error("Error calculating transfer distance:", error)
-                transferCost = 0
-              }
-            }
-            
-            // Add transfer cost to the total pricing
-            if (transferCost > 0) {
-              const originalSubtotal = standardPricing.breakdown.subtotal
-              const transferSubtotal = originalSubtotal + transferCost
-              const transferVatAmount = Math.round(transferSubtotal * standardPricing.breakdown.vatRate * 100) / 100
-              const transferTotalPrice = Math.round((transferSubtotal + transferVatAmount) * 100) / 100
-              
-              // DON'T add transferCost to basePrice - keep them separate!
-              // standardPricing.basePrice += transferCost  <- REMOVED THIS BAD LINE
-              standardPricing.totalPrice = transferTotalPrice
-               
-               // Create new breakdown with transfer information
-               const updatedBreakdown = {
-                 ...standardPricing.breakdown,
-                 subtotal: transferSubtotal,
-                 vatAmount: transferVatAmount,
-                 transferCost: transferCost,
-                 transferRoute: transferRoute
-               }
-               standardPricing.breakdown = updatedBreakdown
-               
-               console.log("💰 UPDATED STANDARD DISPOSITION PRICING:", {
-                 originalTotal: originalSubtotal + Math.round(originalSubtotal * standardPricing.breakdown.vatRate * 100) / 100,
-                 transferCost,
-                 newTotal: transferTotalPrice,
-                 transferRoute
-               })
-            }
-          }
         }
 
-        // Add Meet & Greet pricing to standard pricing if enabled
-        if (standardPricing && options.meetGreetConfig.enabled) {
-          // Try to detect Meet & Greet service if not already configured
-          let serviceId = options.meetGreetConfig.serviceId
+        // Add Meet & Greet pricing to standard pricing if we calculated it earlier
+        if (standardPricing && meetGreetPrice > 0) {
+          standardPricing.meetGreetPrice = meetGreetPrice
+          standardPricing.meetGreetBreakdown = meetGreetBreakdown
+          standardPricing.totalPrice += meetGreetPrice
           
-          if (!serviceId) {
-            // ENHANCED: Resolve pickup and destination for Meet & Greet (handles Milano area)
-            const resolvedPickup = resolveLocationForPricing(
-              journey.pickup.locationId, 
-              journey.pickup.coordinates
-            )
-            const resolvedDestination = resolveLocationForPricing(
-              journey.destination.locationId, 
-              journey.destination.coordinates
-            )
-            
-            // Auto-detect service using location-based matching first
-            let detectedService = null
-            
-            if (resolvedPickup.resolvedLocationId || resolvedDestination.resolvedLocationId) {
-              detectedService = findMeetGreetServiceByLocation(
-                resolvedPickup.resolvedLocationId,
-                resolvedDestination.resolvedLocationId
-              )
-            }
-            
-            // Fallback to coordinate-based detection
-            if (!detectedService && resolvedPickup.resolvedCoordinates && resolvedDestination.resolvedCoordinates) {
-              detectedService = findMeetGreetService(resolvedPickup.resolvedCoordinates, resolvedDestination.resolvedCoordinates)
-            }
-            
-            if (detectedService) {
-              serviceId = detectedService.serviceId
-            }
-          }
-          
-          if (serviceId) {
-            const isNight = journey.time && journey.minutes && journey.timeAmPm 
-              ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
-              : false
-            
-            const meetGreetResult = calculateMeetGreetPriceLegacy(
-              serviceId,
-              options.meetGreetConfig.passengers,
-              options.meetGreetConfig.children,
-              options.meetGreetConfig.infants,
-              options.meetGreetConfig.extraLuggage,
-              isNight,
-              options.meetGreetConfig.specialServices || {},
-              journey.date // Pass service date for holiday surcharge
-            )
-            
-            // Multiply Meet & Greet price by number of vehicles
-            const totalMeetGreetPrice = meetGreetResult.price * vehicles.count
-            standardPricing.meetGreetPrice = totalMeetGreetPrice
-            standardPricing.meetGreetBreakdown = {
-              ...meetGreetResult.breakdown,
-              // Update total to reflect multiplication by vehicle count
-              total: meetGreetResult.breakdown.total * vehicles.count
-            }
-            standardPricing.totalPrice += totalMeetGreetPrice
-          }
+          console.log("💰 ADDED MEET & GREET TO STANDARD PRICING:", {
+            originalTotal: standardPricing.totalPrice - meetGreetPrice,
+            meetGreetPrice,
+            newTotal: standardPricing.totalPrice
+          })
         }
 
         console.log("🔚 CALCULATE_PRICE - RETURNING:", {
@@ -1311,7 +986,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         return null
       }
     },
-    [isReadyForPricing, calculateEventPrice]
+    [isReadyForPricing, calculateOlympicPriceCorrected]
   )
 
   const debouncedCalculate = useMemo(
