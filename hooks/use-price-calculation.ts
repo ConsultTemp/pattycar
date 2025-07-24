@@ -152,8 +152,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     // Service type specific validation
     if (serviceType === "transfer") {
       // Transfer needs distance (unless using event pricing)
-      if (!journey.distance?.km && !journey.date) {
-        console.log("❌ isReadyForPricing: transfer missing distance and date")
+      if (!journey.distance?.km) {
+        console.log("❌ isReadyForPricing: transfer missing distance")
         return false
       }
     } else if (serviceType === "disposizione") {
@@ -1056,10 +1056,16 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
 
         if (serviceType === "transfer" || serviceType === "inter-cluster") {
           // Transfer pricing (distance-based) OR Inter-cluster (fixed pricing during Olympic period)
+          // Check if distance is available before calculating
+          if (!journey.distance?.km) {
+            console.log("❌ CALCULATE_PRICE - Missing distance for transfer service")
+            return null
+          }
+
           if (vehicles.count === 1 || vehicles.sameType) {
             const config = vehicles.singleConfig
             standardPricing = calculateTotalPrice(
-              journey.distance!.km,
+              journey.distance.km,
               config.type,
               config.passengers,
               config.luggage,
@@ -1072,7 +1078,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             )
           } else {
             standardPricing = calculateMultipleVehiclesPrice(
-              journey.distance!.km, 
+              journey.distance.km, 
               vehicles.multipleConfigs,
               journey.time,
               journey.minutes,

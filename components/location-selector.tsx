@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { MapPin, Plane, Train, Loader2, AlertCircle, Star } from "lucide-react"
-import { getAllLocations, getLocationById, getAvailableLocations, type Location } from "@/lib/event-pricing"
+import { getAllLocations, getLocationById, getAvailableLocations, findNearbyMeetGreetLocation, type Location } from "@/lib/event-pricing"
 import { isOlympicPeriod } from "@/lib/olympic-pricing"
 import { useDebounce } from "@/hooks/use-debounce"
 import { shouldUseListinoPricing } from "@/lib/locality-mapping"
@@ -380,7 +380,7 @@ export function LocationSelector({
     }, 100)
   }
 
-  // Handle Google Places selection
+  // Handle Google Places selection - ENHANCED WITH MEET & GREET PRIORITY
   const handleGooglePlaceSelect = (place: Place) => {
     console.log('🎯 Selecting Google place:', place.description)
     
@@ -394,7 +394,43 @@ export function LocationSelector({
       typingTimeoutRef.current = null
     }
     
-    // Check se questo indirizzo Google dovrebbe usare il listino
+    // Update input immediately
+    setInputValue(place.description)
+    lastPropValueRef.current = place.description
+
+    // PRIORITY CHECK: If we have coordinates, check for Meet & Greet locations FIRST (within 500m)
+    if (place.coordinates) {
+      console.log('🚥 PRIORITY CHECK: Looking for nearby Meet & Greet locations...')
+      const nearbyMeetGreetLocation = findNearbyMeetGreetLocation(place.coordinates, 0.5) // 500m radius
+      
+      if (nearbyMeetGreetLocation) {
+        console.log(`🎯 MEET & GREET PRIORITY: Found ${nearbyMeetGreetLocation.displayName} - using this specific location instead of general mapping`)
+        
+        onChange({
+          address: place.description,
+          placeId: place.place_id,
+          coordinates: place.coordinates,
+          locationId: nearbyMeetGreetLocation.id,
+          isCustom: false
+        })
+        
+        // Close dropdown and clear results
+        setIsOpen(false)
+        setGooglePlaces([])
+        setGoogleError(null)
+        
+        // Clear selection flag after a short delay
+        setTimeout(() => {
+          isSelectingOptionRef.current = false
+        }, 100)
+        
+        return // Exit early - Meet & Greet location found
+      }
+      
+      console.log('➡️ No Meet & Greet locations nearby, proceeding with general location mapping...')
+    }
+
+    // GENERAL LOCATION MAPPING: Check se questo indirizzo Google dovrebbe usare il listino
     const listinoCheck = shouldUseListinoPricing(
       place.extracted_locality || null,
       place.address_components || [],
@@ -403,10 +439,6 @@ export function LocationSelector({
     )
 
     console.log('📊 Listino check result:', listinoCheck)
-
-    // Update input immediately
-    setInputValue(place.description)
-    lastPropValueRef.current = place.description
 
     if (listinoCheck.useListino && listinoCheck.location) {
       // USA IL LISTINO - location mappata
@@ -581,7 +613,7 @@ export function LocationSelector({
           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
             
             {/* Listino Locations First - ALWAYS PRIORITIZED */}
-            {filteredListinoLocations.length > 0 && (
+           {/*  {filteredListinoLocations.length > 0 && (
               <>
                 <div className="px-3 py-2 text-xs font-semibold text-green-600 bg-green-50 border-b flex items-center gap-1">
                   <Star className="h-3 w-3" />
@@ -615,7 +647,7 @@ export function LocationSelector({
                   </button>
                 ))}
               </>
-            )}
+            )} */}
 
             {/* Google Places Results */}
             {googlePlaces.length > 0 && (

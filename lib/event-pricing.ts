@@ -284,7 +284,7 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     }
   },
 
-  // Railway Stations - CORRECTED: Solo departures secondo il listino
+  // Railway Stations - CORRECTED: Both arrivals and departures according to official listino
   "milano-centrale": {
     id: "milano-centrale",
     name: "Milano Centrale",
@@ -292,7 +292,10 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     coordinates: { lat: 45.4868, lng: 9.2037 },
     type: "station",
     services: {
-      // REMOVED: meetGreetArrivals - non nel listino per stazioni
+      meetGreetArrivals: {
+        enabled: true,
+        serviceId: "milano-centrale-arrivals"
+      },
       meetGreetDepartures: {
         enabled: true,
         serviceId: "milano-centrale-departures"
@@ -307,7 +310,10 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     coordinates: { lat: 45.4280, lng: 10.9823 },
     type: "station",
     services: {
-      // REMOVED: meetGreetArrivals - non nel listino per stazioni
+      meetGreetArrivals: {
+        enabled: true,
+        serviceId: "verona-arrivals"
+      },
       meetGreetDepartures: {
         enabled: true,
         serviceId: "verona-departures"
@@ -322,7 +328,10 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     coordinates: { lat: 45.4408, lng: 12.3208 },
     type: "station",
     services: {
-      // REMOVED: meetGreetArrivals - non nel listino per stazioni
+      meetGreetArrivals: {
+        enabled: true,
+        serviceId: "venezia-rail-arrivals"
+      },
       meetGreetDepartures: {
         enabled: true,
         serviceId: "venezia-rail-departures"
@@ -403,14 +412,54 @@ export function getMeetGreetLocations(): Location[] {
   )
 }
 
-// NEW: Helper to resolve mixed scenarios (location + custom coordinates)
+// NEW: Find nearby Meet & Greet location within 500m radius - PRIORITY FUNCTION
+export function findNearbyMeetGreetLocation(
+  coordinates: { lat: number; lng: number },
+  radiusKm: number = 0.5 // 500m default radius
+): Location | null {
+  console.log(`🚥 MEET & GREET PROXIMITY CHECK: Checking coordinates ${coordinates.lat},${coordinates.lng} within ${radiusKm * 1000}m radius`)
+  
+  // Get all locations that have Meet & Greet services
+  const meetGreetLocations = getMeetGreetLocations()
+  
+  for (const location of meetGreetLocations) {
+    const distance = calculateDistance(coordinates, location.coordinates)
+    console.log(`📏 Distance to ${location.displayName}: ${(distance * 1000).toFixed(0)}m`)
+    
+    if (distance <= radiusKm) {
+      console.log(`✅ MEET & GREET LOCATION FOUND: ${location.displayName} (${(distance * 1000).toFixed(0)}m away)`)
+      return location
+    }
+  }
+  
+  console.log(`❌ No Meet & Greet locations within ${radiusKm * 1000}m radius`)
+  return null
+}
+
+// NEW: Helper to resolve mixed scenarios (location + custom coordinates) - ENHANCED WITH MEET & GREET PRIORITY
 export function resolveLocationForPricing(locationId?: string, coordinates?: { lat: number; lng: number }): {
   resolvedLocationId?: string
   resolvedCoordinates?: { lat: number; lng: number }
 } {
+  console.log(`🎯 RESOLVING LOCATION FOR PRICING: locationId="${locationId}", coordinates=${coordinates ? `${coordinates.lat},${coordinates.lng}` : 'none'}`)
+
+  // PRIORITY CHECK: If we have coordinates, check for Meet & Greet locations FIRST (within 500m)
+  if (coordinates) {
+    console.log(`🚥 STEP 1: Checking for nearby Meet & Greet locations...`)
+    const nearbyMeetGreetLocation = findNearbyMeetGreetLocation(coordinates, 0.5) // 500m radius
+    if (nearbyMeetGreetLocation) {
+      console.log(`🎯 MEET & GREET PRIORITY: Found ${nearbyMeetGreetLocation.displayName} - using this instead of general location mapping`)
+      return {
+        resolvedLocationId: nearbyMeetGreetLocation.id,
+        resolvedCoordinates: nearbyMeetGreetLocation.coordinates
+      }
+    }
+    console.log(`➡️ No Meet & Greet locations nearby, proceeding with general location resolution...`)
+  }
+
   // If we have a location ID, try locality mapping first to map specific → base locations
   if (locationId) {
-    console.log(`🔍 RESOLVING LOCATION: Trying locality mapping for "${locationId}"...`)
+    console.log(`🔍 STEP 2: Trying locality mapping for "${locationId}"...`)
     const localityResult = findLocationByLocality(locationId)
     if (localityResult.locationId && localityResult.confidence > 0.7) {
       const mappedLocation = getLocationById(localityResult.locationId)
@@ -436,8 +485,9 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
     console.log(`❌ DIRECT LOOKUP FAILED for "${locationId}"`)
   }
 
-  // If we have coordinates, try geographic lookup first
+  // If we have coordinates, try geographic lookup (general locations)
   if (coordinates) {
+    console.log(`🔍 STEP 3: Trying geographic lookup for general locations...`)
     // Try coordinate-based location matching first
     const matchingLocation = findLocationByCoordinates(coordinates, 1) // Use 1km default, coverageRadius will override for cities
     if (matchingLocation) {
@@ -902,8 +952,85 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     ]
   },
 
-  // RAILWAY ARRIVALS REMOVED - Non esistono nel listino ufficiale
-  // Le stazioni ferroviarie hanno SOLO servizi departures secondo il listino Olympic Period
+  // RAILWAY ARRIVALS - Olympic Period rates (according to official listino)
+  "milano-centrale-arrivals": {
+    type: "railway-arrivals",
+    location: "Milano Centrale",
+    coordinates: { lat: 45.4868, lng: 9.2037 },
+    basePrice: 250, // Greeter + Porter + 2 luggages incl. for 1 PASSENGER
+    extraPassengerPrice: 70, // Each extra PASSENGER
+    extraLuggagePrice: 25, // Each extra LUGGAGE
+    nightSurchargePrice: 175, // Night surcharge porter (18:30 PM / 09:00 AM) | max 5 pcs of luggages per operator
+    extraHourPrice: 90, // Each extra HOUR for delay or disruption (AFTER 2 HOURS INCLUDED)
+    includedHours: 2,
+    includedLuggage: 2,
+    maxPassengers: 8,
+    maxLuggageForNightSurcharge: 5,
+    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    details: [
+      "The greeter and porter will meet the client/s directly at the train platform in front of the right coach",
+      "They will escort passenger/s to the reserved PATTY CAR vehicle, helping them with the luggages"
+    ],
+    constraints: [
+      "Groups of more than 8 people will be quoted on request",
+      "Maximum 5 pieces of luggage per operator for night surcharge",
+      "Night surcharge hours: 18:30 PM - 09:00 AM"
+    ]
+  },
+
+  "verona-arrivals": {
+    type: "railway-arrivals",
+    location: "Verona Porta Nuova",
+    coordinates: { lat: 45.4280, lng: 10.9823 },
+    basePrice: 250,
+    extraPassengerPrice: 70,
+    extraLuggagePrice: 25,
+    nightSurchargePrice: 175,
+    extraHourPrice: 90,
+    includedHours: 2,
+    includedLuggage: 2,
+    maxPassengers: 8,
+    maxLuggageForNightSurcharge: 5,
+    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    details: [
+      "The greeter and porter will meet the client/s directly at the train platform in front of the right coach",
+      "They will escort passenger/s to the reserved PATTY CAR vehicle, helping them with the luggages"
+    ],
+    constraints: [
+      "Groups of more than 8 people will be quoted on request",
+      "Maximum 5 pieces of luggage per operator for night surcharge",
+      "Night surcharge hours: 18:30 PM - 09:00 AM"
+    ]
+  },
+
+  "venezia-rail-arrivals": {
+    type: "railway-arrivals",
+    location: "Venezia Santa Lucia",
+    coordinates: { lat: 45.4408, lng: 12.3208 },
+    basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
+    extraPassengerPrice: 70,
+    extraLuggagePrice: 25,
+    nightSurchargePrice: 0, // Porter ON DEMAND nel listino
+    extraHourPrice: 90,
+    includedHours: 2,
+    includedLuggage: 2,
+    maxPassengers: 8,
+    maxLuggageForNightSurcharge: 0, // Porter ON DEMAND
+    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    specialServices: {
+      greeterOnly: { price: 0 } // Greeter only service by default secondo listino
+    },
+    details: [
+      "In Venice only greeter | porter on demand",
+      "The greeter will meet the client/s directly at the train platform",
+      "Greeter will escort passenger/s to the reserved PATTY CAR vehicle"
+    ],
+    constraints: [
+      "Groups of more than 8 people will be quoted on request",
+      "Porter service available on demand only",
+      "Greeter only service by default"
+    ]
+  },
 
   // RAILWAY DEPARTURES - Olympic Period rates
   "milano-centrale-departures": {

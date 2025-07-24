@@ -127,6 +127,54 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   }, [])
 
   const handleJourneyChange = useCallback((journey: any) => {
+    // Helper function to compare coordinates safely
+    const coordinatesChanged = (oldCoords?: { lat: number; lng: number }, newCoords?: { lat: number; lng: number }): boolean => {
+      if (!oldCoords && !newCoords) return false
+      if (!oldCoords || !newCoords) return true
+      return oldCoords.lat !== newCoords.lat || oldCoords.lng !== newCoords.lng
+    }
+
+    // Check if pickup or destination location has changed (address, locationId, or coordinates)
+    const pickupLocationChanged = 
+      journey.pickup?.address !== state.journey.pickup?.address ||
+      journey.pickup?.locationId !== state.journey.pickup?.locationId ||
+      journey.pickup?.placeId !== state.journey.pickup?.placeId ||
+      coordinatesChanged(state.journey.pickup?.coordinates, journey.pickup?.coordinates)
+    
+    const destinationLocationChanged = 
+      journey.destination?.address !== state.journey.destination?.address ||
+      journey.destination?.locationId !== state.journey.destination?.locationId ||
+      journey.destination?.placeId !== state.journey.destination?.placeId ||
+      coordinatesChanged(state.journey.destination?.coordinates, journey.destination?.coordinates)
+
+    // If any location changed and Meet & Greet is currently enabled, reset it
+    if ((pickupLocationChanged || destinationLocationChanged) && state.options.meetGreetConfig.enabled) {
+      console.log('🚫 LOCATION CHANGED - Resetting Meet & Greet configuration')
+      console.log('   📍 Pickup changed:', pickupLocationChanged)
+      console.log('   📍 Destination changed:', destinationLocationChanged)
+      console.log('   📋 Old Pickup:', state.journey.pickup)
+      console.log('   📋 New Pickup:', journey.pickup)
+      console.log('   📋 Old Destination:', state.journey.destination)
+      console.log('   📋 New Destination:', journey.destination)
+      
+      dispatch({ 
+        type: "UPDATE_MEET_GREET_CONFIG", 
+        payload: {
+          enabled: false,
+          serviceId: undefined,
+          selectedService: undefined,
+          passengers: 1,
+          children: 0,
+          infants: 0,
+          extraLuggage: 0,
+          extraHours: 0,
+          specialServices: {}
+        }
+      })
+      // Also reset the legacy flag
+      dispatch({ type: "SET_OPTIONS", payload: { meetAndGreet: false } })
+    }
+
     dispatch({ type: "SET_JOURNEY", payload: journey })
     
     // If date changed, check if current service type is still available
@@ -137,7 +185,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         dispatch({ type: "SET_SERVICE_TYPE", payload: newAvailableServices[0]?.value || "transfer" })
       }
     }
-  }, [state.serviceType])
+  }, [state.serviceType, state.journey.pickup, state.journey.destination, state.options.meetGreetConfig.enabled])
 
   const handleVehicleCountChange = useCallback((count: number) => {
     dispatch({ type: "SET_VEHICLE_COUNT", payload: count })
