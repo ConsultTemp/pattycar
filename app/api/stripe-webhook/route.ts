@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
-import { Resend } from "resend"
+// import { Resend } from "resend"
 import { insertBooking } from "@/lib/database"
 
 // Inizializza Stripe con la chiave segreta
@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 })
 
 // Inizializza Resend con la chiave API
-const resend = new Resend(process.env.RESEND_API_KEY!)
+// const resend = new Resend(process.env.RESEND_API_KEY!)
 
 // Funzione per convertire dal formato 24h al 12h con AM/PM
 function convertTo12Hour(time24: string): string {
@@ -348,6 +348,8 @@ export async function POST(req: NextRequest) {
       try {
         // 📧 EMAIL AL CLIENTE - Conferma prenotazione completa
         console.log("📧 Tentativo invio email cliente a:", customerEmail)
+        console.log("📧 Email customer sending disabled temporarily - resend not available")
+        /*
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: customerEmail,
@@ -831,9 +833,9 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         })
-
         console.log("✅ Email cliente inviata:", customerEmailResult.data?.id)
         console.log("📧 Dettagli risposta email cliente:", JSON.stringify(customerEmailResult, null, 2))
+        */
 
       } catch (customerEmailError) {
         console.error("❌ Errore specifico invio email cliente:", customerEmailError)
@@ -843,6 +845,8 @@ export async function POST(req: NextRequest) {
       try {
         // 📧 EMAIL ALL'ADMIN - Versione completa con tutti i dettagli
         console.log("📧 Tentativo invio email admin a:", process.env.ADMIN_EMAIL)
+        console.log("📧 Email admin sending disabled temporarily - resend not available")
+        /*
         const adminEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: process.env.ADMIN_EMAIL!,
@@ -1202,10 +1206,10 @@ export async function POST(req: NextRequest) {
               </div>
             </div>
           `,
-        })
-
+                  })
         console.log("✅ Email admin inviata:", adminEmailResult.data?.id)
         console.log("📧 Dettagli risposta email admin:", JSON.stringify(adminEmailResult, null, 2))
+        */
 
       } catch (adminEmailError) {
         console.error("❌ Errore specifico invio email admin:", adminEmailError)
