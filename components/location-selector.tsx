@@ -217,14 +217,20 @@ export function LocationSelector({
   // Google Places API search
   useEffect(() => {
     const searchGooglePlaces = async (query: string) => {
-      if (query.length < 2) return
+      if (query.length < 3) return
 
       console.log('🔍 Searching Google Places for:', query)
       setIsLoadingGoogle(true)
       setGoogleError(null)
 
       try {
-        const response = await fetch(`/api/places-autocomplete?input=${encodeURIComponent(query)}`)
+        const response = await fetch('/api/places', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ input: query })
+        })
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`)

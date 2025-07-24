@@ -94,17 +94,17 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
           category: 'standard'
         }
       ]
-    } else if (isInterCluster && isOlympic) {
-      // INTER-CLUSTER: Only Sedan and Minivan as per official pricing table
+    } else if (isOlympic && (serviceType === "inter-cluster" || serviceType === "transfer")) {
+      // OLYMPIC PERIOD TRANSFERS: Only Sedan and Minivan per official price lists
+      // All Olympic transfers (both inter-cluster and airport/station) use only these 2 vehicles
       vehicleTypes = [
         {
           value: 'olympic-sedan',
           label: 'Sedan',
-          maxPassengers: 3,
+          maxPassengers: 2,  // According to price list: "Sedan 2 pax"
           maxLuggage: 2,
-          maxSmallLuggage: 1,
-          description: '3 passengers max',
-          category: 'standard'
+          description: '2 passengers max',
+          category: 'standard' 
         },
         {
           value: 'olympic-minivan',

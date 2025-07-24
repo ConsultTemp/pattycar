@@ -235,17 +235,22 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
 
   // Helper function to map standard vehicle types to Olympic vehicle types
   const mapToOlympicVehicleType = (standardType: string): keyof OlympicRoute['prices'] => {
-    // If already in Olympic format, return as is
+    // If already in Olympic format, validate it's allowed
     if (standardType.startsWith('olympic-')) {
-      return standardType as keyof OlympicRoute['prices']
+      // During Olympic period, only sedan and minivan are allowed per price lists
+      if (standardType === 'olympic-sedan' || standardType === 'olympic-minivan') {
+        return standardType as keyof OlympicRoute['prices']
+      }
+      // Force invalid Olympic types to sedan
+      return 'olympic-sedan'
     }
     
-    // Otherwise map standard types to Olympic types
+    // Map standard types to Olympic types (only sedan and minivan allowed)
     const mapping: Record<string, keyof OlympicRoute['prices']> = {
       'sedan': 'olympic-sedan',
       'van': 'olympic-minivan', 
-      'minibus': 'olympic-van',
-      'luxury-sedan': 'olympic-luxury'
+      'minibus': 'olympic-minivan',    // Force minibus to minivan
+      'luxury-sedan': 'olympic-sedan'  // Force luxury to sedan
     }
     return mapping[standardType] || 'olympic-sedan'
   }
