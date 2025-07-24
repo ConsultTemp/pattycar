@@ -332,7 +332,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
             locationId: journey.pickup?.locationId,
             isCustom: journey.pickup?.isCustom
           }}
-          onChange={(value) => {
+          onLocationSelect={(value) => {
             console.log("📍 JourneySection - Pickup changed:", value)
             onChange({
               pickup: {
@@ -373,7 +373,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
             locationId: journey.destination?.locationId,
             isCustom: journey.destination?.isCustom
           }}
-          onChange={(value) => {
+          onLocationSelect={(value) => {
             console.log("📍 JourneySection - Destination changed:", value)
             onChange({
               destination: {

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { MapPin, Plane, Train, Loader2, AlertCircle, Star } from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
-import { matchGooglePlaceToService, hasMeetGreetService, hasOlympicPricing, type LocationMatchResult } from "@/lib/location-matching-corrected"
+// import { matchGooglePlaceToService, hasMeetGreetService, hasOlympicPricing, type LocationMatchResult } from "@/lib/location-matching-corrected"
 
 // EU Countries - ISO 3166-1 alpha-2 country codes
 const EU_COUNTRIES = new Set([
@@ -280,15 +280,13 @@ export function LocationSelector({
       typingTimeoutRef.current = null
     }
     
-    // Match the Google Place to our service locations
-    const matchResult = matchGooglePlaceToService({
-      placeId: place.place_id,
-      description: place.description,
-      coordinates: place.coordinates || null,
-      addressComponents: place.address_components || []
-    })
+    // Simplified location matching - temporarily disabled
+    const matchResult = {
+      locationId: undefined,
+      isCustom: true
+    }
 
-    console.log('📊 Location matching result:', matchResult)
+    console.log('📊 Location matching result (simplified):', matchResult)
 
     // Update input immediately
     setInputValue(place.description)
@@ -314,70 +312,55 @@ export function LocationSelector({
     }, 100)
   }
 
-  // Get icon for location type
+  // Get icon for location type - simplified
   const getLocationIcon = (place: Place) => {
-    const matchResult = matchGooglePlaceToService({
-      placeId: place.place_id,
-      description: place.description,
-      coordinates: place.coordinates || null,
-      addressComponents: place.address_components || []
-    })
-
-    if (matchResult.type === 'service-location' && matchResult.serviceLocation) {
-      const location = matchResult.serviceLocation
-      
-      // Airports
-      if (location.id.includes('malpensa') || location.id.includes('linate') || 
-          location.id.includes('orio') || location.id.includes('venezia-marco-polo') ||
-          location.id.includes('treviso')) {
-        return <Plane className="h-4 w-4 text-blue-600" />
-      }
-      
-      // Train stations
-      if (location.id.includes('centrale') || location.id.includes('santa-lucia') || 
-          location.id.includes('porta-nuova')) {
-        return <Train className="h-4 w-4 text-green-600" />
-      }
-      
-      // Olympic venues
-      if (location.services.olympicTransfers) {
-        return <Star className="h-4 w-4 text-yellow-600" />
-      }
+    // Simplified icon detection based on description
+    const description = place.description.toLowerCase()
+    
+    // Check for airport keywords
+    if (description.includes('airport') || description.includes('aeroporto') || 
+        description.includes('malpensa') || description.includes('linate') || 
+        description.includes('orio') || description.includes('marco polo') ||
+        description.includes('treviso')) {
+              return <Plane className="h-4 w-4 text-blue-600" />
+    }
+    
+    // Check for train station keywords
+    if (description.includes('stazione') || description.includes('station') || 
+        description.includes('centrale') || description.includes('garibaldi') || 
+        description.includes('santa lucia') || description.includes('porta nuova')) {
+      return <Train className="h-4 w-4 text-green-600" />
+    }
+    
+    // Check for Olympic venue keywords
+    if (description.includes('cortina') || description.includes('bormio') || 
+        description.includes('livigno') || description.includes('anterselva')) {
+      return <Star className="h-4 w-4 text-yellow-600" />
     }
     
     // Default location icon
     return <MapPin className="h-4 w-4 text-gray-500" />
   }
 
-  // Get special services info for location
+  // Get special services info for location - simplified
   const getSpecialServicesInfo = (place: Place) => {
-    const matchResult = matchGooglePlaceToService({
-      placeId: place.place_id,
-      description: place.description,
-      coordinates: place.coordinates || null,
-      addressComponents: place.address_components || []
-    })
-
-    if (matchResult.type === 'service-location' && matchResult.serviceLocation) {
-      const services = []
-      
-      if (matchResult.serviceLocation.services.meetGreetArrivals || 
-          matchResult.serviceLocation.services.meetGreetDepartures) {
-        services.push('Meet & Greet')
-      }
-      
-      if (matchResult.serviceLocation.services.olympicTransfers) {
-        services.push('Olympic Pricing')
-      }
-      
-      if (matchResult.serviceLocation.services.specialPricing) {
-        services.push('Special Rates')
-      }
-      
-      return services
+    const services = []
+    const description = place.description.toLowerCase()
+    
+    // Check for airports and major train stations (likely to have Meet & Greet)
+    if (description.includes('aeroporto') || description.includes('airport') || 
+        description.includes('malpensa') || description.includes('linate') || 
+        description.includes('centrale') || description.includes('marco polo')) {
+      services.push('Meet & Greet')
     }
     
-    return []
+    // Check for Olympic venues
+    if (description.includes('cortina') || description.includes('bormio') || 
+        description.includes('livigno') || description.includes('anterselva')) {
+      services.push('Olympic Pricing')
+    }
+    
+    return services
   }
 
   // Click outside handler
