@@ -292,7 +292,6 @@ dispositionTests.forEach(test => {
 // =============================================================================
 // 2. OLYMPIC PERIOD 2026 TESTING
 // =============================================================================
-console.log(`\n\n🏔️  MILANO-CORTINA 2026 OLYMPICS PRICING TEST`)
 console.log("=" .repeat(80))
 
 const olympicDate = testDates.olympics

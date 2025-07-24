@@ -171,14 +171,14 @@
         },
         "otherServices": {
           "label": "Altri Servizi",
-          "description": "Disposizione e Inter-Cluster"
+          "description": "Disposizione e Transfer between cities"
         },
         "ceremony": {
           "label": "Disposizione Cerimonia",
           "description": "Servizio speciale per cerimonie ed eventi"
         },
         "interCluster": {
-          "label": "Inter-Cluster",
+          "label": "Transfer between cities",
           "description": "Transfer tra sedi eventi"
         },
         "badges": {
@@ -1112,7 +1112,7 @@
       "transfer": "Transfer",
       "disposizione": "Disposizione",
       "ceremony-disposition": "Disposizione Cerimonia",
-      "inter-cluster": "Inter-Cluster",
+      "inter-cluster": "Transfer between cities",
       "altri-servizi": "Altri Servizi"
     },
     "common": {

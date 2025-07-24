@@ -295,7 +295,7 @@ export function AdminBookingModal({ dictionary, onBookingCreated, booking, mode 
                   <SelectContent>
                     <SelectItem value="transfer">Transfer</SelectItem>
                     <SelectItem value="disposizione">Disposizione</SelectItem>
-                    <SelectItem value="inter-cluster">Inter-Cluster</SelectItem>
+                    <SelectItem value="inter-cluster">Transfer between cities</SelectItem>
                     <SelectItem value="ceremony-disposition">Ceremony Disposition</SelectItem>
                     <SelectItem value="altri-servizi">Altri Servizi</SelectItem>
                   </SelectContent>

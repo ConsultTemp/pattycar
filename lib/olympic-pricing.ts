@@ -805,7 +805,7 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
   }
 ]
 
-// Olympic Inter-Cluster Routes - Based on the inter-cluster pricing table
+// Olympic Transfer between cities Routes - Based on the inter-cluster pricing table
 export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
   // Milano Center to Olympic Venues
   {

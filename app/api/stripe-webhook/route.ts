@@ -246,7 +246,7 @@ export async function POST(req: NextRequest) {
         serviceIcon = ""
         serviceBadge = isOlympic ? "EVENTI INVERNALI" : ""
       } else if (isInterCluster) {
-        serviceLabel = "Inter-Cluster"
+        serviceLabel = "Transfer between cities"
         serviceIcon = ""
         serviceBadge = "EVENTI INVERNALI"
       } else if (isAltriServizi) {

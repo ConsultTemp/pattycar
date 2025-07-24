@@ -71,7 +71,7 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
     const labels: Record<string, string> = {
       'transfer': 'Transfer',
       'disposizione': 'Disposition',
-      'inter-cluster': 'Inter-Cluster',
+      'inter-cluster': 'Transfer between cities',
       'ceremony-disposition': 'Ceremony Disposition',
       'altri-servizi': 'Other Services'
     }

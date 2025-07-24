@@ -514,10 +514,10 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         meetGreetPrice,
         meetGreetBreakdown,
         eventRoute: {
-          name: "Milano-Cortina 2026 Olympics",
+          name: "Milano-Cortina",
           from: olympicRoute.from,
           to: olympicRoute.to,
-          notes: "Olympic period pricing - Transfer inter-cluster"
+          notes: ""
         },
         isEventPricing: true,
         isOlympicPricing: true,

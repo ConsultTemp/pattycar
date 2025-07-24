@@ -71,7 +71,7 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
     { 
       value: "altri-servizi", 
       label: dictionary?.serviceType?.otherServices?.label || "Other Services", 
-      description: dictionary?.serviceType?.otherServices?.description || "Disposition and Inter-Cluster",
+      description: dictionary?.serviceType?.otherServices?.description || "Disposition and Transfer between cities",
       icon: "",
       badge: dictionary?.serviceType?.badges?.olympics || "WINTER EVENTS"
     }
@@ -438,8 +438,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">🚠</span>
-                        <span className="font-medium">{dictionary?.serviceType?.interCluster?.label || "Inter-Cluster"}</span>
+                        <span className="font-medium">{dictionary?.serviceType?.interCluster?.label || "Transfer between cities"}</span>
                         <span className="px-2 py-0.5 text-xs rounded-full bg-gradient-to-r from-blue-500 to-green-500 text-white">
                           {dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"}
                         </span>

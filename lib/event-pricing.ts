@@ -623,7 +623,7 @@ export const GP_MONZA_2025: EventPricing = {
 // Milano-Cortina 2026 Configuration - Olympic Winter Games
 export const MILANO_CORTINA_2026: EventPricing = {
   id: "milano-cortina-2026",
-  name: "Milano-Cortina 2026 Olympics",
+  name: "Milano-Cortina",
   startDate: "2026-01-01", // Olympic period
   endDate: "2026-03-31", // Extended Olympic period
         allowedVehicleTypes: ["olympic-sedan", "olympic-minivan", "olympic-van", "olympic-luxury"], // Olympic vehicle types
