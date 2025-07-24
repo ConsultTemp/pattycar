@@ -11,42 +11,8 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.GOOGLE_API_KEY
     if (!apiKey) {
-      console.error("GOOGLE_API_KEY not found in environment variables - using mock data")
-      // Return mock data for testing
-      const mockResults = [
-        {
-          place_id: "mock_1",
-          description: `${input} - Milano, Italia`,
-          main_text: `${input}`,
-          secondary_text: "Milano, Italia",
-          address_components: [
-            { types: ["country"], short_name: "IT", long_name: "Italia" }
-          ],
-          coordinates: { lat: 45.4642, lng: 9.1900 }
-        },
-        {
-          place_id: "mock_2", 
-          description: `${input} Centrale - Milano, Italia`,
-          main_text: `${input} Centrale`,
-          secondary_text: "Milano, Italia",
-          address_components: [
-            { types: ["country"], short_name: "IT", long_name: "Italia" }
-          ],
-          coordinates: { lat: 45.4868, lng: 9.2037 }
-        },
-        {
-          place_id: "mock_3",
-          description: `${input} Malpensa Airport - Milano, Italia`,
-          main_text: `${input} Malpensa`,
-          secondary_text: "Milano, Italia", 
-          address_components: [
-            { types: ["country"], short_name: "IT", long_name: "Italia" }
-          ],
-          coordinates: { lat: 45.6306, lng: 8.7281 }
-        }
-      ]
-      
-      return NextResponse.json({ predictions: mockResults })
+      console.error("GOOGLE_API_KEY not found in environment variables")
+      return NextResponse.json({ error: "API key not configured" }, { status: 500 })
     }
 
     // Usa la nuova Places API - Autocomplete endpoint
