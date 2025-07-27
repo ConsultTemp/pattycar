@@ -67,8 +67,6 @@ export default async function BookingPage(props: {
     }
     const lang = params.lang
     const dictionary = await getDictionary(lang)
-    console.log(params)
-    console.log(params.lang)
     return (
         <>
             {/* Hero Section */}

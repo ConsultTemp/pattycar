@@ -137,9 +137,7 @@ export default async function ServicePage(props:{ params: Params }) {
     if (!params || !params.lang) {
         params = {lang: 'it', service: "transfer-ncc"}
     }
-    console.log(params)
-console.log(params.lang)
-  // Check if service is valid
+    // Check if service is valid
   if (!validServices.includes(params.service)) {
     notFound()
   }

@@ -11,16 +11,11 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.GOOGLE_API_KEY
     if (!apiKey) {
-      console.error("GOOGLE_API_KEY not found in environment variables")
       return NextResponse.json({ error: "API key not configured" }, { status: 500 })
     }
 
     // Usa la nuova Places API - Autocomplete endpoint
     const autocompleteUrl = "https://places.googleapis.com/v1/places:autocomplete"
-
-    console.log("=== CALLING GOOGLE PLACES AUTOCOMPLETE API ===")
-    console.log("URL:", autocompleteUrl)
-    console.log("Input:", input)
 
     const requestBody = {
       input: input,
@@ -28,30 +23,20 @@ export async function POST(request: NextRequest) {
       regionCode: "IT"
     }
 
-    console.log("Request body:", JSON.stringify(requestBody, null, 2))
+    
 
     const autocompleteResponse = await fetch(autocompleteUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat"
+        "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types"
       },
       body: JSON.stringify(requestBody),
     })
 
-    console.log("=== AUTOCOMPLETE RESPONSE STATUS ===")
-    console.log("Status:", autocompleteResponse.status, autocompleteResponse.statusText)
-
     const autocompleteText = await autocompleteResponse.text()
-    console.log("=== RAW AUTOCOMPLETE RESPONSE ===")
-    console.log(autocompleteText)
-
     if (!autocompleteResponse.ok) {
-      console.error("=== AUTOCOMPLETE API ERROR ===")
-      console.error(`Status: ${autocompleteResponse.status} ${autocompleteResponse.statusText}`)
-      console.error("Response:", autocompleteText)
-      
       return NextResponse.json({ 
         error: "Places API error", 
         details: `${autocompleteResponse.status}: ${autocompleteResponse.statusText}`,
@@ -63,23 +48,17 @@ export async function POST(request: NextRequest) {
     try {
       autocompleteData = JSON.parse(autocompleteText)
     } catch (parseError) {
-      console.error("=== JSON PARSE ERROR ===")
-      console.error("Parse error:", parseError)
-      console.error("Raw response:", autocompleteText)
       return NextResponse.json({ 
         error: "Invalid JSON response from Places API",
         details: autocompleteText
       }, { status: 500 })
     }
 
-    console.log("=== PARSED AUTOCOMPLETE RESPONSE ===")
-    console.log(JSON.stringify(autocompleteData, null, 2))
+    
 
     // Trasforma i risultati nel formato atteso e ottieni dettagli per ogni luogo
     const predictions = []
     const suggestions = autocompleteData.suggestions?.filter((suggestion: any) => suggestion.placePrediction) || []
-
-    console.log(`=== PROCESSING ${suggestions.length} SUGGESTIONS ===`)
 
     for (const suggestion of suggestions) {
       const place = suggestion.placePrediction
@@ -89,8 +68,6 @@ export async function POST(request: NextRequest) {
       let coordinates = null
       
       try {
-        console.log(`Getting details for place ID: ${place.placeId}`)
-        
         const detailsUrl = `https://places.googleapis.com/v1/places/${place.placeId}`
         const detailsResponse = await fetch(detailsUrl, {
           method: "GET",
@@ -103,7 +80,7 @@ export async function POST(request: NextRequest) {
 
         if (detailsResponse.ok) {
           const detailsData = await detailsResponse.json()
-          console.log(`Details for ${place.placeId}:`, JSON.stringify(detailsData, null, 2))
+          
           
           addressComponents = detailsData.addressComponents || []
           coordinates = detailsData.location ? {
@@ -111,11 +88,9 @@ export async function POST(request: NextRequest) {
             lng: detailsData.location.longitude
           } : null
         } else {
-          console.warn(`Failed to get details for ${place.placeId}: ${detailsResponse.status}`)
-        }
+          }
       } catch (detailError) {
-        console.warn(`Error getting details for ${place.placeId}:`, detailError)
-      }
+        }
 
       // Estrai località dal address_components
       let locality = null
@@ -144,20 +119,14 @@ export async function POST(request: NextRequest) {
         locality_info: {
           locality: locality,
           administrative_area: administrativeArea
-        }
+        },
+        types: place.types || []
       })
     }
 
-    console.log("=== FINAL PREDICTIONS WITH LOCALITIES ===")
-    console.log(`Found ${predictions.length} predictions:`)
-    predictions.forEach((p: any, i: number) => {
-      console.log(`${i + 1}. ${p.description} (Locality: ${p.extracted_locality})`)
-    })
 
     return NextResponse.json({ predictions })
   } catch (error) {
-    console.error("=== GENERAL ERROR ===")
-    console.error("Error in places API:", error)
     return NextResponse.json(
       {
         error: "Internal server error",

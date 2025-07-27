@@ -658,7 +658,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         durationHours
       })
 
-      let basePrice = 0
+      // STEP 1: Calculate disposition hourly price (duration × hourly rate)
+      let dispositionPrice = 0
       let subtotal = 0
       const vehicleBreakdowns: any[] = []
 
@@ -668,12 +669,19 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         const vehicleType = mapVehicleTypeToEvent(config.type)
         const eventDisposition = activeEvent.disposition![vehicleType]
         
-        // Base price using active event special hourly rates
+        // Disposition price using active event special hourly rates
         const pricePerVehicle = durationHours * eventDisposition.hourly
-        basePrice = pricePerVehicle * vehicles.count
-        subtotal = basePrice
+        dispositionPrice = pricePerVehicle * vehicles.count
+        subtotal = dispositionPrice
         
-        // Don't add custom breakdown - let the standard system handle it
+        console.log("⏰ DISPOSITION PRICE (SINGLE VEHICLE):", {
+          vehicleType,
+          hourlyRate: eventDisposition.hourly,
+          durationHours,
+          pricePerVehicle,
+          vehicleCount: vehicles.count,
+          totalDispositionPrice: dispositionPrice
+        })
       } else {
         // Multiple different vehicles
         vehicles.multipleConfigs.forEach((config, index) => {
@@ -681,7 +689,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           const eventDisposition = activeEvent.disposition![vehicleType]
           
           const vehiclePrice = durationHours * eventDisposition.hourly
-          subtotal += vehiclePrice
+          dispositionPrice += vehiclePrice
           
           vehicleBreakdowns.push({
             vehicleIndex: index + 1,
@@ -693,131 +701,161 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             price: vehiclePrice
           })
         })
-        basePrice = subtotal
+        subtotal = dispositionPrice
+        
+        console.log("⏰ DISPOSITION PRICE (MULTIPLE VEHICLES):", {
+          totalDispositionPrice: dispositionPrice,
+          vehicleBreakdowns
+        })
       }
 
-      // OLYMPIC DISPOSITION: Add transfer cost from Milano Centrale to disposition start point ONLY if outside Milano hinterland
+      // DISPOSITION TRANSFER: Calculate normal transfer cost from pickup to destination 
       let transferCost = 0
       let transferRoute = ''
-      if (journey.date && isOlympicPeriod(journey.date)) {
-        // Resolve pickup location for transfer calculation
+      
+      // Only calculate transfer if we have both pickup and destination
+      if (journey.pickup.address && journey.destination.address && 
+          journey.pickup.address !== journey.destination.address) {
+        
+        console.log("🚗 CALCULATING DISPOSITION TRANSFER:", {
+          from: journey.pickup.address,
+          to: journey.destination.address,
+          hasDistance: !!journey.distance?.km
+        })
+        
+        // Resolve locations for pricing
         const resolvedPickup = resolveLocationForPricing(
           journey.pickup.locationId, 
           journey.pickup.coordinates
         )
+        const resolvedDestination = resolveLocationForPricing(
+          journey.destination.locationId, 
+          journey.destination.coordinates
+        )
         
-        // Check if we need to calculate transfer for Olympic disposition
-        const needsOlympicTransfer = resolvedPickup.resolvedLocationId !== 'milano-centrale' && 
-          (resolvedPickup.resolvedLocationId || resolvedPickup.resolvedCoordinates || journey.pickup.address)
+        let transferPricing = null
+        
+        // During Olympic period, try Olympic routes first
+        if (journey.date && isOlympicPeriod(journey.date) && 
+            resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
           
-        if (needsOlympicTransfer) {
-          // Check if location is within Milano hinterland (10km)
-          const milanoCentroCoordinates = { lat: 45.4642, lng: 9.1900 } // Milano centro coordinates
-          let pickupCoordinates = resolvedPickup.resolvedCoordinates
+          const olympicRoute = findOlympicRoute(
+            resolvedPickup.resolvedLocationId,
+            resolvedDestination.resolvedLocationId
+          )
           
-          // If we don't have resolved coordinates but have a locationId or address, try to get them
-          if (!pickupCoordinates && (resolvedPickup.resolvedLocationId || journey.pickup.address)) {
-            // This case handles cities like Napoli that aren't in our registry
-            pickupCoordinates = journey.pickup.coordinates
-          }
-          
-          let isInMilanoHinterland = false
-          if (pickupCoordinates) {
-            const distanceFromMilanoCenter = calculateDistanceKm(milanoCentroCoordinates, pickupCoordinates)
-            isInMilanoHinterland = distanceFromMilanoCenter <= 10
+          if (olympicRoute) {
+            // Use Olympic route pricing
+            let olympicVehicleType: keyof typeof olympicRoute.prices = 'olympic-sedan'
             
-            console.log("🏙️ OLYMPIC DISPOSITION MILANO HINTERLAND CHECK:", {
-              pickupLocation: journey.pickup.address,
-              pickupLocationId: resolvedPickup.resolvedLocationId,
-              distanceFromMilanoCenter: distanceFromMilanoCenter.toFixed(1) + 'km',
-              isInHinterland: isInMilanoHinterland
+            if (vehicles.count === 1 || vehicles.sameType) {
+              olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
+            } else {
+              olympicVehicleType = mapToOlympicVehicleType(vehicles.multipleConfigs[0].type)
+            }
+            
+            transferCost = olympicRoute.prices[olympicVehicleType] * vehicles.count
+            transferRoute = `${olympicRoute.from} → ${olympicRoute.to}`
+            
+            console.log("🏔️ DISPOSITION TRANSFER (OLYMPIC ROUTE):", {
+              from: olympicRoute.from,
+              to: olympicRoute.to,
+              vehicleType: olympicVehicleType,
+              cost: transferCost,
+              route: transferRoute
             })
           }
-          
-          if (!isInMilanoHinterland) {
-            // Outside Milano hinterland - calculate transfer cost
-            let transferRouteFromMilano = null
+        }
+        
+        // If no Olympic route found, try event routes or use standard pricing
+        if (!transferPricing && transferCost === 0) {
+          // Try to find event route (non-Olympic)
+          if (!isOlympicPeriod(journey.date!) && activeEvent) {
+            let eventRoute: EventRoute | null = null
             
-            // Try to find Olympic route if we have a resolved location ID
-            if (resolvedPickup.resolvedLocationId) {
-              transferRouteFromMilano = findOlympicRoute('milano-centrale', resolvedPickup.resolvedLocationId)
+            if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+              eventRoute = findEventRouteByLocation(
+                resolvedPickup.resolvedLocationId,
+                resolvedDestination.resolvedLocationId,
+                activeEvent
+              )
             }
             
-            if (transferRouteFromMilano) {
-              // Map vehicle type to Olympic vehicle type for transfer pricing
-              let olympicVehicleType: keyof typeof transferRouteFromMilano.prices = 'olympic-sedan'
-              
-              if (vehicles.count === 1 || vehicles.sameType) {
-                olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
-              } else {
-                // For multiple vehicles, use the first one for transfer calculation
-                olympicVehicleType = mapToOlympicVehicleType(vehicles.multipleConfigs[0].type)
-              }
-              
-              transferCost = transferRouteFromMilano.prices[olympicVehicleType] * vehicles.count
-              transferRoute = `${transferRouteFromMilano.from} → ${transferRouteFromMilano.to}`
-              subtotal += transferCost
-              
-              console.log("🚗 OLYMPIC DISPOSITION TRANSFER (PREDEFINED ROUTE):", {
-                from: 'milano-centrale',
-                to: resolvedPickup.resolvedLocationId,
-                vehicleType: olympicVehicleType,
-                cost: transferCost,
-                route: transferRoute
-              })
-            } else if (pickupCoordinates) {
-              // No predefined Olympic route found, calculate using standard distance pricing
-              const milanoCoordinates = { lat: 45.4868, lng: 9.2037 } // Milano Centrale coordinates
-              const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
-              
-              // Use standard pricing calculation for the transfer
-              let vehicleType = 'sedan' // default
-              let passengers = 1
-              let luggage = 0
-              
-              if (vehicles.count === 1 || vehicles.sameType) {
-                vehicleType = vehicles.singleConfig.type
-                passengers = vehicles.singleConfig.passengers
-                luggage = vehicles.singleConfig.luggage
-              } else {
-                vehicleType = vehicles.multipleConfigs[0].type
-                passengers = vehicles.multipleConfigs[0].passengers
-                luggage = vehicles.multipleConfigs[0].luggage
-              }
-              
-              // Calculate transfer price using standard pricing (during Olympic period, we still use standard rates for non-Olympic routes)
-              const { calculateTotalPrice } = require('@/lib/pricing-config')
-              const transferPricing = calculateTotalPrice(
-                distance,
-                vehicleType,
-                passengers,
-                luggage,
-                vehicles.count,
-                journey.time,
-                journey.minutes,
-                journey.timeAmPm,
-                milanoCoordinates,
-                pickupCoordinates
+            if (!eventRoute && resolvedPickup.resolvedCoordinates && resolvedDestination.resolvedCoordinates) {
+              eventRoute = await findMatchingEventRoute(
+                resolvedPickup.resolvedCoordinates,
+                resolvedDestination.resolvedCoordinates,
+                activeEvent
+              )
+            }
+            
+            if (eventRoute) {
+              // Use event route pricing
+              const vehicleType = mapVehicleTypeToEvent(
+                vehicles.count === 1 || vehicles.sameType 
+                  ? vehicles.singleConfig.type 
+                  : vehicles.multipleConfigs[0].type
               )
               
-              transferCost = transferPricing.basePrice
-              transferRoute = `Milano Centrale → ${journey.pickup.address}`
-              subtotal += transferCost
+              transferCost = (eventRoute.prices[vehicleType] || 0) * vehicles.count
+              transferRoute = `${eventRoute.from} → ${eventRoute.to}`
               
-              console.log("🚗 OLYMPIC DISPOSITION TRANSFER (DISTANCE-BASED):", {
-                from: 'milano-centrale',
-                to: journey.pickup.address,
-                distance: distance.toFixed(1) + 'km',
+              console.log("🎯 DISPOSITION TRANSFER (EVENT ROUTE):", {
+                from: eventRoute.from,
+                to: eventRoute.to,
                 vehicleType,
                 cost: transferCost,
                 route: transferRoute
               })
             }
-          } else {
-            // Within Milano hinterland - NO transfer cost
-            console.log("✅ OLYMPIC DISPOSITION: Location within Milano hinterland (10km) - NO transfer cost applied")
+          }
+          
+          // Final fallback: use standard distance-based pricing
+          if (transferCost === 0 && journey.distance?.km) {
+            let vehicleType = 'sedan'
+            let passengers = 1
+            let luggage = 0
+            
+            if (vehicles.count === 1 || vehicles.sameType) {
+              vehicleType = vehicles.singleConfig.type
+              passengers = vehicles.singleConfig.passengers
+              luggage = vehicles.singleConfig.luggage
+            } else {
+              vehicleType = vehicles.multipleConfigs[0].type
+              passengers = vehicles.multipleConfigs[0].passengers
+              luggage = vehicles.multipleConfigs[0].luggage
+            }
+            
+            const { calculateTotalPrice } = require('@/lib/pricing-config')
+            const standardPricing = calculateTotalPrice(
+              journey.distance.km,
+              vehicleType,
+              passengers,
+              luggage,
+              vehicles.count,
+              journey.time,
+              journey.minutes,
+              journey.timeAmPm,
+              journey.pickup.coordinates,
+              journey.destination.coordinates
+            )
+            
+            transferCost = standardPricing.basePrice
+            transferRoute = `${journey.pickup.address} → ${journey.destination.address}`
+            
+            console.log("📏 DISPOSITION TRANSFER (DISTANCE-BASED):", {
+              from: journey.pickup.address,
+              to: journey.destination.address,
+              distance: journey.distance.km + 'km',
+              vehicleType,
+              cost: transferCost,
+              route: transferRoute
+            })
           }
         }
+        
+        // Add transfer cost to subtotal
+        subtotal += transferCost
       }
 
       // Apply night surcharge if applicable
@@ -833,7 +871,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       let totalPrice = subtotal + vatAmount
 
       console.log("💵 FINAL CALCULATION - calculateEventDispositionPrice:", {
-        basePrice,
+        dispositionPrice,
         transferCost,
         nightSurcharge,
         subtotal,
@@ -873,7 +911,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       }
 
               console.log("🎯 RETURNING RESULT - calculateEventDispositionPrice:", {
-          basePrice,
+          dispositionPrice,
           totalPrice,
           meetGreetPrice,
           eventRoute: `${activeEvent.name} - Disposition`,
@@ -883,7 +921,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         })
 
         return {
-          basePrice,
+          basePrice: dispositionPrice,
           totalPrice,
           meetGreetPrice,
           meetGreetBreakdown,
@@ -896,14 +934,14 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           isEventPricing: true,
           breakdown: {
             durationHours,
-            basePrice,
+            basePrice: dispositionPrice,
             vehicleMultiplier: 1,
             passengerMultiplier: 1,
             luggageMultiplier: 1,
             nightSurcharge,
             nightSurchargeRate: nightSurcharge > 0 ? activeEvent.extras.nightSurcharge : 0,
             vehicleCount: vehicles.count,
-            pricePerVehicle: Math.round(basePrice / vehicles.count),
+            pricePerVehicle: Math.round(dispositionPrice / vehicles.count),
             subtotal,
             vatAmount,
             vatRate: activeEvent.extras.vatRate,
@@ -976,10 +1014,35 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
                 to: resolvedDestination.resolvedLocationId
               })
               
-              const olympicRoute = findOlympicRoute(
+              let olympicRoute = findOlympicRoute(
                 resolvedPickup.resolvedLocationId,
                 resolvedDestination.resolvedLocationId
               )
+              
+              // FALLBACK: If Meet & Greet location doesn't find route, try generic location
+              if (!olympicRoute && resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+                // Meet & Greet → Generic location fallback mapping
+                const meetGreetToGenericMap: Record<string, string> = {
+                  'venezia-santa-lucia': 'venezia',
+                  'venezia-marco-polo': 'venezia',
+                  'milano-centrale': 'milano',
+                  'milano-malpensa': 'malpensa',
+                  'milano-linate': 'linate',
+                  'verona-porta-nuova': 'verona'
+                }
+                
+                const fallbackPickupId = meetGreetToGenericMap[resolvedPickup.resolvedLocationId] || resolvedPickup.resolvedLocationId
+                const fallbackDestinationId = meetGreetToGenericMap[resolvedDestination.resolvedLocationId] || resolvedDestination.resolvedLocationId
+                
+                if (fallbackPickupId !== resolvedPickup.resolvedLocationId || fallbackDestinationId !== resolvedDestination.resolvedLocationId) {
+                  console.log("🔄 OLYMPIC ROUTE FALLBACK:", {
+                    original: `${resolvedPickup.resolvedLocationId} → ${resolvedDestination.resolvedLocationId}`,
+                    fallback: `${fallbackPickupId} → ${fallbackDestinationId}`
+                  })
+                  
+                  olympicRoute = findOlympicRoute(fallbackPickupId, fallbackDestinationId)
+                }
+              }
               
               console.log("🎯 OLYMPIC ROUTE RESULT:", olympicRoute)
               

@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get("stripe-signature")
 
     if (!signature) {
-      console.error("❌ Stripe signature mancante")
       return NextResponse.json({ error: "Stripe signature mancante" }, { status: 400 })
     }
 
@@ -80,7 +79,6 @@ export async function POST(req: NextRequest) {
       // Verifica la firma del webhook con la chiave segreta
       event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
     } catch (err) {
-      console.error("❌ Errore verifica firma webhook:", err)
       return NextResponse.json({ error: "Firma webhook non valida" }, { status: 400 })
     }
 
@@ -88,15 +86,13 @@ export async function POST(req: NextRequest) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session
 
-      console.log("✅ Sessione checkout completata:", session.id)
-      console.log("🔍 Dati sessione completi:", JSON.stringify(session, null, 2))
+      
 
       // Estrai i dati del cliente
       const customerEmail = session.customer_details?.email
       const customerName = session.customer_details?.name || "Cliente"
 
       if (!customerEmail) {
-        console.error("❌ Email cliente non trovata nella sessione")
         return NextResponse.json({ error: "Email cliente mancante" }, { status: 400 })
       }
 
@@ -148,10 +144,8 @@ export async function POST(req: NextRequest) {
       if (individualVehicles && individualVehicles !== "") {
         try {
           parsedIndividualVehicles = JSON.parse(individualVehicles)
-          console.log("🚗 Veicoli individuali parsati:", parsedIndividualVehicles)
-        } catch (error) {
-          console.error("❌ Errore parsing veicoli individuali:", error)
-        }
+          } catch (error) {
+          }
       }
 
       // Parsa la configurazione Meet & Greet se presente
@@ -159,16 +153,11 @@ export async function POST(req: NextRequest) {
       if (meetGreetConfig && meetGreetConfig !== "") {
         try {
           parsedMeetGreetConfig = JSON.parse(meetGreetConfig)
-          console.log("🤝 Meet & Greet config parsato:", parsedMeetGreetConfig)
-        } catch (error) {
-          console.error("❌ Errore parsing Meet & Greet config:", error)
-        }
+          } catch (error) {
+          }
       }
 
       // 🔍 DEBUG: Controlla i valori del telefono
-      console.log("🔍 Debug telefono - phonePrefix:", phonePrefix)
-      console.log("🔍 Debug telefono - phoneNumber:", phoneNumber)
-      
       // Combina prefisso e numero di telefono (migliorata la logica)
       let phone = "Not specified"
       if (phonePrefix || phoneNumber) {
@@ -181,43 +170,31 @@ export async function POST(req: NextRequest) {
         }
       }
       
-      console.log("🔍 Debug telefono - Risultato finale:", phone)
-
       // Determina se mostare i veicoli individuali o la configurazione unica
       const hasIndividualVehicles = parsedIndividualVehicles.length > 0
       const isMultipleVehicles = parseInt(vehicleCount) > 1
 
       // 🔍 DEBUG: Controlla se esiste una fattura
-      console.log("🔍 Session invoice:", session.invoice)
-      console.log("🔍 Session payment_intent:", session.payment_intent)
-
       // Recupera l'invoice URL se disponibile
       let invoiceUrl = ""
       let paymentIntentId = ""
 
       if (session.invoice) {
         try {
-          console.log("📄 Tentativo recupero fattura:", session.invoice)
           const invoice = await stripe.invoices.retrieve(session.invoice as string)
-          console.log("📄 Fattura recuperata:", invoice.id)
-          console.log("📄 Invoice URL:", invoice.hosted_invoice_url)
           invoiceUrl = invoice.hosted_invoice_url || ""
         } catch (err) {
-          console.error("⚠️ Errore recupero fattura:", err)
-        }
+          }
       } else {
-        console.log("⚠️ Nessuna fattura associata alla sessione")
-      }
+        }
 
       // Recupera il Payment Intent per altre info
       if (session.payment_intent) {
         try {
           const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string)
           paymentIntentId = paymentIntent.id
-          console.log("💳 Payment Intent:", paymentIntentId)
-        } catch (err) {
-          console.error("⚠️ Errore recupero payment intent:", err)
-        }
+          } catch (err) {
+          }
       }
 
       // Formatta data e ora
@@ -261,8 +238,6 @@ export async function POST(req: NextRequest) {
 
       // 💾 SALVA NEL DATABASE SUPABASE
       try {
-        console.log("💾 Tentativo salvataggio booking nel database...")
-        
         const bookingData = {
           // Stripe/Payment info
           stripe_session_id: session.id,
@@ -334,20 +309,16 @@ export async function POST(req: NextRequest) {
         const insertResult = await insertBooking(bookingData)
         
         if (insertResult.success) {
-          console.log("✅ Booking salvato nel database con ID:", insertResult.data?.id)
-        } else {
-          console.error("❌ Errore salvataggio booking:", insertResult.error)
+          } else {
           // Continue with email sending even if database insert fails
         }
         
       } catch (dbError) {
-        console.error("❌ Errore imprevisto salvataggio database:", dbError)
         // Continue with email sending even if database insert fails
       }
 
       try {
         // 📧 EMAIL AL CLIENTE - Conferma prenotazione completa
-        console.log("📧 Tentativo invio email cliente a:", customerEmail)
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: customerEmail,
@@ -832,17 +803,14 @@ export async function POST(req: NextRequest) {
           `,
         })
 
-        console.log("✅ Email cliente inviata:", customerEmailResult.data?.id)
-        console.log("📧 Dettagli risposta email cliente:", JSON.stringify(customerEmailResult, null, 2))
+        
 
       } catch (customerEmailError) {
-        console.error("❌ Errore specifico invio email cliente:", customerEmailError)
         // Non fermare il processo, continua con l'email admin
       }
 
       try {
         // 📧 EMAIL ALL'ADMIN - Versione completa con tutti i dettagli
-        console.log("📧 Tentativo invio email admin a:", process.env.ADMIN_EMAIL)
         const adminEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
           to: process.env.ADMIN_EMAIL!,
@@ -1204,18 +1172,15 @@ export async function POST(req: NextRequest) {
           `,
         })
 
-        console.log("✅ Email admin inviata:", adminEmailResult.data?.id)
-        console.log("📧 Dettagli risposta email admin:", JSON.stringify(adminEmailResult, null, 2))
+        
 
       } catch (adminEmailError) {
-        console.error("❌ Errore specifico invio email admin:", adminEmailError)
-      }
+        }
     }
 
     // Ritorna 200 OK per confermare la ricezione del webhook
     return NextResponse.json({ received: true }, { status: 200 })
   } catch (error) {
-    console.error("❌ Errore generale webhook:", error)
     return NextResponse.json({ error: "Errore interno del server" }, { status: 500 })
   }
 }

@@ -388,7 +388,6 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
                           key={country.country}
                           value={`${country.country} ${country.value}`}
                           onSelect={() => {
-                            console.log("🔍 DEBUG CustomerInfoSection - phonePrefix changed to:", country.value)
                             setSelectedCountryCode(country.value)
                             onChange({ phonePrefix: getActualPrefix(country.value) })
                             setOpen(false)
@@ -414,7 +413,6 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
               className={`w-2/3 ${hasFieldError("phone") ? "border-red-500" : ""}`}
               value={customer.phone}
               onChange={(e) => {
-                console.log("🔍 DEBUG CustomerInfoSection - phone changed to:", e.target.value)
                 onChange({ phone: e.target.value })
               }}
             />

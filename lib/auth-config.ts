@@ -129,8 +129,6 @@ export function logSecurityEvent(event: string, details?: any): void {
     JSON.stringify(details, null, 2) : 
     String(details || "")
   
-  console.log(`[SECURITY] ${timestamp} - ${event}`, sanitizedDetails)
-  
   // In produzione, potresti voler inviare questi log a un servizio di monitoring
   if (process.env.NODE_ENV === "production") {
     // TODO: Implementare invio log a servizio esterno

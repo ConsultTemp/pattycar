@@ -59,8 +59,6 @@ export default async function ContactPage(props: { params: Params }) {
     }
     const dictionary = await getDictionary(params.lang)
 
-    console.log(params)
-    console.log(params.lang)
     return (
         <div className="pt-24">
             {/* Header */}
@@ -123,7 +121,6 @@ export default async function ContactPage(props: { params: Params }) {
                     </div>
                 </div>
             </div>
-
 
         </div>
     )

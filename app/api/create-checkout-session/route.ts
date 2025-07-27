@@ -26,23 +26,16 @@ function convertTo12Hour(time24: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    console.log("📥 Received request body:", JSON.stringify(body, null, 2))
+    
 
     const { amount, customerEmail, customerName, bookingData } = body
 
     // Validate required fields
     if (!amount || !customerEmail || !customerName || !bookingData) {
-      console.error("❌ Missing required fields:", {
-        amount,
-        customerEmail,
-        customerName,
-        hasBookingData: !!bookingData,
-      })
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
     if (amount <= 0) {
-      console.error("❌ Invalid amount:", amount)
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 })
     }
 
@@ -62,16 +55,13 @@ export async function POST(req: NextRequest) {
             email: customerEmail,
           })
         }
-        console.log("👤 Customer esistente aggiornato:", customer.id)
-      } else {
+        } else {
         customer = await stripe.customers.create({
           email: customerEmail,
           name: customerName,
         })
-        console.log("👤 Nuovo customer creato:", customer.id)
-      }
+        }
     } catch (err) {
-      console.error("❌ Error creating customer:", err)
       return NextResponse.json({ error: "Error creating customer" }, { status: 500 })
     }
 
@@ -234,16 +224,8 @@ export async function POST(req: NextRequest) {
       cancel_url: `${req.headers.get("origin")}/payment-cancelled`,
     })
 
-    console.log("✅ Session created:", session.id)
-    console.log("📄 Invoice creation enabled with complete details")
-    console.log("🎯 Service:", isDisposizione ? "Disposition" : "Transfer")
-    console.log("👤 With customer:", customer.id)
-    console.log("💰 Amount:", amount, "EUR")
-
     return NextResponse.json({ sessionId: session.id, url: session.url })
   } catch (err) {
-    console.error("❌ Error creating session:", err)
-
     if (err instanceof Error) {
       if (err.message.includes("stripe")) {
         return NextResponse.json({ error: "Payment service error" }, { status: 502 })

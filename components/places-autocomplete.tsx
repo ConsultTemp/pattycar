@@ -44,30 +44,19 @@ export function PlacesAutocomplete({
 
   // Effetto per cercare i luoghi quando cambia l'input con debounce
   useEffect(() => {
-    console.log('🔍 useEffect triggered:', {
-      debouncedInputValue,
-      isSelecting: isSelectingRef.current,
-      lastSelected: lastSelectedValueRef.current,
-      length: debouncedInputValue?.length
-    })
-    
     // Non cercare se stiamo selezionando un'opzione
     if (isSelectingRef.current) {
-      console.log('⏸️ Skipping search - currently selecting')
       return
     }
     
     // Non cercare se il valore è quello che abbiamo appena selezionato
     if (debouncedInputValue === lastSelectedValueRef.current) {
-      console.log('⏸️ Skipping search - this is the selected value')
       return
     }
     
     if (debouncedInputValue && debouncedInputValue.length >= 3) {
-      console.log('🚀 Starting search for:', debouncedInputValue)
       searchPlaces(debouncedInputValue)
     } else {
-      console.log('🧹 Clearing results - input too short or empty')
       setPlaces([])
       setIsOpen(false)
       setError(null)
@@ -118,7 +107,6 @@ export function PlacesAutocomplete({
       setPlaces(data.predictions || [])
       setIsOpen((data.predictions || []).length > 0)
     } catch (error) {
-      console.error("Error fetching places:", error)
       setError(error instanceof Error ? error.message : "Errore nella ricerca")
       setPlaces([])
       setIsOpen(false)
@@ -129,16 +117,8 @@ export function PlacesAutocomplete({
 
   // Gestisce la selezione di un luogo
   const handlePlaceSelect = (place: Place) => {
-    console.log('🎯 handlePlaceSelect called:', {
-      place: place.description,
-      currentInput: inputValue,
-      isSelecting: isSelectingRef.current
-    })
-    
     isSelectingRef.current = true
     lastSelectedValueRef.current = place.description
-    console.log('🔒 Set isSelecting to true and saved selected value')
-    
     // Imposta il valore selezionato e ferma qualsiasi ricerca in corso
     setInputValue(place.description)
     onChange(place.description, place.place_id)
@@ -147,35 +127,23 @@ export function PlacesAutocomplete({
     setError(null)
     setIsLoading(false)
     
-    console.log('✅ Selection completed, state updated')
-    
     // Reset del flag dopo un breve timeout
     setTimeout(() => {
       isSelectingRef.current = false
-      console.log('🔓 Reset isSelecting to false')
-    }, 300)
+      }, 300)
   }
 
   // Gestisce il cambiamento dell'input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     
-    console.log('⌨️ handleInputChange:', {
-      newValue,
-      currentInput: inputValue,
-      isSelecting: isSelectingRef.current,
-      lastSelected: lastSelectedValueRef.current
-    })
-    
     // Reset del flag di selezione quando l'utente digita manualmente
     if (!isSelectingRef.current) {
       // Reset del valore selezionato se l'utente sta digitando qualcosa di diverso
       if (newValue !== lastSelectedValueRef.current) {
         lastSelectedValueRef.current = ""
-        console.log('🧹 Cleared last selected value - user is typing something new')
-      }
+        }
       
-      console.log('📝 Updating input value')
       setInputValue(newValue)
       onChange(newValue)
       setError(null)
@@ -185,13 +153,11 @@ export function PlacesAutocomplete({
         setIsOpen(false)
       }
     } else {
-      console.log('🚫 Ignoring input change - currently selecting')
-    }
+      }
   }
 
   // Gestisce il focus sull'input
   const handleInputFocus = () => {
-    console.log('👁️ Input focused, places length:', places.length)
     if (places.length > 0) {
       setIsOpen(true)
     }
@@ -199,11 +165,9 @@ export function PlacesAutocomplete({
 
   // Gestisce la perdita di focus - ora con controllo del flag
   const handleInputBlur = () => {
-    console.log('😴 Input blurred, isSelecting:', isSelectingRef.current)
     // Non chiudere se stiamo selezionando un'opzione
     if (!isSelectingRef.current) {
       setTimeout(() => {
-        console.log('⏰ Blur timeout, isSelecting:', isSelectingRef.current)
         if (!isSelectingRef.current) {
           setIsOpen(false)
         }
@@ -213,7 +177,6 @@ export function PlacesAutocomplete({
 
   // Gestisce mousedown per prevenire blur quando si clicca su un'opzione
   const handleOptionMouseDown = (e: React.MouseEvent) => {
-    console.log('🖱️ Option mousedown')
     e.preventDefault() // Previene il blur dell'input
     isSelectingRef.current = true
   }

@@ -325,7 +325,7 @@ export const LOCATION_REGISTRY: Record<string, Location> = {
     id: "venezia-santa-lucia",
     name: "Venezia Santa Lucia",
     displayName: "Venezia Santa Lucia",
-    coordinates: { lat: 45.4408, lng: 12.3208 },
+    coordinates: { lat: 45.4410697, lng: 12.3210436 },
     type: "station",
     services: {
       meetGreetArrivals: {
@@ -412,24 +412,54 @@ export function getMeetGreetLocations(): Location[] {
   )
 }
 
-// NEW: Find nearby Meet & Greet location within 500m radius - PRIORITY FUNCTION
+// NEW: Find nearby Meet & Greet location within 2km radius - PRIORITY FUNCTION
 export function findNearbyMeetGreetLocation(
   coordinates: { lat: number; lng: number },
-  radiusKm: number = 0.5 // 500m default radius
+  radiusKm: number = 0.5 // 2km radius to catch nearby addresses for stations/airports
 ): Location | null {
   console.log(`🚥 MEET & GREET PROXIMITY CHECK: Checking coordinates ${coordinates.lat},${coordinates.lng} within ${radiusKm * 1000}m radius`)
   
   // Get all locations that have Meet & Greet services
   const meetGreetLocations = getMeetGreetLocations()
   
+  // VENEZIA DEBUG: Special focus on Venezia Santa Lucia
+  const veneziaSantaLucia = meetGreetLocations.find(loc => loc.id === 'venezia-santa-lucia')
+  if (veneziaSantaLucia) {
+    const distanceToVenezia = calculateDistance(coordinates, veneziaSantaLucia.coordinates)
+    console.log(`🏛️ VENEZIA SANTA LUCIA DEBUG:`)
+    console.log(`   Station coordinates: ${veneziaSantaLucia.coordinates.lat}, ${veneziaSantaLucia.coordinates.lng}`)
+    console.log(`   Distance from input: ${(distanceToVenezia * 1000).toFixed(0)}m`)
+    console.log(`   Within ${radiusKm * 1000}m radius: ${distanceToVenezia <= radiusKm ? 'YES ✅' : 'NO ❌'}`)
+    
+    if (distanceToVenezia <= radiusKm) {
+      console.log(`✅ MEET & GREET LOCATION FOUND: ${veneziaSantaLucia.displayName} (${(distanceToVenezia * 1000).toFixed(0)}m away)`)
+      return veneziaSantaLucia
+    }
+  }
+  
+  // Check all other locations
+  let closestLocation: Location | null = null
+  let closestDistance = Infinity
+  
   for (const location of meetGreetLocations) {
+    if (location.id === 'venezia-santa-lucia') continue // Already checked above
+    
     const distance = calculateDistance(coordinates, location.coordinates)
-    console.log(`📏 Distance to ${location.displayName}: ${(distance * 1000).toFixed(0)}m`)
+    
+    if (distance < closestDistance) {
+      closestDistance = distance
+      closestLocation = location
+    }
     
     if (distance <= radiusKm) {
       console.log(`✅ MEET & GREET LOCATION FOUND: ${location.displayName} (${(distance * 1000).toFixed(0)}m away)`)
       return location
     }
+  }
+  
+  // VENEZIA DEBUG: Show closest alternative if no match found
+  if (closestLocation) {
+    console.log(`🔍 CLOSEST MEET & GREET LOCATION: ${closestLocation.displayName} at ${(closestDistance * 1000).toFixed(0)}m`)
   }
   
   console.log(`❌ No Meet & Greet locations within ${radiusKm * 1000}m radius`)
@@ -443,10 +473,10 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
 } {
   console.log(`🎯 RESOLVING LOCATION FOR PRICING: locationId="${locationId}", coordinates=${coordinates ? `${coordinates.lat},${coordinates.lng}` : 'none'}`)
 
-  // PRIORITY CHECK: If we have coordinates, check for Meet & Greet locations FIRST (within 500m)
-  if (coordinates) {
+  // PRIORITY CHECK: If we have coordinates, check for Meet & Greet locations FIRST (within 2km)
+  if (coordinates) {  
     console.log(`🚥 STEP 1: Checking for nearby Meet & Greet locations...`)
-    const nearbyMeetGreetLocation = findNearbyMeetGreetLocation(coordinates, 0.5) // 500m radius
+    const nearbyMeetGreetLocation = findNearbyMeetGreetLocation(coordinates) // Use default radius (2km)
     if (nearbyMeetGreetLocation) {
       console.log(`🎯 MEET & GREET PRIORITY: Found ${nearbyMeetGreetLocation.displayName} - using this instead of general location mapping`)
       return {
@@ -455,16 +485,39 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
       }
     }
     console.log(`➡️ No Meet & Greet locations nearby, proceeding with general location resolution...`)
+    
+    // VENEZIA DEBUG: Check if this should have been recognized as Venezia Santa Lucia
+    if (coordinates) {
+      const veneziaSantaLucia = getLocationById('venezia-santa-lucia')
+      if (veneziaSantaLucia) {
+        const distanceToVenezia = calculateDistance(coordinates, veneziaSantaLucia.coordinates)
+        if (distanceToVenezia <= 2.0) { // Within 2km
+        }
+      }
+    }
   }
 
   // If we have a location ID, try locality mapping first to map specific → base locations
-  if (locationId) {
+  if (locationId) { 
     console.log(`🔍 STEP 2: Trying locality mapping for "${locationId}"...`)
     const localityResult = findLocationByLocality(locationId)
     if (localityResult.locationId && localityResult.confidence > 0.7) {
       const mappedLocation = getLocationById(localityResult.locationId)
-      if (mappedLocation) {
+      if (mappedLocation) { 
         console.log(`✅ LOCALITY MAPPING SUCCESS: "${locationId}" → "${localityResult.locationId}" (${(localityResult.confidence * 100).toFixed(1)}% confidence)`)
+        
+        // VENEZIA DEBUG: Check if this got mapped to generic "venezia" instead of "venezia-santa-lucia"
+        if (localityResult.locationId === 'venezia' && coordinates) {
+          const veneziaSantaLucia = getLocationById('venezia-santa-lucia')
+          if (veneziaSantaLucia) {
+            const distanceToStation = calculateDistance(coordinates, veneziaSantaLucia.coordinates)
+            console.log(`🏛️ VENEZIA MAPPING DEBUG: Mapped to generic "venezia" but ${(distanceToStation * 1000).toFixed(0)}m from Santa Lucia station`)
+            if (distanceToStation <= 2.0) {
+              console.log(`⚠️  MAPPING ISSUE: Should this be "venezia-santa-lucia" instead of "venezia"?`)
+            }
+          }
+        }
+        
         return {
           resolvedLocationId: localityResult.locationId,
           resolvedCoordinates: mappedLocation.coordinates
@@ -503,7 +556,6 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
     if (geographicResult.useListino && geographicResult.locationId) {
       const mappedLocation = getLocationById(geographicResult.locationId)
       if (mappedLocation) {
-        console.log(`✅ GEOGRAPHIC MAPPING SUCCESS: ${coordinates.lat},${coordinates.lng} → "${geographicResult.locationId}" (${(geographicResult.confidence * 100).toFixed(1)}% confidence)`)
         return {
           resolvedLocationId: geographicResult.locationId,
           resolvedCoordinates: mappedLocation.coordinates
@@ -511,7 +563,6 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
       }
     }
     
-    console.log(`❌ COORDINATE MAPPING FAILED for ${coordinates.lat},${coordinates.lng}`)
     // No matching location found, return coordinates as-is
     return {
       resolvedLocationId: undefined,
@@ -520,7 +571,6 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
   }
 
   // No location or coordinates
-  console.log(`❌ NO LOCATION OR COORDINATES PROVIDED`)
   return {
     resolvedLocationId: undefined,
     resolvedCoordinates: undefined
@@ -1006,7 +1056,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
   "venezia-rail-arrivals": {
     type: "railway-arrivals",
     location: "Venezia Santa Lucia",
-    coordinates: { lat: 45.4408, lng: 12.3208 },
+    coordinates: { lat: 45.4410697, lng: 12.3210436 },
     basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
     extraPassengerPrice: 70,
     extraLuggagePrice: 25,
@@ -1086,7 +1136,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
   "venezia-rail-departures": {
     type: "railway-departures",
     location: "Venezia Santa Lucia",
-    coordinates: { lat: 45.4408, lng: 12.3208 },
+    coordinates: { lat: 45.4410697, lng: 12.3210436 },
     basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
     extraPassengerPrice: 70,
     extraLuggagePrice: 25,
@@ -1514,35 +1564,26 @@ export function findEventRouteByLocation(
   destinationLocationId?: string,
   event: EventPricing = GP_MONZA_2025
 ): EventRoute | null {
-  console.log("🔍 findEventRouteByLocation called with:", pickupLocationId, "→", destinationLocationId)
   
   if (!pickupLocationId || !destinationLocationId) {
-    console.log("❌ Missing location IDs")
     return null
   }
 
   const pickupLocation = getLocationById(pickupLocationId)
   const destinationLocation = getLocationById(destinationLocationId)
-  
-  console.log("📍 Pickup location:", pickupLocation)
-  console.log("📍 Destination location:", destinationLocation)
 
   if (!pickupLocation || !destinationLocation) {
-    console.log("❌ One or both locations not found in registry")
     return null
   }
 
   // Check if both locations have GP Monza service
   if (!pickupLocation.services.gpMonza?.enabled || !destinationLocation.services.gpMonza?.enabled) {
-    console.log("❌ One or both locations don't have GP Monza service")
     return null
   }
 
-  console.log("✅ Both locations have GP Monza service")
 
   // Simple mapping for known combinations
   const routeKey = `${pickupLocationId}-${destinationLocationId}`
-  console.log("🔑 Looking for route key:", routeKey)
 
   // Direct route mapping for GP Monza
   const routeMappings: Record<string, string> = {
@@ -1559,31 +1600,24 @@ export function findEventRouteByLocation(
   }
 
   const routeDescription = routeMappings[routeKey]
-  console.log("📋 Route description:", routeDescription)
 
   if (!routeDescription) {
-    console.log("❌ No route mapping found for this combination")
     return null
   }
 
   // Find the actual route in GP_MONZA_2025
   for (const route of event.routes) {
-    console.log(`🔍 Checking route: "${route.from}" → "${route.to}"`)
-    console.log(`📍 Against: "${pickupLocation.name}" → "${destinationLocation.name}"`)
     
     // Match EXACTLY by location names (no coordinate fallback to avoid conflicts)
     const fromMatch = route.from === pickupLocation.name
     const toMatch = route.to === destinationLocation.name
 
-    console.log(`✅ From match: ${fromMatch}, To match: ${toMatch}`)
 
     if (fromMatch && toMatch) {
-      console.log("🎉 Found matching route:", route)
       return route
     }
   }
 
-  console.log("❌ No matching route found in GP_MONZA_2025.routes")
   return null
 }
 

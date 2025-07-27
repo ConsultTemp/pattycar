@@ -83,10 +83,7 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       }
 
     case "SET_CUSTOMER":
-      console.log("🔍 DEBUG bookingReducer - SET_CUSTOMER called with:", JSON.stringify(action.payload, null, 2))
-      console.log("🔍 DEBUG bookingReducer - Current customer state:", JSON.stringify(state.customer, null, 2))
       const newCustomer = { ...state.customer, ...action.payload }
-      console.log("🔍 DEBUG bookingReducer - New customer state:", JSON.stringify(newCustomer, null, 2))
       return {
         ...state,
         customer: newCustomer,

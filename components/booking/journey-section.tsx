@@ -79,8 +79,6 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     }
   }, [journey.time, journey.minutes, journey.timeAmPm, journey.serviceDuration, is24HourFormat, useOlympicDurationLogic, onChange])
 
-
-
   // Convert between formats when switching
   const handleFormatChange = (new24HourFormat: boolean) => {
     setIs24HourFormat(new24HourFormat)
@@ -156,8 +154,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
           }
         }
       } catch (error) {
-        console.error(`Error geocoding ${type} address:`, error)
-      }
+        }
     }
 
     // Only geocode if:
@@ -223,8 +220,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
             })
           }
         } catch (error) {
-          console.error("Error calculating distance:", error)
-        } finally {
+          } finally {
           setIsCalculatingDistance(false)
         }
       }
@@ -333,7 +329,6 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
             isCustom: journey.pickup?.isCustom
           }}
           onChange={(value) => {
-            console.log("📍 JourneySection - Pickup changed:", value)
             onChange({
               pickup: {
                 address: value.address,
@@ -374,7 +369,6 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
             isCustom: journey.destination?.isCustom
           }}
           onChange={(value) => {
-            console.log("📍 JourneySection - Destination changed:", value)
             onChange({
               destination: {
                 address: value.address,

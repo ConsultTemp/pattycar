@@ -18,6 +18,7 @@ import { SubmitSection } from "@/components/booking/submit-section"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MeetGreetConfig, ServiceType } from "@/lib/booking-types"
+import { resolveLocationForPricing } from "@/lib/event-pricing"
 import { isOlympicPeriod, isCeremonyDate, getCeremonyName, findOlympicRoute } from "@/lib/olympic-pricing"
 
 // Helper function to convert to 24h format string (for form submission)
@@ -120,8 +121,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     dispatch({ type: "SET_CUSTOMER", payload: customer })
   }, [])
 
-
-
   const handleServiceTypeChange = useCallback((serviceType: ServiceType) => {
     dispatch({ type: "SET_SERVICE_TYPE", payload: serviceType })
   }, [])
@@ -149,14 +148,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
     // If any location changed and Meet & Greet is currently enabled, reset it
     if ((pickupLocationChanged || destinationLocationChanged) && state.options.meetGreetConfig.enabled) {
-      console.log('🚫 LOCATION CHANGED - Resetting Meet & Greet configuration')
-      console.log('   📍 Pickup changed:', pickupLocationChanged)
-      console.log('   📍 Destination changed:', destinationLocationChanged)
-      console.log('   📋 Old Pickup:', state.journey.pickup)
-      console.log('   📋 New Pickup:', journey.pickup)
-      console.log('   📋 Old Destination:', state.journey.destination)
-      console.log('   📋 New Destination:', journey.destination)
-      
       dispatch({ 
         type: "UPDATE_MEET_GREET_CONFIG", 
         payload: {
@@ -185,7 +176,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         dispatch({ type: "SET_SERVICE_TYPE", payload: newAvailableServices[0]?.value || "transfer" })
       }
     }
-  }, [state.serviceType, state.journey.pickup, state.journey.destination, state.options.meetGreetConfig.enabled])
+  }, [state.serviceType, state.journey.pickup, state.journey.destination])
 
   const handleVehicleCountChange = useCallback((count: number) => {
     dispatch({ type: "SET_VEHICLE_COUNT", payload: count })
@@ -221,7 +212,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     if (config.enabled !== undefined) {
       dispatch({ type: "SET_OPTIONS", payload: { meetAndGreet: config.enabled } })
     }
-  }, [])
+  }, [dispatch])
 
   const handleSubmit = useCallback(async () => {
     // Mark that user has attempted to submit (for UI styling)
@@ -250,8 +241,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     dispatch({ type: "SET_SUBMIT_STATUS", payload: "submitting" })
 
     try {
-      // 🔍 DEBUG: Log dei dati customer prima del submit
-      console.log("🔍 DEBUG state.customer prima del submit:", JSON.stringify(state.customer, null, 2))
 
       // Prepare booking details for API compatibility
       const bookingData = {
@@ -303,8 +292,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             : null,
       }
 
-      // 🔍 DEBUG: Log del bookingData finale
-      console.log("🔍 DEBUG bookingData finale:", JSON.stringify(bookingData, null, 2))
+
 
       // Create Stripe checkout session with correct payload structure
       const response = await fetch("/api/create-checkout-session", {
@@ -336,7 +324,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     } catch (error) {
       const bookingError = handleError(error)
       dispatch({ type: "SET_SUBMIT_STATUS", payload: "error" })
-      console.error("Booking submission error:", getErrorMessage(bookingError))
     }
   }, [state, validateAll, handleError, getErrorMessage, pricing, cancellationAccepted])
 
@@ -514,8 +501,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           />
         </div>
 
-        {/* Meet & Greet Section - Only available during Olympic period */}
-        {state.journey.date && isOlympicPeriod(state.journey.date) && (
+        {/* Meet & Greet Section - Available when service is detected */}
+        {state.journey.date && (
           <MeetGreetSection
             config={state.options.meetGreetConfig}
             journey={state.journey}
@@ -532,16 +519,53 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             // Determine if current route is East Cluster
             let isEastCluster = false
             
-            if (state.journey.pickup?.locationId && state.journey.destination?.locationId && isOlympicPeriod_local) {
-              const olympicRoute = findOlympicRoute(state.journey.pickup.locationId, state.journey.destination.locationId)
-              isEastCluster = olympicRoute?.isEastCluster === true
+            if (isOlympicPeriod_local) {
+              // Use same location resolution logic as pricing calculation
+              const resolvedPickup = resolveLocationForPricing(
+                state.journey.pickup.locationId, 
+                state.journey.pickup.coordinates
+              )
+              const resolvedDestination = resolveLocationForPricing(
+                state.journey.destination.locationId, 
+                state.journey.destination.coordinates
+              )
               
-              console.log('🌍 ROUTE CHECK:', {
-                from: state.journey.pickup.locationId,
-                to: state.journey.destination.locationId,
-                route: olympicRoute,
-                isEastCluster
-              })
+              if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+                // Try to find Olympic route with resolved locations
+                let olympicRoute = findOlympicRoute(
+                  resolvedPickup.resolvedLocationId, 
+                  resolvedDestination.resolvedLocationId
+                )
+                
+                // Apply same fallback logic as pricing calculation
+                if (!olympicRoute) {
+                  const meetGreetToGenericMap: Record<string, string> = {
+                    'venezia-santa-lucia': 'venezia',
+                    'venezia-marco-polo': 'venezia',
+                    'milano-centrale': 'milano',
+                    'milano-malpensa': 'malpensa',
+                    'milano-linate': 'linate',
+                    'verona-porta-nuova': 'verona'
+                  }
+                  
+                  const fallbackPickupId = meetGreetToGenericMap[resolvedPickup.resolvedLocationId] || resolvedPickup.resolvedLocationId
+                  const fallbackDestinationId = meetGreetToGenericMap[resolvedDestination.resolvedLocationId] || resolvedDestination.resolvedLocationId
+                  
+                  if (fallbackPickupId !== resolvedPickup.resolvedLocationId || fallbackDestinationId !== resolvedDestination.resolvedLocationId) {
+                    olympicRoute = findOlympicRoute(fallbackPickupId, fallbackDestinationId)
+                  }
+                }
+                
+                isEastCluster = olympicRoute?.isEastCluster === true || olympicRoute?.isInterCluster === true
+                console.log("🏔️ VEHICLE CONFIG - East/Inter Cluster Check:", {
+                  pickup: resolvedPickup.resolvedLocationId,
+                  destination: resolvedDestination.resolvedLocationId,
+                  foundRoute: !!olympicRoute,
+                  isEastCluster: olympicRoute?.isEastCluster,
+                  isInterCluster: olympicRoute?.isInterCluster,
+                  limitVehicles: isEastCluster
+                })
+              }
             }
             
             return (
@@ -555,6 +579,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 journeyDate={state.journey.date}
                 serviceType={state.serviceType}
                 isEastCluster={isEastCluster}
+                pickupLocationId={state.journey.pickup.locationId}
+                destinationLocationId={state.journey.destination.locationId}
                 onCountChange={handleVehicleCountChange}
                 onToggleSameType={handleToggleSameType}
                 onSingleConfigChange={handleSingleConfigChange}

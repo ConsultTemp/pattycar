@@ -121,8 +121,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         const data = await response.json()
         setCsrfToken(data.token)
       } catch (error) {
-        console.error('Error fetching CSRF token:', error)
-      }
+        }
     }
     fetchCsrfToken()
   }, [])
@@ -250,8 +249,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
               csrfToken
             })
           })
-console.log(response)
-          if (!response.ok) {
+if (!response.ok) {
             throw new Error('Form submission failed')
           }
 
@@ -261,7 +259,6 @@ console.log(response)
           setShowFinalConfirmation(false)
         }
       } catch (error) {
-        console.error('Error submitting form:', error)
         setIsSubmitting(false)
         setSubmitStatus("error")
       }

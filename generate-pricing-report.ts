@@ -40,8 +40,6 @@ function calculateOlympicTransferPrice(route: any, vehicleType: string, isNight:
   }
 }
 
-console.log("🏁 Generazione Report Pricing HTML...")
-
 let htmlContent = `
 <!DOCTYPE html>
 <html lang="it">
@@ -507,5 +505,3 @@ htmlContent += `
 // Write to file
 fs.writeFileSync('pattycar-pricing-report.html', htmlContent)
 
-console.log("✅ Report HTML generato: pattycar-pricing-report.html")
-console.log("📂 Apri il file nel browser per visualizzare tutte le tabelle dei prezzi") 

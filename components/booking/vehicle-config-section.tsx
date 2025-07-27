@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Trash2, User2, Luggage, Backpack, Zap } from "lucide-react"
 import type { VehicleConfig, ValidationError } from "@/lib/booking-types"
 import { getAllowedVehicleTypes } from "@/lib/event-pricing"
-import { isOlympicPeriod, getOlympicVehicleTypes, OLYMPIC_VEHICLE_TYPES, getCeremonyVehicleTypes, isCeremonyDate } from "@/lib/olympic-pricing"
+import { isOlympicPeriod, getOlympicVehicleTypes, OLYMPIC_VEHICLE_TYPES, getCeremonyVehicleTypes, isCeremonyDate, getAvailableOlympicVehicleTypes, isInterClusterRoute } from "@/lib/olympic-pricing"
 
 interface VehicleConfigSectionProps {
   vehicleCount: number
@@ -20,6 +20,8 @@ interface VehicleConfigSectionProps {
   journeyDate?: Date // Add journey date to filter vehicle types
   serviceType?: string // Add service type to determine ceremony vehicles
   isEastCluster?: boolean // Add flag to determine if route is East Cluster
+  pickupLocationId?: string // NEW: Pickup location ID for inter-cluster filtering
+  destinationLocationId?: string // NEW: Destination location ID for inter-cluster filtering
   onCountChange: (count: number) => void
   onToggleSameType: () => void
   onSingleConfigChange: (config: Partial<VehicleConfig>) => void
@@ -47,6 +49,8 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     journeyDate,
     serviceType,
     isEastCluster,
+    pickupLocationId,
+    destinationLocationId,
     onCountChange,
     onToggleSameType,
     onSingleConfigChange,
@@ -118,8 +122,20 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     } else if (isOlympic) {
       // During Olympic period, use Olympic vehicle types
       const allowedTypes = getAllowedVehicleTypes(journeyDate)
+      
+      // NEW: Get available Olympic vehicle types based on route (inter-cluster filtering)
+      const availableOlympicTypes = getAvailableOlympicVehicleTypes(pickupLocationId, destinationLocationId)
+      const isInterCluster = isInterClusterRoute(pickupLocationId || '', destinationLocationId || '')
+      
       vehicleTypes = Object.values(OLYMPIC_VEHICLE_TYPES)
-        .filter(vehicle => allowedTypes.includes(vehicle.id))
+        .filter(vehicle => {
+          // First filter by date-based allowed types
+          if (!allowedTypes.includes(vehicle.id)) return false
+          
+          // Then filter by route-based available types (inter-cluster check)
+          const olympicVehicleType = `olympic-${vehicle.name}` as 'olympic-sedan' | 'olympic-minivan' | 'olympic-van' | 'olympic-luxury'
+          return availableOlympicTypes.includes(olympicVehicleType)
+        })
         .map(vehicle => ({
           value: vehicle.id,
           label: vehicle.displayName,
@@ -129,6 +145,13 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
           description: vehicle.description,
           category: vehicle.category
         }))
+      
+      // FALLBACK: Se non ci sono veicoli olimpici, usa quelli standard
+      if (vehicleTypes.length === 0) {
+        vehicleTypes = allVehicleTypes.filter(vehicle => 
+          ["sedan", "van", "minibus", "luxury-sedan"].includes(vehicle.value)
+        )
+      }
     } else {
       // Standard period, use regular vehicle types
       const allowedTypes = getAllowedVehicleTypes(journeyDate)

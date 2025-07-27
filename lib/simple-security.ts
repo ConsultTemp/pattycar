@@ -72,15 +72,11 @@ export function recordFailedAttempt(ip: string): void {
   
   if (!attempt) {
     attemptStore.set(ip, { count: 1, firstAttempt: now })
-    console.log(`🔒 Login failed for IP ${ip} (1/${SECURITY_CONFIG.MAX_ATTEMPTS})`)
   } else {
     attempt.count++
     
     if (attempt.count >= SECURITY_CONFIG.MAX_ATTEMPTS) {
       attempt.blockedUntil = now + SECURITY_CONFIG.BLOCK_TIME
-      console.log(`🚨 IP ${ip} blocked for ${SECURITY_CONFIG.BLOCK_TIME / 1000 / 60} minutes after ${attempt.count} failed attempts`)
-    } else {
-      console.log(`🔒 Login failed for IP ${ip} (${attempt.count}/${SECURITY_CONFIG.MAX_ATTEMPTS})`)
     }
   }
 }
@@ -88,13 +84,11 @@ export function recordFailedAttempt(ip: string): void {
 // Reset tentativi dopo login riuscito
 export function resetAttempts(ip: string): void {
   attemptStore.delete(ip)
-  console.log(`✅ Login successful for IP ${ip} - attempts reset`)
 }
 
 // Logging sicurezza base
 export function logSecurityEvent(type: string, ip: string, details?: any): void {
   const timestamp = new Date().toISOString()
-  console.log(`🔐 [${timestamp}] Security Event: ${type} from ${ip}`, details ? JSON.stringify(details) : '')
 }
 
 // Pulisci store periodicamente (ogni ora)

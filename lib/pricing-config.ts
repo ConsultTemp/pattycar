@@ -46,19 +46,14 @@ export const PRICE_PER_HOUR_BY_VEHICLE = {
 
 // Funzione per ottenere il prezzo orario corretto per tipo di veicolo
 export function getHourlyRate(vehicleType: string): number {
-  console.log(`🚗 GETTING HOURLY RATE FOR: "${vehicleType}"`)
-  console.log(`🚗 Available types:`, Object.keys(PRICE_PER_HOUR_BY_VEHICLE))
+  
   
   const rate = PRICE_PER_HOUR_BY_VEHICLE[vehicleType as keyof typeof PRICE_PER_HOUR_BY_VEHICLE]
   
   if (rate) {
-    console.log(`✅ FOUND RATE: ${vehicleType} = €${rate}/hour`)
-    console.log(`🎯 RETURNING RATE: ${rate}`)
     return rate
   }
   
-  console.log(`❌ NO RATE FOUND FOR: ${vehicleType}, using default 94`)
-  console.log(`🎯 RETURNING DEFAULT: 94`)
   return 94
 }
 
@@ -134,13 +129,7 @@ export function calculateTotalPrice(
     // Fixed price for internal Milano transfers
     basePrice = MILANO_INTERNAL_TRANSFER_PRICE
     isFixedPrice = true
-    console.log("🏢 MILANO INTERNAL TRANSFER DETECTED:", {
-      pickup: pickupCoords,
-      destination: destinationCoords,
-      fixedPrice: basePrice,
-      distanceWouldBe: distanceKm + 'km'
-    })
-  } else {
+    } else {
     // Distance-based pricing for other transfers
     basePrice = distanceKm * PRICE_PER_KM
   }
@@ -213,13 +202,7 @@ export function calculateMultipleVehiclesPrice(
     // Fixed price for internal Milano transfers
     basePrice = MILANO_INTERNAL_TRANSFER_PRICE
     isFixedPrice = true
-    console.log("🏢 MILANO INTERNAL TRANSFER DETECTED (MULTIPLE VEHICLES):", {
-      pickup: pickupCoords,
-      destination: destinationCoords,
-      fixedPrice: basePrice,
-      distanceWouldBe: distanceKm + 'km',
-      vehicleCount: vehicles.length
-    })
+    
   } else {
     // Distance-based pricing for other transfers
     basePrice = distanceKm * PRICE_PER_KM
@@ -441,7 +424,6 @@ export async function getDistanceBetweenPlaces(origin: string, destination: stri
     const data = await response.json()
     return data
   } catch (error) {
-    console.error("Error getting distance:", error)
     throw error
   }
 }

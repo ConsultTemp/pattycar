@@ -185,7 +185,7 @@ lasciare solo opzioni google no mockup
 
 ✅aggiorna testo email conferma
 
-quando cambio location partenza o arrivo annulla campi sucessivi
+✅quando cambio location partenza o arrivo annulla campi sucessivi
 
 
 
@@ -207,3 +207,11 @@ inserimento interno, se inserisco un campo posso salvare e modificare in seguito
 
 
 east cluster: solo sedan e minivan
+
+
+
+prezzo disposizione:
+ prezzo orario + prezzo tratta meetup -> dropoff
+
+
+ frase limiti di circolazione (strade chiuse) vicino a bottone proceed to payment come checkbox

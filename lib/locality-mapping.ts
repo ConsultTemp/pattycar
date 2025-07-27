@@ -241,7 +241,6 @@ function extractCityFromAddress(address: string): string | null {
   
   for (const { pattern, city } of cityPatterns) {
     if (pattern.test(normalizedAddress)) {
-      console.log(`🏙️ Extracted city "${city}" from address "${address}"`)
       return city
     }
   }
@@ -344,8 +343,6 @@ function findLocationsByGeography(
   // Ordina per confidence (distanza + priorità)
   nearbyLocations.sort((a, b) => b.confidence - a.confidence)
 
-  console.log(`🌍 Found ${nearbyLocations.length} locations within ${GEOGRAPHICAL_SEARCH_RADIUS_KM}km:`,
-    nearbyLocations.map(l => `${l.location.id} (${l.distance.toFixed(1)}km, ${(l.confidence * 100).toFixed(1)}%)`))
 
   return nearbyLocations
 }
@@ -381,9 +378,6 @@ export function findLocationByLocality(
     }
   }
 
-  console.log('🔍 Finding location match for locality:', googleLocality)
-  console.log('📍 Address components:', addressComponents)
-
   let bestMatch: {
     mapping: LocalityMapping
     confidence: number
@@ -395,12 +389,10 @@ export function findLocationByLocality(
   if (!skipExtraction && !MEET_GREET_LOCATIONS.includes(googleLocality.toLowerCase())) {
     const extractedCity = extractCityFromAddress(googleLocality)
     if (extractedCity && extractedCity !== googleLocality) { // Evita ricorsione se è la stessa città
-      console.log(`🏙️ Attempting match with extracted city: ${extractedCity}`)
       
       // Retry matching with extracted city (con flag per evitare ricorsione)
       const cityMatch = findLocationByLocality(extractedCity, addressComponents, true)
       if (cityMatch.confidence > 0) {
-        console.log(`✅ Successful match using extracted city with confidence: ${cityMatch.confidence}`)
         return {
           ...cityMatch,
           confidence: Math.min(cityMatch.confidence * 0.9, 1.0), // Slightly reduce confidence for extracted matches
@@ -409,7 +401,6 @@ export function findLocationByLocality(
       }
     }
   } else if (MEET_GREET_LOCATIONS.includes(googleLocality.toLowerCase())) {
-    console.log(`🎯 MEET & GREET LOCATION DETECTED: "${googleLocality}" - avoiding city extraction degradation`)
   }
 
   // 1. Cerca match esatti (unchanged)
@@ -418,7 +409,6 @@ export function findLocationByLocality(
     for (const name of mapping.googleNames) {
       const similarity = calculateSimilarity(googleLocality, name)
       if (similarity >= 0.95) { // 95% similarity = exact match
-        console.log(`✅ Exact match found: "${googleLocality}" -> "${name}" (${mapping.locationId})`)
         const confidence = similarity * (mapping.priority / 100)
         if (!bestMatch || confidence > bestMatch.confidence) {
           bestMatch = {
@@ -436,7 +426,6 @@ export function findLocationByLocality(
       for (const alias of mapping.aliases) {
         const similarity = calculateSimilarity(googleLocality, alias)
         if (similarity >= 0.95) {
-          console.log(`✅ Alias match found: "${googleLocality}" -> "${alias}" (${mapping.locationId})`)
           const confidence = similarity * (mapping.priority / 100) * 0.9 // Slightly lower for aliases
           if (!bestMatch || confidence > bestMatch.confidence) {
             bestMatch = {
@@ -457,7 +446,6 @@ export function findLocationByLocality(
       for (const name of mapping.googleNames) {
         const similarity = calculateSimilarity(googleLocality, name)
         if (similarity >= 0.65 && similarity < 0.95) { // Lowered from 0.7 to 0.65
-          console.log(`🔍 Fuzzy match found: "${googleLocality}" -> "${name}" (${mapping.locationId}) - similarity: ${similarity}`)
           const confidence = similarity * (mapping.priority / 100) * 0.8 // Lower confidence for fuzzy
           if (!bestMatch || confidence > bestMatch.confidence) {
             bestMatch = {
@@ -474,7 +462,6 @@ export function findLocationByLocality(
 
   if (bestMatch) {
     const location = getAllLocations().find(loc => loc.id === bestMatch!.mapping.locationId)
-    console.log(`🎯 Final match: "${googleLocality}" -> ${bestMatch.mapping.locationId} (confidence: ${bestMatch.confidence.toFixed(2)})`)
 
     return {
       locationId: bestMatch.mapping.locationId,
@@ -485,7 +472,6 @@ export function findLocationByLocality(
     }
   }
 
-  console.log(`❌ No location match found for: "${googleLocality}"`)
   return {
     locationId: null,
     location: null,
@@ -513,13 +499,11 @@ export function findLocationByGeography(
     }
   }
 
-  console.log(`🌍 Searching for locations within ${GEOGRAPHICAL_SEARCH_RADIUS_KM}km of:`, coordinates)
 
   const nearbyLocations = findLocationsByGeography(coordinates)
 
   if (nearbyLocations.length > 0) {
     const best = nearbyLocations[0]
-    console.log(`🎯 Best geographical match: ${best.location.id} (${best.distance.toFixed(1)}km away, ${(best.confidence * 100).toFixed(1)}% confidence)`)
 
     return {
       locationId: best.location.id,
@@ -530,7 +514,6 @@ export function findLocationByGeography(
     }
   }
 
-  console.log(`❌ No locations found within ${GEOGRAPHICAL_SEARCH_RADIUS_KM}km radius`)
   return {
     locationId: null,
     location: null,
@@ -572,7 +555,6 @@ export function shouldUseListinoPricing(
   matchType: 'exact' | 'fuzzy' | 'alias' | 'geographical' | 'none'
   reason: string
 } {
-  console.log('🎯 Checking if should use listino pricing for:', { googleLocality, coordinates })
 
   // FASE 1: Tentativo di match per località
   const localityMatch = findLocationByLocality(googleLocality, addressComponents, false)
@@ -585,11 +567,9 @@ export function shouldUseListinoPricing(
        localityMatch.locationId === 'verona' ||
        localityMatch.locationId === 'treviso')) {
     effectiveMinimumConfidence = 0.6 // Lower threshold for metropolitan areas
-    console.log('🏙️ Metropolitan area detected - lowering confidence threshold to 60%')
   }
 
-  if (localityMatch.confidence >= effectiveMinimumConfidence) {
-    console.log('✅ LOCALITY MATCH SUCCESS - Using textual match')
+  if (localityMatch.confidence >= effectiveMinimumConfidence) { 
     return {
       useListino: true,
       locationId: localityMatch.locationId,
@@ -602,7 +582,6 @@ export function shouldUseListinoPricing(
 
   // FASE 2: Fallback a match geografico se disponibili coordinate
   if (coordinates) {
-    console.log('🌍 LOCALITY MATCH FAILED - Trying geographical fallback')
     const geographyMatch = findLocationByGeography(coordinates)
 
     // SOGLIA GEOGRAFICA DINAMICA: più permissiva per aree metropolitane note
@@ -613,11 +592,9 @@ export function shouldUseListinoPricing(
          geographyMatch.locationId === 'verona' ||
          geographyMatch.locationId === 'treviso')) {
       effectiveGeographyThreshold = 0.5 // Even lower for geography
-      console.log('🏙️ Metropolitan area geography - lowering threshold to 50%')
     }
 
     if (geographyMatch.confidence >= effectiveGeographyThreshold) {
-      console.log('✅ GEOGRAPHY MATCH SUCCESS - Using geographical match')
       return {
         useListino: true,
         locationId: geographyMatch.locationId,
@@ -632,7 +609,6 @@ export function shouldUseListinoPricing(
 
   // FASE 3: ULTIMO TENTATIVO - Match parziale su parole chiave
   if (googleLocality && coordinates) {
-    console.log('🔍 FINAL ATTEMPT - Trying keyword-based geographical match')
     
     // Check for common city keywords in the locality name
     const localityLower = normalizeText(googleLocality)
@@ -645,12 +621,10 @@ export function shouldUseListinoPricing(
 
     for (const cityInfo of cityKeywords) {
       if (cityInfo.keywords.some(keyword => localityLower.includes(keyword))) {
-        console.log(`🔑 Keyword "${cityInfo.keywords.join(',')}" found in "${googleLocality}"`)
         
         // Try geographical match for this specific city
         const cityGeographyMatch = findLocationByGeography(coordinates)
         if (cityGeographyMatch.locationId === cityInfo.locationId && cityGeographyMatch.confidence >= 0.3) {
-          console.log('✅ KEYWORD + GEOGRAPHY MATCH SUCCESS')
           return {
             useListino: true,
             locationId: cityGeographyMatch.locationId,
@@ -671,8 +645,6 @@ export function shouldUseListinoPricing(
     : coordinates
       ? 'No locality match and no nearby locations found'
       : 'No locality match found and no coordinates available'
-
-  console.log('❌ NO MATCH - Using distance calculation')
 
   return {
     useListino: false,
@@ -696,9 +668,7 @@ export function testLocalityMapping() {
     { name: 'Unknown City', coords: { lat: 40.7128, lng: -74.0060 } } // New York
   ]
 
-  console.log('🧪 Testing locality + geography mapping:')
   for (const test of testCases) {
     const result = shouldUseListinoPricing(test.name, [], test.coords)
-    console.log(`"${test.name}" -> ${result.useListino ? `${result.locationId} (${result.matchType})` : 'distance'} - ${result.reason}`)
   }
 } 

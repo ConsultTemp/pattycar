@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { MapPin, Plane, Train, Loader2, AlertCircle, Star } from "lucide-react"
-import { getAllLocations, getLocationById, getAvailableLocations, findNearbyMeetGreetLocation, type Location } from "@/lib/event-pricing"
+import { getAllLocations, getLocationById, getAvailableLocations, findNearbyMeetGreetLocation, calculateDistance, type Location } from "@/lib/event-pricing"
 import { isOlympicPeriod } from "@/lib/olympic-pricing"
 import { useDebounce } from "@/hooks/use-debounce"
 import { shouldUseListinoPricing } from "@/lib/locality-mapping"
@@ -31,14 +31,12 @@ function isGooglePlaceInEU(place: Place): boolean {
   const description = place.description.toLowerCase()
   for (const keyword of nonEUKeywords) {
     if (description.includes(keyword)) {
-      console.log(`🚫 Non-EU keyword found in description: ${place.description} -> ${keyword}`)
       return false
     }
   }
   
   // If no address components, ACCEPT by default (assume EU)
   if (!place.address_components || place.address_components.length === 0) {
-    console.log('✅ No address components, accepting by default:', place.description)
     return true
   }
   
@@ -49,20 +47,41 @@ function isGooglePlaceInEU(place: Place): boolean {
       
       // Make sure countryCode is defined before using it
       if (!countryCode) {
-        console.log('✅ Country component has no name, accepting by default:', component)
         continue
       }
       
       const isEU = EU_COUNTRIES.has(countryCode.toUpperCase())
       
-      console.log(`🌍 Country check: ${place.description} -> ${countryCode} -> ${isEU ? 'EU ✅' : 'NON-EU 🚫'}`)
       return isEU
     }
   }
   
   // No country component found, ACCEPT by default (assume EU)
-  console.log('✅ No country component, accepting by default:', place.description)
   return true
+}
+
+// Function to detect the type of a Google Place (airport, station, or generic)
+function detectGooglePlaceType(place: Place): Location['type'] {
+  // Use Google's official place types - this is much more accurate than keyword matching
+  if (!place.types || place.types.length === 0) {
+    return 'city' // Default if no types available
+  }
+  
+  // Check for airport types
+  if (place.types.includes('airport')) {
+    return 'airport'
+  }
+  
+  // Check for station types
+  if (place.types.includes('transit_station') ||
+      place.types.includes('train_station') ||
+      place.types.includes('subway_station') ||
+      place.types.includes('light_rail_station')) {
+    return 'station'
+  }
+  
+  // Default to city/generic for everything else
+  return 'city'
 }
 
 interface Place {
@@ -77,6 +96,7 @@ interface Place {
     locality: string | null
     administrative_area: string | null
   }
+  types?: string[]
 }
 
 interface ListinoLocation {
@@ -209,7 +229,6 @@ export function LocationSelector({
         newPropValue !== lastPropValueRef.current &&
         inputValue !== newPropValue) {
       
-      console.log('🔄 Syncing input with prop value:', newPropValue)
       setInputValue(newPropValue)
     }
     
@@ -233,8 +252,6 @@ export function LocationSelector({
     if (value.locationId || (value.placeId && value.placeId !== "")) {
       return
     }
-    
-    console.log('📤 Updating parent with debounced value:', debouncedInputForParent)
     
     if (!debouncedInputForParent.trim()) {
       // If input is empty, clear the selection
@@ -327,12 +344,8 @@ export function LocationSelector({
         throw new Error(data.details || data.error)
       }
 
-      console.log('🔍 Google Places results:', data.predictions)
-      
       // Filter out non-EU locations silently
       const euResults = (data.predictions || []).filter((place: Place) => isGooglePlaceInEU(place))
-      
-      console.log('✅ EU filtered results:', euResults.length, 'out of', (data.predictions || []).length)
       setGooglePlaces(euResults)
     } catch (error) {
       console.error("Error fetching places:", error)
@@ -345,8 +358,6 @@ export function LocationSelector({
 
   // Handle listino location selection
   const handleListinoLocationSelect = (location: Location) => {
-    console.log('🎯 Selecting listino location:', location.displayName)
-    
     // Prevent any interference during selection
     isSelectingOptionRef.current = true
     isTypingRef.current = false
@@ -380,13 +391,16 @@ export function LocationSelector({
     }, 100)
   }
 
-  // Handle Google Places selection - ENHANCED WITH MEET & GREET PRIORITY
-  const handleGooglePlaceSelect = (place: Place) => {
-    console.log('🎯 Selecting Google place:', place.description)
-    
-    // Prevent any interference during selection
-    isSelectingOptionRef.current = true
-    isTypingRef.current = false
+      // Handle Google Places selection - ENHANCED WITH MEET & GREET PRIORITY
+    const handleGooglePlaceSelect = (place: Place) => {
+      console.log('🎯 Selecting Google place:', place.description)
+      console.log('   Place ID:', place.place_id)
+      console.log('   Coordinates:', place.coordinates)
+      console.log('   Extracted locality:', place.extracted_locality)
+      
+      // Prevent any interference during selection
+      isSelectingOptionRef.current = true
+      isTypingRef.current = false
     
     // Clear any typing timeout
     if (typingTimeoutRef.current) {
@@ -398,15 +412,15 @@ export function LocationSelector({
     setInputValue(place.description)
     lastPropValueRef.current = place.description
 
-    // PRIORITY CHECK: If we have coordinates, check for Meet & Greet locations FIRST (within 500m)
-    if (place.coordinates) {
-      console.log('🚥 PRIORITY CHECK: Looking for nearby Meet & Greet locations...')
-      const nearbyMeetGreetLocation = findNearbyMeetGreetLocation(place.coordinates, 0.5) // 500m radius
-      
-      if (nearbyMeetGreetLocation) {
-        console.log(`🎯 MEET & GREET PRIORITY: Found ${nearbyMeetGreetLocation.displayName} - using this specific location instead of general mapping`)
+          // PRIORITY CHECK: If we have coordinates, check for Meet & Greet locations FIRST (within 500m)
+      if (place.coordinates) {
+        console.log('🚥 PRIORITY CHECK: Looking for nearby Meet & Greet locations...')
+        const nearbyMeetGreetLocation = findNearbyMeetGreetLocation(place.coordinates) // Use default radius (2km)
         
-        onChange({
+        if (nearbyMeetGreetLocation) {
+          console.log(`🎯 MEET & GREET PRIORITY: Found ${nearbyMeetGreetLocation.displayName} - using this specific location`)
+          
+          onChange({
           address: place.description,
           placeId: place.place_id,
           coordinates: place.coordinates,
@@ -424,25 +438,40 @@ export function LocationSelector({
           isSelectingOptionRef.current = false
         }, 100)
         
-        return // Exit early - Meet & Greet location found
+                  return // Exit early - Meet & Greet location found
+        }
+        
+        console.log('➡️ No Meet & Greet locations nearby, proceeding with general location mapping...')
       }
+
+      // GENERAL LOCATION MAPPING: Check se questo indirizzo Google dovrebbe usare il listino
+      const listinoCheck = shouldUseListinoPricing(
+        place.extracted_locality || null,
+        place.address_components || [],
+        place.coordinates || null,
+        0.60 // 60% confidence threshold
+      )
       
-      console.log('➡️ No Meet & Greet locations nearby, proceeding with general location mapping...')
-    }
+      console.log('📊 Listino check result:', listinoCheck)
 
-    // GENERAL LOCATION MAPPING: Check se questo indirizzo Google dovrebbe usare il listino
-    const listinoCheck = shouldUseListinoPricing(
-      place.extracted_locality || null,
-      place.address_components || [],
-      place.coordinates || null,
-      0.60 // 60% confidence threshold
-    )
-
-    console.log('📊 Listino check result:', listinoCheck)
-
-    if (listinoCheck.useListino && listinoCheck.location) {
-      // USA IL LISTINO - location mappata
-      console.log('✅ Using listino pricing for:', place.description, '-> mapped to:', listinoCheck.locationId)
+      if (listinoCheck.useListino && listinoCheck.location) {
+        console.log('✅ Using listino pricing for:', place.description, '-> mapped to:', listinoCheck.locationId)
+        
+        // VENEZIA DEBUG: Check if this should be Venezia Santa Lucia instead
+        if (listinoCheck.locationId === 'venezia' && place.coordinates) {
+          const veneziaSantaLucia = getLocationById('venezia-santa-lucia')
+          if (veneziaSantaLucia) {
+            const distanceToStation = calculateDistance(place.coordinates, veneziaSantaLucia.coordinates)
+            console.log(`🏛️ VENEZIA LISTINO DEBUG:`)
+            console.log(`   Address: "${place.description}"`)
+            console.log(`   Mapped to: "venezia" (generic)`)
+            console.log(`   Distance to Santa Lucia station: ${(distanceToStation * 1000).toFixed(0)}m`)
+            if (distanceToStation <= 2.0) {
+              console.log(`⚠️  LISTINO MAPPING ISSUE: This address is ${(distanceToStation * 1000).toFixed(0)}m from Santa Lucia station`)
+              console.log(`   Consider mapping to "venezia-santa-lucia" for Meet & Greet services`)
+            }
+          }
+        }
       
       onChange({
         address: place.description,
@@ -450,13 +479,13 @@ export function LocationSelector({
         coordinates: place.coordinates || listinoCheck.location.coordinates,
         locationId: listinoCheck.locationId!,
         isCustom: false
-      })
-    } else {
-      // USA LA DISTANZA - indirizzo custom
-      console.log('📏 Using distance calculation for:', place.description)
-      
-      onChange({
-        address: place.description,
+              })
+      } else {
+        console.log('📏 Using distance calculation for:', place.description)
+        console.log('   Reason: Not mapped to listino (confidence too low or no match)')
+        
+        onChange({
+          address: place.description,
         placeId: place.place_id,
         coordinates: place.coordinates,
         locationId: undefined,
@@ -661,6 +690,7 @@ export function LocationSelector({
                   const listinoInfo = getGooglePlaceListinoInfo(place)
                   const willUseListino = listinoInfo.useListino
                   const isGeographical = listinoInfo.matchType === 'geographical'
+                  const placeType = detectGooglePlaceType(place)
                   
                   return (
                     <button
@@ -671,7 +701,7 @@ export function LocationSelector({
                       onClick={() => handleGooglePlaceSelect(place)}
                     >
                       <div className="flex items-start space-x-3">
-                        <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        {getLocationIcon(placeType)}
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">{place.main_text}</div>
                           {place.secondary_text && <div className="text-xs text-gray-500 truncate">{place.secondary_text}</div>}
