@@ -498,7 +498,8 @@
         "button": "Procedi al Pagamento",
         "validationMessage": "Compila tutti i campi obbligatori (*) per procedere al pagamento",
         "error": "Errore durante la creazione della sessione di pagamento. Riprova.",
-        "additionalQuotes": "Per altre quotazioni scrivere a gamestime@pattycar.com"
+        "additionalQuotes": "Per altre quotazioni scrivere a gamestime@pattycar.com",
+        "routeDisclaimer": "Si prega di notare che le restrizioni o regolamenti delle autorità competenti potrebbero influenzare il percorso utilizzato per raggiungere la vostra destinazione"
       },
       "success": {
         "title": "Prenotazione inviata con successo!",

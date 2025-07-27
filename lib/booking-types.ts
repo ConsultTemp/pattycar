@@ -137,6 +137,7 @@ export const journeySchema = z
     minutes: z.string().optional(),
     endTime: z.string().optional(),
     endMinutes: z.string().optional(),
+    serviceDuration: z.string().optional(), // For Olympic disposition duration
     pickup: z.object({
       address: z.string().min(1, "Indirizzo di partenza richiesto"),
       placeId: z.string().optional(),

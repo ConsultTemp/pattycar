@@ -66,6 +66,13 @@ export const SubmitSection = memo<SubmitSectionProps>(({
         </div>
       </div>
 
+      {/* Route Disclaimer */}
+      <div className="text-center">
+        <p className="text-red-600 text-sm mb-4">
+          {dictionary.routeDisclaimer}
+        </p>
+      </div>
+
       {/* Submit Button */}
       <div className="text-center">
         <Button

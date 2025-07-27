@@ -1,6 +1,6 @@
 "use client"
 
-import { useReducer, useCallback, useMemo, useState } from "react"
+import { useReducer, useCallback, useMemo, useState, useEffect } from "react"
 import { timeUtils } from "@/lib/time-utils"
 import { useLanguage } from "@/components/language-provider"
 import { bookingReducer, initialBookingState } from "@/lib/booking-reducer"
@@ -18,8 +18,8 @@ import { SubmitSection } from "@/components/booking/submit-section"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MeetGreetConfig, ServiceType } from "@/lib/booking-types"
-import { resolveLocationForPricing } from "@/lib/event-pricing"
-import { isOlympicPeriod, isCeremonyDate, getCeremonyName, findOlympicRoute } from "@/lib/olympic-pricing"
+import { resolveLocationForPricing, getLocationById } from "@/lib/event-pricing"
+import { isOlympicPeriod, isCeremonyDate, getCeremonyName, findOlympicRoute, findOlympicCeremony } from "@/lib/olympic-pricing"
 
 // Helper function to convert to 24h format string (for form submission)
 const formatTime24Hour = (hour: string, minutes: string, ampm: string): string => {
@@ -213,6 +213,51 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       dispatch({ type: "SET_OPTIONS", payload: { meetAndGreet: config.enabled } })
     }
   }, [dispatch])
+
+  // Auto-set and lock drop off location for ceremony dates
+  useEffect(() => {
+    if (!state.journey.date || state.serviceType !== "ceremony-disposition") {
+      return
+    }
+
+    const ceremony = findOlympicCeremony(state.journey.date)
+    if (!ceremony) {
+      return
+    }
+
+    // Get the ceremony venue location details
+    const venueLocation = getLocationById(ceremony.venueLocationId)
+    if (!venueLocation) {
+      console.warn(`Venue location not found for ceremony: ${ceremony.venueLocationId}`)
+      return
+    }
+
+    // Check if destination is already set to the correct ceremony venue
+    const isCorrectVenueSet = state.journey.destination?.locationId === ceremony.venueLocationId
+
+    if (!isCorrectVenueSet) {
+      // Auto-set the destination to the ceremony venue
+      dispatch({ 
+        type: "SET_JOURNEY", 
+        payload: {
+          destination: {
+            address: venueLocation.displayName,
+            placeId: "", // Not from Google Places
+            coordinates: venueLocation.coordinates,
+            locationId: venueLocation.id,
+            isCustom: false
+          }
+        }
+      })
+    }
+     }, [state.journey.date, state.serviceType, state.journey.destination?.locationId])
+
+  // Helper function to determine if destination should be disabled for ceremonies
+  const isDestinationDisabledForCeremony = useCallback((): boolean => {
+    return Boolean(state.journey.date && 
+                   state.serviceType === "ceremony-disposition" && 
+                   isCeremonyDate(state.journey.date))
+  }, [state.journey.date, state.serviceType])
 
   const handleSubmit = useCallback(async () => {
     // Mark that user has attempted to submit (for UI styling)
@@ -498,6 +543,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             options={state.options}
             onOptionsChange={handleOptionsChange}
             dictionary={dictionary.journey}
+            isDestinationDisabled={isDestinationDisabledForCeremony}
           />
         </div>
 

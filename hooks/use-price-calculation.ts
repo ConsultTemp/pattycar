@@ -169,21 +169,33 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       })
       
       if (isOlympicDisposition) {
-        // For Olympic dispositions, allow calculation even without complete time data
-        // We'll use default values in the calculation function
-        console.log("🏅 OLYMPIC DISPOSITION - Allowing incomplete time data")
+        // For Olympic dispositions, check if using serviceDuration logic
+        const useOlympicDurationLogic = true // During Olympic period for dispositions
         
-        // Only check if BOTH start and end are present, then validate they're correct
-        const hasCompleteStartTime = journey.time && (journey.minutes !== undefined && journey.minutes !== null) && journey.timeAmPm
-        const hasCompleteEndTime = journey.endTime && (journey.endMinutes !== undefined && journey.endMinutes !== null) && journey.endTimeAmPm
-        
-        if (hasCompleteStartTime && hasCompleteEndTime) {
-          // If both are present, validate they're logical
-          const startTime = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
-          const endTime = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
-          if (endTime.totalMinutes <= startTime.totalMinutes) {
-            console.log("❌ isReadyForPricing: end time before start time")
+        if (useOlympicDurationLogic) {
+          // Olympic duration logic requires serviceDuration
+          if (!journey.serviceDuration) {
+            console.log("❌ isReadyForPricing: olympic disposition missing serviceDuration")
             return false
+          }
+          console.log("🏅 OLYMPIC DISPOSITION - serviceDuration validated:", journey.serviceDuration)
+        } else {
+          // Allow calculation even without complete time data
+          // We'll use default values in the calculation function
+          console.log("🏅 OLYMPIC DISPOSITION - Allowing incomplete time data")
+          
+          // Only check if BOTH start and end are present, then validate they're correct
+          const hasCompleteStartTime = journey.time && (journey.minutes !== undefined && journey.minutes !== null) && journey.timeAmPm
+          const hasCompleteEndTime = journey.endTime && (journey.endMinutes !== undefined && journey.endMinutes !== null) && journey.endTimeAmPm
+          
+          if (hasCompleteStartTime && hasCompleteEndTime) {
+            // If both are present, validate they're logical
+            const startTime = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
+            const endTime = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
+            if (endTime.totalMinutes <= startTime.totalMinutes) {
+              console.log("❌ isReadyForPricing: end time before start time")
+              return false
+            }
           }
         }
       } else {
@@ -811,46 +823,88 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           }
           
           // Final fallback: use standard distance-based pricing
-          if (transferCost === 0 && journey.distance?.km) {
-            let vehicleType = 'sedan'
-            let passengers = 1
-            let luggage = 0
+          if (transferCost === 0) {
+            let distanceKm = journey.distance?.km
             
-            if (vehicles.count === 1 || vehicles.sameType) {
-              vehicleType = vehicles.singleConfig.type
-              passengers = vehicles.singleConfig.passengers
-              luggage = vehicles.singleConfig.luggage
-            } else {
-              vehicleType = vehicles.multipleConfigs[0].type
-              passengers = vehicles.multipleConfigs[0].passengers
-              luggage = vehicles.multipleConfigs[0].luggage
+            // If distance is not available, calculate it now (needed for disposition service)
+            if (!distanceKm && journey.pickup.coordinates && journey.destination.coordinates) {
+              try {
+                console.log("🌍 CALCULATING DISTANCE ON-THE-FLY for disposition service")
+                
+                const requestBody = {
+                  origins: [journey.pickup.address],
+                  destinations: [journey.destination.address],
+                }
+
+                const response = await fetch("/api/distance", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(requestBody),
+                })
+
+                if (response.ok) {
+                  const data = await response.json()
+                  distanceKm = data.distance.km
+                  
+                  console.log("✅ DISTANCE CALCULATED:", {
+                    from: journey.pickup.address,
+                    to: journey.destination.address,
+                    distance: distanceKm + 'km'
+                  })
+                } else {
+                  console.error("❌ Distance calculation failed:", response.status)
+                }
+              } catch (error) {
+                console.error("❌ Error calculating distance:", error)
+              }
             }
             
-            const { calculateTotalPrice } = require('@/lib/pricing-config')
-            const standardPricing = calculateTotalPrice(
-              journey.distance.km,
-              vehicleType,
-              passengers,
-              luggage,
-              vehicles.count,
-              journey.time,
-              journey.minutes,
-              journey.timeAmPm,
-              journey.pickup.coordinates,
-              journey.destination.coordinates
-            )
-            
-            transferCost = standardPricing.basePrice
-            transferRoute = `${journey.pickup.address} → ${journey.destination.address}`
-            
-            console.log("📏 DISPOSITION TRANSFER (DISTANCE-BASED):", {
-              from: journey.pickup.address,
-              to: journey.destination.address,
-              distance: journey.distance.km + 'km',
-              vehicleType,
-              cost: transferCost,
-              route: transferRoute
-            })
+            // Use distance-based pricing if we have the distance
+            if (distanceKm) {
+              let vehicleType = 'sedan'
+              let passengers = 1
+              let luggage = 0
+              
+              if (vehicles.count === 1 || vehicles.sameType) {
+                vehicleType = vehicles.singleConfig.type
+                passengers = vehicles.singleConfig.passengers
+                luggage = vehicles.singleConfig.luggage
+              } else {
+                vehicleType = vehicles.multipleConfigs[0].type
+                passengers = vehicles.multipleConfigs[0].passengers
+                luggage = vehicles.multipleConfigs[0].luggage
+              }
+              
+              const { calculateTotalPrice } = require('@/lib/pricing-config')
+              const standardPricing = calculateTotalPrice(
+                distanceKm,
+                vehicleType,
+                passengers,
+                luggage,
+                vehicles.count,
+                journey.time,
+                journey.minutes,
+                journey.timeAmPm,
+                journey.pickup.coordinates,
+                journey.destination.coordinates
+              )
+              
+              transferCost = standardPricing.basePrice
+              transferRoute = `${journey.pickup.address} → ${journey.destination.address}`
+              
+              console.log("📏 DISPOSITION TRANSFER (DISTANCE-BASED):", {
+                from: journey.pickup.address,
+                to: journey.destination.address,
+                distance: distanceKm + 'km',
+                vehicleType,
+                cost: transferCost,
+                route: transferRoute
+              })
+            } else {
+              console.log("⚠️ DISPOSITION TRANSFER: Could not calculate distance, no transfer cost added")
+            }
           }
         }
         

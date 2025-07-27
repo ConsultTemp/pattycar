@@ -128,6 +128,7 @@ interface LocationSelectorProps {
   error?: string
   className?: string
   journeyDate?: Date
+  disabled?: boolean
   dictionary?: any
 }
 
@@ -140,6 +141,7 @@ export function LocationSelector({
   error,
   className,
   journeyDate,
+  disabled = false,
   dictionary
 }: LocationSelectorProps) {
   const [inputValue, setInputValue] = useState(value.address || "")
@@ -605,7 +607,7 @@ export function LocationSelector({
   }
 
   const hasResults = filteredListinoLocations.length > 0 || googlePlaces.length > 0
-  const showNoResults = isOpen && inputValue.length >= 3 && !hasResults && !isLoadingGoogle && !googleError
+  const showNoResults = !disabled && isOpen && inputValue.length >= 3 && !hasResults && !isLoadingGoogle && !googleError
 
   return (
     <div className="space-y-2">
@@ -617,11 +619,12 @@ export function LocationSelector({
             ref={inputRef}
             type="text"
             value={inputValue}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
+            onChange={disabled ? undefined : handleInputChange}
+            onFocus={disabled ? undefined : handleInputFocus}
+            onBlur={disabled ? undefined : handleInputBlur}
             placeholder={placeholder}
-            className={`pr-10 ${error ? "border-red-500" : ""}`}
+            disabled={disabled}
+            className={`pr-10 ${error ? "border-red-500" : ""} ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             {isLoadingGoogle ? (
@@ -638,7 +641,7 @@ export function LocationSelector({
         {googleError && <div className="mt-1 text-sm text-red-600">{googleError}</div>}
 
         {/* Unified dropdown with both listino and Google results */}
-        {isOpen && (filteredListinoLocations.length > 0 || googlePlaces.length > 0) && (
+        {!disabled && isOpen && (filteredListinoLocations.length > 0 || googlePlaces.length > 0) && (
           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
             
             {/* Listino Locations First - ALWAYS PRIORITIZED */}

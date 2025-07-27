@@ -28,9 +28,10 @@ interface JourneySectionProps {
   options: BookingOptions
   onOptionsChange: (options: Partial<BookingOptions>) => void
   dictionary: any
+  isDestinationDisabled?: () => boolean
 }
 
-export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary }: JourneySectionProps) {
+export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [is24HourFormat, setIs24HourFormat] = useState(false)
 
@@ -392,6 +393,7 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
           error={hasFieldError("destination") ? getFieldError("destination") : undefined}
           journeyDate={journey.date}
           dictionary={dictionary}
+          disabled={isDestinationDisabled?.()}
         />
 
         {/* Distance Info - Only for Transfer types */}
