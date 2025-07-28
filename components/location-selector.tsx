@@ -255,6 +255,8 @@ export function LocationSelector({
       return
     }
     
+    // ONLY clear the selection when input becomes empty
+    // DO NOT set custom addresses with just typed text - wait for user selection
     if (!debouncedInputForParent.trim()) {
       // If input is empty, clear the selection
       onChange({
@@ -262,18 +264,11 @@ export function LocationSelector({
         placeId: "",
         coordinates: undefined,
         locationId: undefined,
-        isCustom: true
-      })
-    } else {
-      // If input has content, mark as custom (will be updated if they select an option)
-      onChange({
-        address: debouncedInputForParent,
-        placeId: "",
-        coordinates: undefined,
-        locationId: undefined,
-        isCustom: true
+        isCustom: false // Changed: don't mark as custom when empty
       })
     }
+    // Removed the else clause that was setting custom addresses with typed text
+    
   }, [debouncedInputForParent, onChange, value.address, value.locationId, value.placeId])
 
   // Search Google Places when input changes
@@ -533,15 +528,15 @@ export function LocationSelector({
     // Clear any previous Google error
     setGoogleError(null)
 
-    // If user is typing and we had a valid selection, clear it immediately
-    // (This prevents keeping old selections when user starts typing new text)
+    // CRITICAL: If user is typing and we had a valid selection, invalidate it immediately
+    // This ensures that any modification to the text requires a new selection to be valid
     if (newValue !== value.address && (value.locationId || value.placeId)) {
       onChange({
-        address: newValue,
+        address: "", // Clear address to indicate invalid state
         placeId: "",
         coordinates: undefined,
         locationId: undefined,
-        isCustom: true
+        isCustom: false // Not custom, just invalid until they select something
       })
     }
 
@@ -551,6 +546,16 @@ export function LocationSelector({
     } else {
       setGooglePlaces([])
       setIsOpen(false)
+      // If input becomes empty, clear the parent selection immediately
+      if (value.address !== "") {
+        onChange({
+          address: "",
+          placeId: "",
+          coordinates: undefined,
+          locationId: undefined,
+          isCustom: false
+        })
+      }
     }
   }
 
@@ -645,7 +650,7 @@ export function LocationSelector({
           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
             
             {/* Listino Locations First - ALWAYS PRIORITIZED */}
-           {/*  {filteredListinoLocations.length > 0 && (
+            {filteredListinoLocations.length > 0 && (
               <>
                 <div className="px-3 py-2 text-xs font-semibold text-green-600 bg-green-50 border-b flex items-center gap-1">
                   <Star className="h-3 w-3" />
@@ -679,7 +684,7 @@ export function LocationSelector({
                   </button>
                 ))}
               </>
-            )} */}
+            )}
 
             {/* Google Places Results */}
             {googlePlaces.length > 0 && (

@@ -153,6 +153,11 @@ export const createJourneySchema = (serviceType: ServiceType, isOlympicPeriod: b
       }).optional(),
       locationId: z.string().optional(),
       isCustom: z.boolean().optional(),
+    }).refine((data) => {
+      // Must have either a valid placeId or locationId (indicating a selection was made)
+      return (data.placeId && data.placeId !== "") || (data.locationId && data.locationId !== "")
+    }, {
+      message: "Seleziona un indirizzo di partenza dall'elenco",
     }),
     destination: z.object({
       address: z.string().min(1, "Indirizzo di destinazione richiesto"),
@@ -163,6 +168,11 @@ export const createJourneySchema = (serviceType: ServiceType, isOlympicPeriod: b
       }).optional(),
       locationId: z.string().optional(),
       isCustom: z.boolean().optional(),
+    }).refine((data) => {
+      // Must have either a valid placeId or locationId (indicating a selection was made)
+      return (data.placeId && data.placeId !== "") || (data.locationId && data.locationId !== "")
+    }, {
+      message: "Seleziona un indirizzo di destinazione dall'elenco",
     }),
     distance: z
       .object({
@@ -204,10 +214,24 @@ export const journeySchema = z
     pickup: z.object({
       address: z.string().min(1, "Indirizzo di partenza richiesto"),
       placeId: z.string().optional(),
+      locationId: z.string().optional(),
+      isCustom: z.boolean().optional(),
+    }).refine((data) => {
+      // Must have either a valid placeId or locationId (indicating a selection was made)
+      return (data.placeId && data.placeId !== "") || (data.locationId && data.locationId !== "")
+    }, {
+      message: "Seleziona un indirizzo di partenza dall'elenco",
     }),
     destination: z.object({
       address: z.string().min(1, "Indirizzo di destinazione richiesto"),
       placeId: z.string().optional(),
+      locationId: z.string().optional(),
+      isCustom: z.boolean().optional(),
+    }).refine((data) => {
+      // Must have either a valid placeId or locationId (indicating a selection was made)
+      return (data.placeId && data.placeId !== "") || (data.locationId && data.locationId !== "")
+    }, {
+      message: "Seleziona un indirizzo di destinazione dall'elenco",
     }),
     distance: z
       .object({
