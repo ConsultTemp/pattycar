@@ -59,17 +59,12 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
         <h3 className="text-lg font-semibold text-blue-800 flex items-center">
           <Calculator className="w-5 h-5 mr-2" />
           {pricing.isOlympicPricing ? dictionary.olympicPricing : pricing.isEventPricing ? dictionary.eventPricing : dictionary.totalPrice}
-          {pricing.isOlympicPricing && (
-            <Badge variant="secondary" className="ml-2 bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                              {dictionary.milanoCortina2026}
-            </Badge>
-          )}
           {pricing.isEventPricing && !pricing.isOlympicPricing && (
             <Badge variant="secondary" className="ml-2">
               <Star className="w-3 h-3 mr-1" />
               {dictionary.specialEvent}
             </Badge>
-          )}
+          )}\1
         </h3>
         <button
           type="button"
