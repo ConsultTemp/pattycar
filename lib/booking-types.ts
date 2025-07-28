@@ -130,6 +130,69 @@ export const customerSchema = z.object({
   phonePrefix: z.string().default("+39"),
 })
 
+// Enhanced journey schema with conditional validation
+export const createJourneySchema = (serviceType: ServiceType, isOlympicPeriod: boolean = false) => {
+  const baseSchema = z.object({
+    date: z.date({
+      required_error: "Data richiesta",
+      invalid_type_error: "Data non valida"
+    }),
+    time: z.string().min(1, "Ora di inizio richiesta"),
+    minutes: z.string().min(1, "Minuti richiesti").default("00"),
+    timeAmPm: z.string().optional(),
+    endTime: z.string().optional(),
+    endMinutes: z.string().optional(),
+    endTimeAmPm: z.string().optional(),
+    serviceDuration: z.string().optional(), // For Olympic disposition duration
+    pickup: z.object({
+      address: z.string().min(1, "Indirizzo di partenza richiesto"),
+      placeId: z.string().optional(),
+      coordinates: z.object({
+        lat: z.number(),
+        lng: z.number()
+      }).optional(),
+      locationId: z.string().optional(),
+      isCustom: z.boolean().optional(),
+    }),
+    destination: z.object({
+      address: z.string().min(1, "Indirizzo di destinazione richiesto"),
+      placeId: z.string().optional(),
+      coordinates: z.object({
+        lat: z.number(),
+        lng: z.number()
+      }).optional(),
+      locationId: z.string().optional(),
+      isCustom: z.boolean().optional(),
+    }),
+    distance: z
+      .object({
+        km: z.number().min(1, "Distanza richiesta"),
+        text: z.string(),
+        duration: z.string(),
+      })
+      .optional(),
+  })
+
+  // Apply conditional validation based on service type
+  if (serviceType === "disposizione" || serviceType === "ceremony-disposition") {
+    if (isOlympicPeriod) {
+      // Olympic period: require serviceDuration
+      return baseSchema.extend({
+        serviceDuration: z.string().min(1, "Durata del servizio richiesta"),
+      })
+    } else {
+      // Standard period: require endTime and endMinutes
+      return baseSchema.extend({
+        endTime: z.string().min(1, "Ora di fine richiesta"),
+        endMinutes: z.string().min(1, "Minuti di fine richiesti").default("00"),
+      })
+    }
+  }
+
+  return baseSchema
+}
+
+// Legacy schema for backward compatibility - use createJourneySchema instead
 export const journeySchema = z
   .object({
     date: z.date().optional(),
@@ -255,6 +318,7 @@ export type BookingAction =
   | { type: "UPDATE_MULTIPLE_VEHICLE_CONFIG"; payload: { index: number; config: Partial<VehicleConfig> } }
   | { type: "ADD_VEHICLE_CONFIG" }
   | { type: "REMOVE_VEHICLE_CONFIG"; payload: number }
+  | { type: "RESET_VEHICLE_CONFIG" }
   | { type: "SET_OPTIONS"; payload: Partial<BookingOptions> }
   | { type: "UPDATE_MEET_GREET_CONFIG"; payload: Partial<MeetGreetConfig> }
   | { type: "SET_PRICING"; payload: PricingResult | null }

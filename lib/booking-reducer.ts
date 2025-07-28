@@ -94,6 +94,13 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
       const isDateChange = action.payload.date !== undefined && 
                           action.payload.date !== state.journey.date
 
+      // Check if pickup or destination addresses are being changed
+      const isPickupChange = action.payload.pickup?.address !== undefined && 
+                            action.payload.pickup.address !== state.journey.pickup?.address
+
+      const isDestinationChange = action.payload.destination?.address !== undefined && 
+                                action.payload.destination.address !== state.journey.destination?.address
+
       if (isDateChange) {
         // If date changes, reset everything except customer data
         return {
@@ -107,6 +114,29 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
           },
           options: { 
             ...initialBookingState.options 
+          },
+          ui: {
+            ...state.ui,
+            pricing: null,
+            errors: [],
+          },
+        }
+      }
+
+      // If pickup or destination changes, reset vehicle configuration and Meet & Greet
+      if (isPickupChange || isDestinationChange) {
+        return {
+          ...state,
+          journey: { ...state.journey, ...action.payload },
+          vehicles: { 
+            ...initialBookingState.vehicles 
+          },
+          options: {
+            ...state.options,
+            meetAndGreet: false,
+            meetGreetConfig: {
+              ...initialBookingState.options.meetGreetConfig
+            },
           },
           ui: {
             ...state.ui,
@@ -203,6 +233,18 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
           ...state.vehicles,
           count: Math.max(1, state.vehicles.count - 1),
           multipleConfigs: filteredConfigs.length > 0 ? filteredConfigs : [{ type: "", passengers: 0, luggage: 0 }],
+        },
+      }
+
+    case "RESET_VEHICLE_CONFIG":
+      return {
+        ...state,
+        vehicles: { 
+          ...initialBookingState.vehicles 
+        },
+        ui: {
+          ...state.ui,
+          pricing: null,
         },
       }
 

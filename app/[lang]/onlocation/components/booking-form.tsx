@@ -126,46 +126,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   }, [])
 
   const handleJourneyChange = useCallback((journey: any) => {
-    // Helper function to compare coordinates safely
-    const coordinatesChanged = (oldCoords?: { lat: number; lng: number }, newCoords?: { lat: number; lng: number }): boolean => {
-      if (!oldCoords && !newCoords) return false
-      if (!oldCoords || !newCoords) return true
-      return oldCoords.lat !== newCoords.lat || oldCoords.lng !== newCoords.lng
-    }
-
-    // Check if pickup or destination location has changed (address, locationId, or coordinates)
-    const pickupLocationChanged = 
-      journey.pickup?.address !== state.journey.pickup?.address ||
-      journey.pickup?.locationId !== state.journey.pickup?.locationId ||
-      journey.pickup?.placeId !== state.journey.pickup?.placeId ||
-      coordinatesChanged(state.journey.pickup?.coordinates, journey.pickup?.coordinates)
-    
-    const destinationLocationChanged = 
-      journey.destination?.address !== state.journey.destination?.address ||
-      journey.destination?.locationId !== state.journey.destination?.locationId ||
-      journey.destination?.placeId !== state.journey.destination?.placeId ||
-      coordinatesChanged(state.journey.destination?.coordinates, journey.destination?.coordinates)
-
-    // If any location changed and Meet & Greet is currently enabled, reset it
-    if ((pickupLocationChanged || destinationLocationChanged) && state.options.meetGreetConfig.enabled) {
-      dispatch({ 
-        type: "UPDATE_MEET_GREET_CONFIG", 
-        payload: {
-          enabled: false,
-          serviceId: undefined,
-          selectedService: undefined,
-          passengers: 1,
-          children: 0,
-          infants: 0,
-          extraLuggage: 0,
-          extraHours: 0,
-          specialServices: {}
-        }
-      })
-      // Also reset the legacy flag
-      dispatch({ type: "SET_OPTIONS", payload: { meetAndGreet: false } })
-    }
-
     dispatch({ type: "SET_JOURNEY", payload: journey })
     
     // If date changed, check if current service type is still available
@@ -176,7 +136,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         dispatch({ type: "SET_SERVICE_TYPE", payload: newAvailableServices[0]?.value || "transfer" })
       }
     }
-  }, [state.serviceType, state.journey.pickup, state.journey.destination])
+  }, [state.serviceType, dictionary])
 
   const handleVehicleCountChange = useCallback((count: number) => {
     dispatch({ type: "SET_VEHICLE_COUNT", payload: count })
@@ -277,9 +237,28 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       })
     }
     
+    // Debug log for validation
+    console.log("Form validation:", {
+      totalErrors: errors.length,
+      errors: errors,
+      isValid: isValid,
+      cancellationAccepted: cancellationAccepted,
+      state: {
+        serviceType: state.serviceType,
+        hasDate: !!state.journey.date,
+        hasPickup: !!state.journey.pickup?.address,
+        hasDestination: !!state.journey.destination?.address,
+        hasTime: !!state.journey.time,
+        hasCustomer: !!state.customer.name && !!state.customer.email && !!state.customer.phone,
+        vehicleConfig: state.vehicles
+      }
+    })
+    
+    // IMPORTANT: Block submission if there are any validation errors
     if (errors.length > 0) {
       dispatch({ type: "SET_VALIDATION_ERRORS", payload: errors })
-      // Don't proceed with submission, but keep showing errors to user
+      dispatch({ type: "SET_SUBMIT_STATUS", payload: "error" })
+      console.error("Form validation failed - blocking submission:", errors)
       return
     }
 
@@ -663,7 +642,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         {/* Submit Section - Only enabled when date is selected */}
         <div className={!state.journey.date ? "opacity-50 pointer-events-none" : ""}>
           <SubmitSection
-            isValid={isValid && !!state.journey.date}
+            isValid={isValid && !!state.journey.date && cancellationAccepted}
             isSubmitting={state.ui.isSubmitting}
             pricing={pricing}
             submitError={
