@@ -258,7 +258,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     if (errors.length > 0) {
       dispatch({ type: "SET_VALIDATION_ERRORS", payload: errors })
       dispatch({ type: "SET_SUBMIT_STATUS", payload: "error" })
-      console.error("Form validation failed - blocking submission:", errors)
+      // Scroll smoothly to top of page to show validation errors
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
 
@@ -541,8 +542,9 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         {/* Vehicle Configuration - Only enabled when date is selected */}
         <div className={!state.journey.date ? "opacity-50 pointer-events-none" : ""}>
           {(() => {
-            // Determine if current route is East Cluster
+            // Determine if current route is East Cluster or Inter-Cluster
             let isEastCluster = false
+            let isInterCluster = false
             
             if (isOlympicPeriod_local) {
               // Use same location resolution logic as pricing calculation
@@ -581,14 +583,19 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                   }
                 }
                 
-                isEastCluster = olympicRoute?.isEastCluster === true || olympicRoute?.isInterCluster === true
+                // IMPORTANT: Only East Cluster routes should limit vehicles to sedan/minivan
+                // Inter-Cluster routes should show all 4 vehicle types (sedan, minivan, van, luxury)
+                isEastCluster = olympicRoute?.isEastCluster === true
+                isInterCluster = olympicRoute?.isInterCluster === true
+                
                 console.log("🏔️ VEHICLE CONFIG - East/Inter Cluster Check:", {
                   pickup: resolvedPickup.resolvedLocationId,
                   destination: resolvedDestination.resolvedLocationId,
                   foundRoute: !!olympicRoute,
                   isEastCluster: olympicRoute?.isEastCluster,
                   isInterCluster: olympicRoute?.isInterCluster,
-                  limitVehicles: isEastCluster
+                  limitVehiclesForEastCluster: isEastCluster,
+                  showAllVehiclesForInterCluster: isInterCluster
                 })
               }
             }
@@ -604,6 +611,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 journeyDate={state.journey.date}
                 serviceType={state.serviceType}
                 isEastCluster={isEastCluster}
+                isInterCluster={isInterCluster}
                 pickupLocationId={state.journey.pickup.locationId}
                 destinationLocationId={state.journey.destination.locationId}
                 onCountChange={handleVehicleCountChange}

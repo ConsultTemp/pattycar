@@ -226,7 +226,13 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       const config = vehicles.singleConfig
       const isValid = !!(config.type && config.passengers > 0)
       if (!isValid) {
-        console.log("❌ isReadyForPricing: invalid single vehicle config")
+        console.log("❌ isReadyForPricing: invalid single vehicle config", {
+          configExists: !!config,
+          hasType: !!(config?.type),
+          type: config?.type || 'undefined',
+          passengers: config?.passengers || 0,
+          hasPassengers: (config?.passengers || 0) > 0
+        })
         return false
       }
     } else {

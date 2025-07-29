@@ -3,9 +3,16 @@ import { timeUtils } from "./time-utils"
 // Moltiplicatori per tipo di veicolo
 export const VEHICLE_MULTIPLIERS: Record<string, number> = {
   sedan: 1.0,
+  berlina: 1.0,
+  minivan: 1.15,     // Added: intermediate multiplier between sedan and van
   van: 1.3,
-  minibus: 1.5,
-  "luxury-sedan": 1.8,
+  minibus: 1.8,      // Legacy - mapped to van now
+  "luxury-sedan": 1.7,
+  'olympic-sedan': 1.0,
+  'olympic-minivan': 1.15,
+  'olympic-van': 1.8,
+  'olympic-minibus': 1.8,
+  'olympic-luxury': 1.7,
 }
 
 // Moltiplicatori per numero di passeggeri
@@ -41,7 +48,12 @@ export const PRICE_PER_HOUR_BY_VEHICLE = {
   'minivan': 108,
   'luxury': 135,
   'berlina': 94,
-  'monovolume': 108
+  'monovolume': 108,
+  // Olympic vehicle types - AGGIUNTI PER CERIMONIE!
+  'olympic-sedan': 94,
+  'olympic-minivan': 108, 
+  'olympic-van': 135,
+  'olympic-luxury': 135
 }
 
 // Funzione per ottenere il prezzo orario corretto per tipo di veicolo
@@ -138,6 +150,16 @@ export function calculateTotalPrice(
   const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicleType] || 1.0
   const passengerMultiplier = PASSENGER_MULTIPLIERS.getMultiplier(passengers)
   const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(luggage)
+
+  console.log("💰 CALCULATE_TOTAL_PRICE DEBUG:", {
+    vehicleType,
+    vehicleMultiplier,
+    vehicleMultiplierFound: !!VEHICLE_MULTIPLIERS[vehicleType],
+    basePrice,
+    distanceKm,
+    passengerMultiplier,
+    luggageMultiplier
+  })
 
   // Calcola il prezzo finale
   let pricePerVehicle = basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier
@@ -292,6 +314,17 @@ export function calculateDispositionPrice(
   const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicleType] || 1.0
   const passengerMultiplier = PASSENGER_MULTIPLIERS.getMultiplier(passengers)
   const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(luggage)
+
+  console.log("🔥 DISPOSITION PRICE DEBUG:", {
+    vehicleType,
+    vehicleMultiplier,
+    vehicleMultiplierFound: !!VEHICLE_MULTIPLIERS[vehicleType],
+    basePrice,
+    hourlyRate,
+    durationHours,
+    passengerMultiplier,
+    luggageMultiplier
+  })
 
   // Calcola il prezzo finale
   let pricePerVehicle = basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier

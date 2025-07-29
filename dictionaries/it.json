@@ -938,6 +938,20 @@
     "googleResults": "Altri indirizzi",
     "noResultsFound": "Nessun risultato trovato"
   },
+  "payment": {
+    "success": {
+      "title": "Pagamento Completato!",
+      "description": "La tua prenotazione è stata confermata. Riceverai una email di conferma a breve.",
+      "newBooking": "Nuova Prenotazione",
+      "backToHome": "Torna alla Home"
+    },
+    "cancelled": {
+      "title": "Pagamento Annullato",
+      "description": "Il pagamento è stato annullato. Puoi riprovare quando vuoi.",
+      "retryBooking": "Riprova Prenotazione",
+      "backToHome": "Torna alla Home"
+    }
+  },
   "admin": {
     "login": {
       "title": "Accesso Admin",

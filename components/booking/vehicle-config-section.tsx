@@ -20,6 +20,7 @@ interface VehicleConfigSectionProps {
   journeyDate?: Date // Add journey date to filter vehicle types
   serviceType?: string // Add service type to determine ceremony vehicles
   isEastCluster?: boolean // Add flag to determine if route is East Cluster
+  isInterCluster?: boolean // Add flag to determine if route is Inter-Cluster
   pickupLocationId?: string // NEW: Pickup location ID for inter-cluster filtering
   destinationLocationId?: string // NEW: Destination location ID for inter-cluster filtering
   onCountChange: (count: number) => void
@@ -87,27 +88,6 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
           maxPassengers: 2,
           maxLuggage: 2,
           description: '2 passengers max',
-          category: 'standard'
-        },
-        {
-          value: 'olympic-minivan',
-          label: 'Mini Van',
-          maxPassengers: 6,
-          maxLuggage: 4,
-          description: '6 passengers (4 with luggage)',
-          category: 'standard'
-        }
-      ]
-    } else if (isInterCluster && isOlympic) {
-      // INTER-CLUSTER: Only Sedan and Minivan as per official pricing table
-      vehicleTypes = [
-        {
-          value: 'olympic-sedan',
-          label: 'Sedan',
-          maxPassengers: 3,
-          maxLuggage: 2,
-          maxSmallLuggage: 1,
-          description: '3 passengers max',
           category: 'standard'
         },
         {

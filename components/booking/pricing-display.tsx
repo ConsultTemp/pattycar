@@ -64,7 +64,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
               <Star className="w-3 h-3 mr-1" />
               {dictionary.specialEvent}
             </Badge>
-          )}\1
+          )}
         </h3>
         <button
           type="button"
@@ -229,7 +229,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                       )}
                     </div>
                   </div>
-                  <div className="font-bold">€{formatPrice(pricing.breakdown.basePrice)}</div>
+                  <div className="font-bold">€{formatPrice(pricing.breakdown.pricePerVehicle && pricing.breakdown.vehicleCount ? pricing.breakdown.pricePerVehicle * pricing.breakdown.vehicleCount : pricing.breakdown.basePrice)}</div>
                 </div>
               )}
 

@@ -940,6 +940,20 @@
     "googleResults": "Other addresses",
     "noResultsFound": "No results found"
   },
+  "payment": {
+    "success": {
+      "title": "Payment Completed!",
+      "description": "Your booking has been confirmed. You will receive a confirmation email shortly.",
+      "newBooking": "New Booking",
+      "backToHome": "Back to Home"
+    },
+    "cancelled": {
+      "title": "Payment Cancelled",
+      "description": "The payment has been cancelled. You can try again anytime.",
+      "retryBooking": "Retry Booking",
+      "backToHome": "Back to Home"
+    }
+  },
   "admin": {
     "login": {
       "title": "Admin Login",
