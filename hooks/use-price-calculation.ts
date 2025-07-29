@@ -764,21 +764,33 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           
           if (olympicRoute) {
             // Use Olympic route pricing
-            let olympicVehicleType: keyof typeof olympicRoute.prices = 'olympic-sedan'
+            transferRoute = `${olympicRoute.from} → ${olympicRoute.to}`
             
             if (vehicles.count === 1 || vehicles.sameType) {
-              olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
+              const olympicVehicleType = mapToOlympicVehicleType(vehicles.singleConfig.type)
+              transferCost = olympicRoute.prices[olympicVehicleType] * vehicles.count
             } else {
-              olympicVehicleType = mapToOlympicVehicleType(vehicles.multipleConfigs[0].type)
+              // Different vehicle types - sum individual prices
+              transferCost = 0
+              vehicles.multipleConfigs.forEach((config, index) => {
+                const olympicVehicleType = mapToOlympicVehicleType(config.type)
+                const vehiclePrice = olympicRoute.prices[olympicVehicleType] || 0
+                transferCost += vehiclePrice
+                
+                console.log(`🚗 VEHICLE ${index + 1} OLYMPIC TRANSFER:`, {
+                  configType: config.type,
+                  mappedType: olympicVehicleType,
+                  priceFromRoute: vehiclePrice,
+                  allRoutePrices: olympicRoute.prices
+                })
+              })
+              
+              console.log(`💰 TOTAL OLYMPIC TRANSFER (SUMMED):`, transferCost)
             }
-            
-            transferCost = olympicRoute.prices[olympicVehicleType] * vehicles.count
-            transferRoute = `${olympicRoute.from} → ${olympicRoute.to}`
             
             console.log("🏔️ DISPOSITION TRANSFER (OLYMPIC ROUTE):", {
               from: olympicRoute.from,
               to: olympicRoute.to,
-              vehicleType: olympicVehicleType,
               cost: transferCost,
               route: transferRoute
             })
@@ -809,19 +821,34 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             
             if (eventRoute) {
               // Use event route pricing
-              const vehicleType = mapVehicleTypeToEvent(
-                vehicles.count === 1 || vehicles.sameType 
-                  ? vehicles.singleConfig.type 
-                  : vehicles.multipleConfigs[0].type
-              )
-              
-              transferCost = (eventRoute.prices[vehicleType] || 0) * vehicles.count
               transferRoute = `${eventRoute.from} → ${eventRoute.to}`
+              
+              if (vehicles.count === 1 || vehicles.sameType) {
+                // Same vehicle type - multiply
+                const vehicleType = mapVehicleTypeToEvent(vehicles.singleConfig.type)
+                transferCost = (eventRoute.prices[vehicleType] || 0) * vehicles.count
+              } else {
+                // Different vehicle types - sum individual prices
+                transferCost = 0
+                vehicles.multipleConfigs.forEach((config, index) => {
+                  const vehicleType = mapVehicleTypeToEvent(config.type)
+                  const vehiclePrice = eventRoute.prices[vehicleType] || 0
+                  transferCost += vehiclePrice
+                  
+                  console.log(`🚗 VEHICLE ${index + 1} TRANSFER PRICE:`, {
+                    configType: config.type,
+                    mappedType: vehicleType,
+                    priceFromRoute: vehiclePrice,
+                    allRoutePrices: eventRoute.prices
+                  })
+                })
+                
+                console.log(`💰 TOTAL TRANSFER COST (SUMMED):`, transferCost)
+              }
               
               console.log("🎯 DISPOSITION TRANSFER (EVENT ROUTE):", {
                 from: eventRoute.from,
                 to: eventRoute.to,
-                vehicleType,
                 cost: transferCost,
                 route: transferRoute
               })
@@ -867,44 +894,51 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               }
             }
             
-            // Use distance-based pricing if we have the distance
+            // Use distance-based pricing if we have the distance - CORRECTED FOR VEHICLE MULTIPLIERS
             if (distanceKm) {
-              let vehicleType = 'sedan'
-              let passengers = 1
-              let luggage = 0
+              let standardPricing
               
               if (vehicles.count === 1 || vehicles.sameType) {
-                vehicleType = vehicles.singleConfig.type
-                passengers = vehicles.singleConfig.passengers
-                luggage = vehicles.singleConfig.luggage
+                // Single vehicle or same type vehicles - apply correct vehicle multipliers
+                const config = vehicles.singleConfig
+                const { calculateTotalPrice } = require('@/lib/pricing-config')
+                standardPricing = calculateTotalPrice(
+                  distanceKm,
+                  config.type,
+                  config.passengers,
+                  config.luggage,
+                  vehicles.count,
+                  journey.time,
+                  journey.minutes,
+                  journey.timeAmPm,
+                  journey.pickup.coordinates,
+                  journey.destination.coordinates
+                )
+                                 // Use subtotal to include vehicle multipliers but exclude VAT (VAT will be recalculated)
+                 transferCost = standardPricing.breakdown.subtotal
               } else {
-                vehicleType = vehicles.multipleConfigs[0].type
-                passengers = vehicles.multipleConfigs[0].passengers
-                luggage = vehicles.multipleConfigs[0].luggage
+                // Multiple different vehicles - calculate for each vehicle individually
+                standardPricing = calculateMultipleVehiclesPrice(
+                  distanceKm,
+                  vehicles.multipleConfigs,
+                  journey.time,
+                  journey.minutes,
+                  journey.timeAmPm,
+                  journey.pickup.coordinates,
+                  journey.destination.coordinates
+                )
+                                 // Use subtotal to include all vehicle multipliers but exclude VAT (VAT will be recalculated)
+                 transferCost = standardPricing.breakdown.subtotal
               }
               
-              const { calculateTotalPrice } = require('@/lib/pricing-config')
-              const standardPricing = calculateTotalPrice(
-                distanceKm,
-                vehicleType,
-                passengers,
-                luggage,
-                vehicles.count,
-                journey.time,
-                journey.minutes,
-                journey.timeAmPm,
-                journey.pickup.coordinates,
-                journey.destination.coordinates
-              )
-              
-              transferCost = standardPricing.basePrice
               transferRoute = `${journey.pickup.address} → ${journey.destination.address}`
               
               console.log("📏 DISPOSITION TRANSFER (DISTANCE-BASED):", {
                 from: journey.pickup.address,
                 to: journey.destination.address,
                 distance: distanceKm + 'km',
-                vehicleType,
+                vehicleCount: vehicles.count,
+                vehiclesSameType: vehicles.sameType,
                 cost: transferCost,
                 route: transferRoute
               })
@@ -1287,42 +1321,46 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
                     // Outside Milano hinterland - calculate transfer cost
                     const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
                     
-                    // Use standard pricing for the transfer
-                    let vehicleType = 'sedan' // default
-                    let passengers = 1
-                    let luggage = 0
+                    // Calculate transfer price using standard pricing with correct vehicle multipliers
+                    let transferPricing
                     
                     if (vehicles.count === 1 || vehicles.sameType) {
-                      vehicleType = vehicles.singleConfig.type
-                      passengers = vehicles.singleConfig.passengers
-                      luggage = vehicles.singleConfig.luggage
+                      // Single vehicle or same type vehicles - apply correct vehicle multipliers
+                      const config = vehicles.singleConfig
+                      transferPricing = calculateTotalPrice(
+                        distance,
+                        config.type,
+                        config.passengers,
+                        config.luggage,
+                        vehicles.count,
+                        journey.time,
+                        journey.minutes,
+                        journey.timeAmPm,
+                        milanoCoordinates, // Milano Centrale coordinates
+                        pickupCoordinates  // Pickup coordinates
+                      )
+                                             // Use subtotal to include vehicle multipliers but exclude VAT (VAT will be recalculated)
+                       transferCost = transferPricing.breakdown.subtotal
                     } else {
-                      // For multiple vehicles, use the first one for transfer calculation
-                      vehicleType = vehicles.multipleConfigs[0].type
-                      passengers = vehicles.multipleConfigs[0].passengers
-                      luggage = vehicles.multipleConfigs[0].luggage
+                      // Multiple different vehicles - calculate for each vehicle individually
+                      transferPricing = calculateMultipleVehiclesPrice(
+                        distance,
+                        vehicles.multipleConfigs,
+                        journey.time,
+                        journey.minutes,
+                        journey.timeAmPm,
+                        milanoCoordinates, // Milano Centrale coordinates
+                        pickupCoordinates  // Pickup coordinates
+                      )
+                                             // Use subtotal to include all vehicle multipliers but exclude VAT (VAT will be recalculated)
+                       transferCost = transferPricing.breakdown.subtotal
                     }
-                    
-                    // Calculate transfer price using standard pricing
-                    const transferPricing = calculateTotalPrice(
-                      distance,
-                      vehicleType,
-                      passengers,
-                      luggage,
-                      vehicles.count,
-                      journey.time,
-                      journey.minutes,
-                      journey.timeAmPm,
-                      milanoCoordinates, // Milano Centrale coordinates
-                      pickupCoordinates  // Pickup coordinates
-                    )
-                    
-                    transferCost = transferPricing.basePrice
                     transferRoute = `Milano Centrale → ${journey.pickup.address}`
                     
                     console.log("🚗 STANDARD DISPOSITION TRANSFER (OUTSIDE HINTERLAND):", {
                       distance: distance.toFixed(1) + 'km',
-                      vehicleType,
+                      vehicleCount: vehicles.count,
+                      vehiclesSameType: vehicles.sameType,
                       cost: transferCost,
                       route: transferRoute
                     })

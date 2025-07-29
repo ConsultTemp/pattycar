@@ -161,9 +161,9 @@
       "serviceType": {
         "title": "نوع الخدمة",
         "transfer": {
-          "label": "نقل",
+          "label": "نقل الوصول والمغادرة",
           "description": "نقل من نقطة إلى نقطة",
-          "olympicDescription": "نقل بأسعار خاصة"
+          "olympicDescription": "طلبات النقل متاحة فقط بين المطارات / محطات القطار والفندق الخاص بك. لأي احتياجات أخرى، لا تتردد في الاتصال بنا على: gamestime@pattycar.co"
         },
         "disposition": {
           "label": "توزيع",
@@ -179,8 +179,8 @@
           "description": "خدمة خاصة للحفلات الأولمبية"
         },
         "interCluster": {
-          "label": "إنتر-كلستر",
-          "description": "نقل بين الأماكن الأولمبية"
+          "label": "Transfer between cities",
+          "description": "نقل فقط بين الفنادق أو خارج المحيطات الأمنية"
         },
         "badges": {
           "olympics": "أحداث الشتاء",
@@ -467,7 +467,6 @@
         "holidayService": "الخدمة في العطلة",
         "constraintTranslations": {
           "Groups of more than 8 people will be quoted on request": "المجموعات أكثر من 8 أشخاص سيتم تسعيرها عند الطلب",
-          "TARMAC service available only if aircraft is parked (on demand)": "خدمة المدرج متاحة فقط إذا كانت الطائرة متوقفة (عند الطلب)",
           "Maximum 10 pieces of luggage per operator for night surcharge": "حد أقصى 10 قطع أمتعة لكل مشغل للرسوم الليلية"
         },
         "detailTranslations": {

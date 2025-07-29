@@ -160,9 +160,9 @@
       "serviceType": {
         "title": "Service Type",
         "transfer": {
-          "label": "Transfer",
+          "label": "Arrival & Departure Transfer",
           "description": "Point-to-point transfer",
-          "olympicDescription": "Transfer with special prices"
+          "olympicDescription": "Transfer requests are available between airports / train stations and your hotel only. If you have any other needs, feel free to contact us at: gamestime@pattycar.co"
         },
         "disposition": {
           "label": "Disposition",
@@ -175,11 +175,13 @@
         },
         "ceremony": {
           "label": "Ceremony Disposition",
-          "description": "Special service for ceremonies and events"
+          "description": "Special service for ceremonies and events",
+          "openingDescription": "Special service for Opening Ceremony - San Siro Stadium, Milan",
+          "closingDescription": "Special service for Closing Ceremony - Arena di Verona"
         },
         "interCluster": {
           "label": "Transfer between cities",
-          "description": "Transfer between event venues"
+          "description": "Transfer only between hotels or outside security perimeters"
         },
         "badges": {
           "olympics": "WINTER EVENTS",
@@ -337,7 +339,7 @@
         "transfer": "Transfer",
         "serviceHours": "service hours",
         "pointToPointTransfer": "Point-to-point transfer",
-        "vehicleBreakdown": "Vehicle {index} ({type}): €{price}",
+        "vehicleBreakdown": "Vehicle {index}: €{price}",
         "transferMilanoCentrale": "Milano Centrale Transfer",
         "transferMilanoInfo": "Transfer from Milano Centrale to service location",
         "vehicles": "vehicles",
@@ -469,7 +471,6 @@
         "holidayService": "HOLIDAY SERVICE",
         "constraintTranslations": {
           "Groups of more than 8 people will be quoted on request": "Groups of more than 8 people will be quoted on request",
-          "TARMAC service available only if aircraft is parked (on demand)": "TARMAC service available only if aircraft is parked (on demand)",
           "Maximum 10 pieces of luggage per operator for night surcharge": "Maximum 10 pieces of luggage per operator for night surcharge"
         },
         "detailTranslations": {

@@ -7,8 +7,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 import { CalendarIcon, AlertCircle } from "lucide-react"
 import { format } from "date-fns"
-import { it } from "date-fns/locale"
+import { it, enUS, ar } from "date-fns/locale"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useLanguage } from "@/components/language-provider"
 import type { ValidationError } from "@/lib/booking-types"
 
 interface DateSectionProps {
@@ -20,6 +21,21 @@ interface DateSectionProps {
 }
 
 export function DateSection({ date, errors, hasAttemptedSubmit, onChange, dictionary }: DateSectionProps) {
+  const { lang } = useLanguage()
+  
+  // Map language to date-fns locale
+  const getDateLocale = () => {
+    switch (lang) {
+      case 'it':
+        return it
+      case 'ar':
+        return ar
+      case 'en':
+      default:
+        return enUS
+    }
+  }
+
   const getFieldError = (field: string) => {
     const error = errors.find((error) => error.field.includes(field))
     if (!error) return undefined
@@ -70,7 +86,7 @@ export function DateSection({ date, errors, hasAttemptedSubmit, onChange, dictio
                 } ${hasFieldError("date") ? "border-red-500" : ""}`}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP", { locale: it }) : dictionary.selectDate}
+                {date ? format(date, "PPP", { locale: getDateLocale() }) : dictionary.selectDate}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">

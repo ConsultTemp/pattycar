@@ -830,7 +830,6 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     ],
     constraints: [
       "Groups of more than 8 people will be quoted on request",
-      "TARMAC service available only if aircraft is parked (on demand)",
       "Maximum 10 pieces of luggage per operator for night surcharge"
     ]
   },
@@ -865,7 +864,6 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     ],
     constraints: [
       "Groups of more than 8 people will be quoted on request",
-      "TARMAC service available only if aircraft is parked (on demand)",
       "Maximum 10 pieces of luggage per operator for night surcharge"
     ]
   },

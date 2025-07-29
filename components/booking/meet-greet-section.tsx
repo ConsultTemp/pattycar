@@ -257,7 +257,7 @@ export function MeetGreetSection({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              {dictionary.meetGreet?.adults || dictionary.adults} ({dictionary.meetGreet?.fullRate || dictionary.fullRate})
+              {dictionary.meetGreet?.adults || dictionary.adults}
             </label>
             <input
               type="number"
@@ -289,7 +289,7 @@ export function MeetGreetSection({
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              {dictionary.meetGreet?.children || dictionary.children} ({dictionary.meetGreet?.childrenAge || "حتى 12 سنة"}) <Badge variant="secondary">{dictionary.meetGreet?.halfRate || dictionary.halfRate}</Badge>
+              {dictionary.meetGreet?.children || dictionary.children} <Badge variant="secondary">{dictionary.meetGreet?.halfRate || dictionary.halfRate}</Badge>
             </label>
             <input
               type="number"
@@ -315,7 +315,7 @@ export function MeetGreetSection({
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              {dictionary.meetGreet?.infants || dictionary.infants} ({dictionary.meetGreet?.infantsAge || "0-2 سنة"}) <Badge variant="secondary">{dictionary.freeRate}</Badge>
+              {dictionary.meetGreet?.infants || dictionary.infants} <Badge variant="secondary">{dictionary.freeRate}</Badge>
             </label>
             <input
               type="number"

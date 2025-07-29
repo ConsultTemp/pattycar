@@ -160,9 +160,9 @@
       "serviceType": {
         "title": "Tipo di Servizio",
         "transfer": {
-          "label": "Transfer",
+          "label": "Transfer Arrivo e Partenza",
           "description": "Trasferimento punto a punto",
-          "olympicDescription": "Trasferimento con prezzi speciali"
+          "olympicDescription": "Le richieste di transfer sono disponibili solo tra aeroporti / stazioni ferroviarie e il vostro hotel. Per qualsiasi altra esigenza, contattateci a: gamestime@pattycar.co"
         },
         "disposition": {
           "label": "Disposizione",
@@ -175,11 +175,13 @@
         },
         "ceremony": {
           "label": "Disposizione Cerimonia",
-          "description": "Servizio speciale per cerimonie ed eventi"
+          "description": "Servizio speciale per cerimonie ed eventi",
+          "openingDescription": "Servizio speciale per Cerimonia di Apertura - Stadio San Siro, Milano",
+          "closingDescription": "Servizio speciale per Cerimonia di Chiusura - Arena di Verona"
         },
         "interCluster": {
           "label": "Transfer between cities",
-          "description": "Transfer tra sedi eventi"
+          "description": "Transfer solo tra hotel o fuori dai perimetri di sicurezza"
         },
         "badges": {
           "olympics": "EVENTI INVERNALI",
@@ -467,7 +469,6 @@
         "holidayService": "SERVIZIO FESTIVO",
         "constraintTranslations": {
           "Groups of more than 8 people will be quoted on request": "Gruppi di più di 8 persone saranno quotati su richiesta",
-          "TARMAC service available only if aircraft is parked (on demand)": "Servizio TARMAC disponibile solo se l'aereo è parcheggiato (su richiesta)",
           "Maximum 10 pieces of luggage per operator for night surcharge": "Massimo 10 pezzi di bagaglio per operatore per supplemento notturno"
         },
         "detailTranslations": {

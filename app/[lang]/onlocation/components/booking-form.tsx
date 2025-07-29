@@ -67,27 +67,53 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
       label: dictionary?.serviceType?.transfer?.label || "Transfer", 
       description: dictionary?.serviceType?.transfer?.olympicDescription || "Transfer with special prices",
       icon: "",
-      badge: dictionary?.serviceType?.badges?.olympics || "WINTER EVENTS"
     },
     { 
       value: "altri-servizi", 
       label: dictionary?.serviceType?.otherServices?.label || "Other Services", 
       description: dictionary?.serviceType?.otherServices?.description || "Disposition and Transfer between cities",
       icon: "",
-      badge: dictionary?.serviceType?.badges?.olympics || "WINTER EVENTS"
     }
   ]
 
   // Check if it's a ceremony date and add ceremony service
   if (isCeremonyDate(date)) {
-    const ceremonyName = getCeremonyName(date)
-    olympicServices.push({
-      value: "ceremony-disposition",
-      label: dictionary?.serviceType?.dispositionCeremony || dictionary?.serviceType?.ceremony?.label || "Ceremony Disposition",
-      description: dictionary?.serviceType?.ceremony?.description || "Special service for ceremonies and events",
-      icon: "",
-      badge: dictionary?.serviceType?.badges?.ceremony || "CEREMONY"
-    })
+    const ceremony = findOlympicCeremony(date)
+    if (ceremony) {
+      // Get specific ceremony label based on ceremony ID
+      let ceremonyLabel = ""
+      let ceremonyDescription = ""
+      
+      if (ceremony.id === "opening-ceremony") {
+        ceremonyLabel = dictionary?.serviceType?.ceremonyNames?.["opening-ceremony"] || 
+                       dictionary?.serviceType?.ceremonyDispositionOpening || 
+                       "Opening Ceremony Disposition"
+        ceremonyDescription = dictionary?.serviceType?.ceremony?.openingDescription || 
+                             dictionary?.serviceType?.ceremony?.description || 
+                             "Special service for opening ceremony"
+      } else if (ceremony.id === "closing-ceremony") {
+        ceremonyLabel = dictionary?.serviceType?.ceremonyNames?.["closing-ceremony"] || 
+                       dictionary?.serviceType?.ceremonyDispositionClosing || 
+                       "Closing Ceremony Disposition"
+        ceremonyDescription = dictionary?.serviceType?.ceremony?.closingDescription || 
+                             dictionary?.serviceType?.ceremony?.description || 
+                             "Special service for closing ceremony"
+      } else {
+        // Fallback for any other ceremony
+        ceremonyLabel = dictionary?.serviceType?.dispositionCeremony || 
+                       dictionary?.serviceType?.ceremony?.label || 
+                       "Ceremony Disposition"
+        ceremonyDescription = dictionary?.serviceType?.ceremony?.description || 
+                             "Special service for ceremonies and events"
+      }
+      
+      olympicServices.push({
+        value: "ceremony-disposition",
+        label: ceremonyLabel,
+        description: ceremonyDescription,
+        icon: "",
+      })
+    }
   }
 
   return olympicServices
@@ -409,11 +435,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {dictionary.serviceType.title}
-                {state.journey.date && isOlympicPeriod(state.journey.date) && (
-                  <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded-full">
-                    {dictionary?.serviceType?.badges?.olympicPeriod || "EVENTS PERIOD"}
-                  </span>
-                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -436,15 +457,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">{serviceType.icon}</span>
                         <span className="font-medium">{serviceType.label}</span>
-                        {serviceType.badge && (
-                          <span className={`px-2 py-0.5 text-xs rounded-full ${
-                            serviceType.badge === "SPECIAL EVENT" 
-                              ? "bg-red-100 text-red-800" 
-                              : "bg-gradient-to-r from-blue-500 to-green-500 text-white"
-                          }`}>
-                            {serviceType.badge}
-                          </span>
-                        )}
+                        
                       </div>
                       <p className="text-sm text-gray-500">{serviceType.description}</p>
                     </div>
@@ -479,9 +492,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg"></span>
                         <span className="font-medium">{dictionary?.serviceType?.disposition?.label || "Disposition"}</span>
-                        <span className="px-2 py-0.5 text-xs rounded-full bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                          {dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"}
-                        </span>
+                        
                       </div>
                       <p className="text-sm text-gray-500">{dictionary?.serviceType?.disposition?.olympicDescription || "Time-based service with Olympic rates"}</p>
                     </div>
@@ -499,9 +510,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">{dictionary?.serviceType?.interCluster?.label || "Transfer between cities"}</span>
-                        <span className="px-2 py-0.5 text-xs rounded-full bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                          {dictionary?.serviceType?.badges?.olympics || "OLYMPICS 2026"}
-                        </span>
+                        
                       </div>
                       <p className="text-sm text-gray-500">{dictionary?.serviceType?.interCluster?.description || "Transfer between Olympic venues"}</p>
                     </div>
