@@ -1098,25 +1098,25 @@ export interface OlympicCeremony {
 export const OLYMPIC_CEREMONIES: Record<string, OlympicCeremony> = {
   'opening-ceremony': {
     id: 'opening-ceremony',
-    name: 'Disposizione per Cerimonia di Apertura',
-    date: '2026-02-06',
-    venue: 'Stadio San Siro',
-    venueLocationId: 'san-siro',
-    baseCity: 'Milano',
+    name: 'Cerimonia di Apertura',
+    date: '2026-02-06', // Added specific date as requested by user
+    time: '20:00',
+    venue: 'Stadio San Siro - Milano',
     baseCityLocationId: 'milano',
+    baseCity: 'Milano',
     pricing: {
       dispositionBase: {
-        'berlina': 1700,        // Berlina per max 3 pax
-        'monovolume': 2200,     // Monovolume per max 6 pax (max 4 grandi)
-        'minibus': 2900         // Minibus per max 8 pax
+        'berlina': 1500,        // Berlina per max 3 pax
+        'monovolume': 2000,     // Monovolume per max 6 pax (max 4 grandi)
+        'minibus': 2700         // Minibus per max 8 pax
       },
       hourlyRate: {
-        'berlina': 300,
-        'monovolume': 400,
-        'minibus': 500
+        'berlina': 250,
+        'monovolume': 350,
+        'minibus': 450
       }
     },
-    description: 'Disposizione per Cerimonia di Apertura - Stadio San Siro, Milano',
+    description: 'Disposizione per Cerimonia di Apertura - Stadio San Siro Milano',
     notes: [
       'La disposizione si intende con partenza da Milano',
       'Comprende la disponibilità del mezzo da 2 ore prima dell\'inizio della cerimonia',
@@ -1127,12 +1127,12 @@ export const OLYMPIC_CEREMONIES: Record<string, OlympicCeremony> = {
   },
   'closing-ceremony': {
     id: 'closing-ceremony',
-    name: 'Disposizione per Cerimonia di Chiusura',
-    date: '2026-02-22',
+    name: 'Cerimonia di Chiusura',
+    date: '2026-02-22', // Added specific date as requested by user
+    time: '20:00',
     venue: 'Arena di Verona',
-    venueLocationId: 'arena-verona',
-    baseCity: 'Verona',
     baseCityLocationId: 'verona',
+    baseCity: 'Verona',
     pricing: {
       dispositionBase: {
         'berlina': 1700,        // Berlina per max 3 pax
@@ -1257,22 +1257,6 @@ export function findOlympicRoute(fromLocationId: string, toLocationId: string): 
   }
   
   return null
-}
-
-export function findOlympicCeremony(date: Date): OlympicCeremony | null {
-  const dateStr = formatDateToLocal(date)
-  return Object.values(OLYMPIC_CEREMONIES).find(ceremony => 
-    ceremony.date === dateStr
-  ) || null
-}
-
-export function isCeremonyDate(date: Date): boolean {
-  return findOlympicCeremony(date) !== null
-}
-
-export function getCeremonyName(date: Date): string | null {
-  const ceremony = findOlympicCeremony(date)
-  return ceremony ? ceremony.name : null
 }
 
 export function getOlympicVehicleTypes(): OlympicVehicleType[] {
@@ -1458,24 +1442,23 @@ export function calculateCeremonyPrice(
     
     const standardVehicleType = vehicleTypeMapping[vehicleType]
     
-    // Use the complete transfer pricing algorithm (same as regular transfers)
-    const { calculateTotalPrice } = require('@/lib/pricing-config')
+    // Use the unified transfer pricing algorithm (same as regular transfers)
+    const { calculateUnifiedTransferPrice } = require('@/lib/pricing-config')
     
-    // Calculate transfer using complete algorithm with default passenger/luggage config
-    const transferPricing = calculateTotalPrice(
+    // Calculate transfer using unified algorithm with default passenger/luggage config
+    const transferPricing = calculateUnifiedTransferPrice({
       distanceKm,
-      standardVehicleType,
-      1, // passengers - default to 1 for transfer calculation
-      0, // luggage - default to 0 for transfer calculation  
-      1, // vehicleCount - single vehicle for this calculation
-      undefined, // hour - no specific time for custom transfer
-      undefined, // minutes
-      undefined, // ampm
-      fromCoords,
-      toCoords
-    )
-    
-    
+      vehicleType: standardVehicleType,
+      passengers: 1, // passengers - default to 1 for transfer calculation
+      luggage: 0, // luggage - default to 0 for transfer calculation  
+      vehicleCount: 1, // vehicleCount - single vehicle for this calculation
+      hour: undefined, // hour - no specific time for custom transfer
+      minutes: undefined, // minutes
+      ampm: undefined, // ampm
+      pickupCoords: fromCoords,
+      destinationCoords: toCoords,
+      skipMultipliers: false // Use full multipliers like normal transfers
+    })
     
     // Return basePrice (without VAT) since ceremony calculation applies its own VAT
     return transferPricing.basePrice
@@ -1953,6 +1936,37 @@ export function isOlympicVehicleTypeAvailable(
 ): boolean {
   const availableTypes = getAvailableOlympicVehicleTypes(fromLocationId, toLocationId)
   return availableTypes.includes(vehicleType)
+}
+
+// Helper functions for ceremony date detection
+export function isCeremonyDate(date: Date): boolean {
+  if (!isOlympicPeriod(date)) {
+    return false
+  }
+  
+  const dateStr = formatDateToLocal(date)
+  const ceremonyDates = Object.values(OLYMPIC_CEREMONIES).map(ceremony => ceremony.date)
+  return ceremonyDates.includes(dateStr)
+}
+
+export function getCeremonyName(date: Date): string {
+  if (!isCeremonyDate(date)) {
+    return ''
+  }
+  
+  const dateStr = formatDateToLocal(date)
+  const ceremony = Object.values(OLYMPIC_CEREMONIES).find(ceremony => ceremony.date === dateStr)
+  return ceremony?.name || ''
+}
+
+export function findOlympicCeremony(date: Date): typeof OLYMPIC_CEREMONIES['opening-ceremony'] | null {
+  if (!isCeremonyDate(date)) {
+    return null
+  }
+  
+  const dateStr = formatDateToLocal(date)
+  const ceremony = Object.values(OLYMPIC_CEREMONIES).find(ceremony => ceremony.date === dateStr)
+  return ceremony || null
 }
 
 

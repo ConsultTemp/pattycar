@@ -746,6 +746,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         )
         
         let transferPricing = null
+        let transferCalculated = false
         
         // During Olympic period, try Olympic routes first
         if (journey.date && isOlympicPeriod(journey.date) && 
@@ -768,6 +769,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             
             transferCost = olympicRoute.prices[olympicVehicleType] * vehicles.count
             transferRoute = `${olympicRoute.from} → ${olympicRoute.to}`
+            transferCalculated = true
             
             console.log("🏔️ DISPOSITION TRANSFER (OLYMPIC ROUTE):", {
               from: olympicRoute.from,
@@ -780,7 +782,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         }
         
         // If no Olympic route found, try event routes or use standard pricing
-        if (!transferPricing && transferCost === 0) {
+        if (!transferCalculated) {
           // Try to find event route (non-Olympic)
           if (!isOlympicPeriod(journey.date!) && activeEvent) {
             let eventRoute: EventRoute | null = null
@@ -811,6 +813,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               
               transferCost = (eventRoute.prices[vehicleType] || 0) * vehicles.count
               transferRoute = `${eventRoute.from} → ${eventRoute.to}`
+              transferCalculated = true
               
               console.log("🎯 DISPOSITION TRANSFER (EVENT ROUTE):", {
                 from: eventRoute.from,
@@ -822,11 +825,11 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             }
           }
           
-          // Final fallback: use standard distance-based pricing
-          if (transferCost === 0) {
+          // UNIFIED FALLBACK: Use the unified transfer calculation function
+          if (!transferCalculated) {
             let distanceKm = journey.distance?.km
             
-            // If distance is not available, calculate it now (needed for disposition service)
+            // If distance is not available, calculate it now (essential for disposition service)
             if (!distanceKm && journey.pickup.coordinates && journey.destination.coordinates) {
               try {
                 console.log("🌍 CALCULATING DISTANCE ON-THE-FLY for disposition service")
@@ -861,8 +864,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               }
             }
             
-            // Use distance-based pricing if we have the distance
-            if (distanceKm) {
+            // CRITICAL: Only proceed if we have distance, otherwise the service is incomplete
+            if (distanceKm && distanceKm > 0) {
               let vehicleType = 'sedan'
               let passengers = 1
               let luggage = 0
@@ -877,24 +880,27 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
                 luggage = vehicles.multipleConfigs[0].luggage
               }
               
-              const { calculateTotalPrice } = require('@/lib/pricing-config')
-              const standardPricing = calculateTotalPrice(
+              // Use the unified transfer calculation function
+              const { calculateUnifiedTransferPrice } = require('@/lib/pricing-config')
+              const standardPricing = calculateUnifiedTransferPrice({
                 distanceKm,
                 vehicleType,
                 passengers,
                 luggage,
-                vehicles.count,
-                journey.time,
-                journey.minutes,
-                journey.timeAmPm,
-                journey.pickup.coordinates,
-                journey.destination.coordinates
-              )
+                vehicleCount: vehicles.count,
+                hour: journey.time,
+                minutes: journey.minutes,
+                ampm: journey.timeAmPm,
+                pickupCoords: journey.pickup.coordinates,
+                destinationCoords: journey.destination.coordinates,
+                skipMultipliers: false // Use full calculation like normal transfers
+              })
               
               transferCost = standardPricing.basePrice
               transferRoute = `${journey.pickup.address} → ${journey.destination.address}`
+              transferCalculated = true
               
-              console.log("📏 DISPOSITION TRANSFER (DISTANCE-BASED):", {
+              console.log("📏 DISPOSITION TRANSFER (UNIFIED CALCULATION):", {
                 from: journey.pickup.address,
                 to: journey.destination.address,
                 distance: distanceKm + 'km',
@@ -903,13 +909,33 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
                 route: transferRoute
               })
             } else {
-              console.log("⚠️ DISPOSITION TRANSFER: Could not calculate distance, no transfer cost added")
+              console.error("❌ CRITICAL: Could not calculate distance for disposition transfer - service incomplete")
+              // For disposition services, we must have a transfer cost if pickup != destination
+              // Set a minimum transfer cost to prevent zero-cost transfers
+              const minTransferCost = 50 // Minimum 50 EUR base cost
+              transferCost = minTransferCost * vehicles.count
+              transferRoute = `${journey.pickup.address} → ${journey.destination.address} (Distance estimation failed)`
+              transferCalculated = true
+              
+              console.warn("⚠️ USING MINIMUM TRANSFER COST:", {
+                cost: transferCost,
+                reason: "Distance calculation failed but transfer required"
+              })
             }
           }
         }
         
         // Add transfer cost to subtotal
-        subtotal += transferCost
+        if (transferCost > 0) {
+          subtotal += transferCost
+          console.log("💰 ADDED TRANSFER COST TO SUBTOTAL:", {
+            transferCost,
+            newSubtotal: subtotal,
+            transferRoute
+          })
+        } else {
+          console.error("❌ CRITICAL ERROR: Transfer cost is zero but transfer is required!")
+        }
       }
 
       // Apply night surcharge if applicable
@@ -1232,99 +1258,128 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             )
           }
 
-          // STANDARD DISPOSITION: Add transfer cost from Milano Centrale to disposition start point
+          // STANDARD DISPOSITION: Add transfer cost from pickup to destination
           if (standardPricing) {
-            const resolvedPickup = resolveLocationForPricing(
-              journey.pickup.locationId, 
-              journey.pickup.coordinates
-            )
-            
-            // Calculate transfer from Milano Centrale to disposition start point
+            // Calculate transfer from pickup location to destination location
             let transferCost = 0
             let transferRoute = ''
             
-            // Check if we need to calculate transfer (if not Milano Centrale and we have location data)
-            const needsTransferCalculation = resolvedPickup.resolvedLocationId !== 'milano-centrale' && 
-              (resolvedPickup.resolvedLocationId || resolvedPickup.resolvedCoordinates || journey.pickup.address)
+            // Only calculate transfer if we have both pickup and destination addresses and they're different
+            const needsTransferCalculation = journey.pickup.address && journey.destination.address && 
+              journey.pickup.address !== journey.destination.address
             
             if (needsTransferCalculation) {
+              console.log("🚗 CALCULATING STANDARD DISPOSITION TRANSFER:", {
+                from: journey.pickup.address,
+                to: journey.destination.address,
+                hasDistance: !!journey.distance?.km
+              })
+              
               try {
-                // Get distance from Milano Centrale to disposition start point
-                const milanoCoordinates = { lat: 45.4868, lng: 9.2037 } // Milano Centrale coordinates
-                const milanoCentroCoordinates = { lat: 45.4642, lng: 9.1900 } // Milano centro coordinates for hinterland check
-                let pickupCoordinates = resolvedPickup.resolvedCoordinates
+                let distanceKm = journey.distance?.km
                 
-                // If we don't have resolved coordinates but have a locationId or address, try to get them
-                if (!pickupCoordinates && (resolvedPickup.resolvedLocationId || journey.pickup.address)) {
-                  // This case handles cities like Napoli that aren't in our registry
-                  // For now, we'll use the journey coordinates if available, or skip if not
-                  pickupCoordinates = journey.pickup.coordinates
-                }
-                
-                if (pickupCoordinates) {
-                  // Check if pickup location is within Milano hinterland (10km from Milano center)
-                  const distanceFromMilanoCenter = calculateDistanceKm(milanoCentroCoordinates, pickupCoordinates)
-                  
-                  console.log("🏙️ DISPOSITION MILANO HINTERLAND CHECK:", {
-                    pickupLocation: journey.pickup.address,
-                    pickupLocationId: resolvedPickup.resolvedLocationId,
-                    distanceFromMilanoCenter: distanceFromMilanoCenter.toFixed(1) + 'km',
-                    isInHinterland: distanceFromMilanoCenter <= 10
-                  })
-                  
-                  if (distanceFromMilanoCenter <= 10) {
-                    // Within Milano hinterland - NO transfer cost
-                    console.log("✅ DISPOSITION: Location within Milano hinterland (10km) - NO transfer cost applied")
-                    transferCost = 0
-                    transferRoute = ''
-                  } else {
-                    // Outside Milano hinterland - calculate transfer cost
-                    const distance = calculateDistanceKm(milanoCoordinates, pickupCoordinates)
+                // If distance is not available, calculate it now (essential for disposition service)
+                if (!distanceKm && journey.pickup.coordinates && journey.destination.coordinates) {
+                  try {
+                    console.log("🌍 CALCULATING DISTANCE ON-THE-FLY for standard disposition service")
                     
-                    // Use standard pricing for the transfer
-                    let vehicleType = 'sedan' // default
-                    let passengers = 1
-                    let luggage = 0
-                    
-                    if (vehicles.count === 1 || vehicles.sameType) {
-                      vehicleType = vehicles.singleConfig.type
-                      passengers = vehicles.singleConfig.passengers
-                      luggage = vehicles.singleConfig.luggage
-                    } else {
-                      // For multiple vehicles, use the first one for transfer calculation
-                      vehicleType = vehicles.multipleConfigs[0].type
-                      passengers = vehicles.multipleConfigs[0].passengers
-                      luggage = vehicles.multipleConfigs[0].luggage
+                    const requestBody = {
+                      origins: [journey.pickup.address],
+                      destinations: [journey.destination.address],
                     }
-                    
-                    // Calculate transfer price using standard pricing
-                    const transferPricing = calculateTotalPrice(
-                      distance,
-                      vehicleType,
-                      passengers,
-                      luggage,
-                      vehicles.count,
-                      journey.time,
-                      journey.minutes,
-                      journey.timeAmPm,
-                      milanoCoordinates, // Milano Centrale coordinates
-                      pickupCoordinates  // Pickup coordinates
-                    )
-                    
-                    transferCost = transferPricing.basePrice
-                    transferRoute = `Milano Centrale → ${journey.pickup.address}`
-                    
-                    console.log("🚗 STANDARD DISPOSITION TRANSFER (OUTSIDE HINTERLAND):", {
-                      distance: distance.toFixed(1) + 'km',
-                      vehicleType,
-                      cost: transferCost,
-                      route: transferRoute
+
+                    const response = await fetch("/api/distance", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify(requestBody),
                     })
+
+                    if (response.ok) {
+                      const data = await response.json()
+                      distanceKm = data.distance.km
+                      
+                      console.log("✅ DISTANCE CALCULATED FOR STANDARD DISPOSITION:", {
+                        from: journey.pickup.address,
+                        to: journey.destination.address,
+                        distance: distanceKm + 'km'
+                      })
+                    } else {
+                      console.error("❌ Distance calculation failed for standard disposition:", response.status)
+                    }
+                  } catch (error) {
+                    console.error("❌ Error calculating distance for standard disposition:", error)
                   }
                 }
+                
+                // CRITICAL: Only proceed if we have distance, otherwise use minimum cost
+                if (distanceKm && distanceKm > 0) {
+                  let vehicleType = 'sedan'
+                  let passengers = 1
+                  let luggage = 0
+                  
+                  if (vehicles.count === 1 || vehicles.sameType) {
+                    vehicleType = vehicles.singleConfig.type
+                    passengers = vehicles.singleConfig.passengers
+                    luggage = vehicles.singleConfig.luggage
+                  } else {
+                    vehicleType = vehicles.multipleConfigs[0].type
+                    passengers = vehicles.multipleConfigs[0].passengers
+                    luggage = vehicles.multipleConfigs[0].luggage
+                  }
+                  
+                  // Use the unified transfer calculation function
+                  const { calculateUnifiedTransferPrice } = require('@/lib/pricing-config')
+                  const transferPricing = calculateUnifiedTransferPrice({
+                    distanceKm,
+                    vehicleType,
+                    passengers,
+                    luggage,
+                    vehicleCount: vehicles.count,
+                    hour: journey.time,
+                    minutes: journey.minutes,
+                    ampm: journey.timeAmPm,
+                    pickupCoords: journey.pickup.coordinates,
+                    destinationCoords: journey.destination.coordinates,
+                    skipMultipliers: false // Use full calculation like normal transfers
+                  })
+                  
+                  transferCost = transferPricing.basePrice
+                  transferRoute = `${journey.pickup.address} → ${journey.destination.address}`
+                  
+                  console.log("📏 STANDARD DISPOSITION TRANSFER (UNIFIED CALCULATION):", {
+                    from: journey.pickup.address,
+                    to: journey.destination.address,
+                    distance: distanceKm + 'km',
+                    vehicleType,
+                    cost: transferCost,
+                    route: transferRoute
+                  })
+                } else {
+                  console.error("❌ CRITICAL: Could not calculate distance for standard disposition transfer")
+                  // For disposition services, we must have a transfer cost if pickup != destination
+                  // Set a minimum transfer cost to prevent zero-cost transfers
+                  const minTransferCost = 50 // Minimum 50 EUR base cost
+                  transferCost = minTransferCost * vehicles.count
+                  transferRoute = `${journey.pickup.address} → ${journey.destination.address} (Distance estimation failed)`
+                  
+                  console.warn("⚠️ USING MINIMUM TRANSFER COST FOR STANDARD DISPOSITION:", {
+                    cost: transferCost,
+                    reason: "Distance calculation failed but transfer required"
+                  })
+                }
               } catch (error) {
-                console.error("Error calculating transfer distance:", error)
-                transferCost = 0
+                console.error("Error calculating standard disposition transfer:", error)
+                // Even on error, provide minimum transfer cost to prevent zero cost
+                const minTransferCost = 50
+                transferCost = minTransferCost * vehicles.count
+                transferRoute = `${journey.pickup.address} → ${journey.destination.address} (Error in calculation)`
+                
+                console.warn("⚠️ USING MINIMUM TRANSFER COST DUE TO ERROR:", {
+                  cost: transferCost,
+                  error: error.message
+                })
               }
             }
             
@@ -1335,8 +1390,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
               const transferVatAmount = Math.round(transferSubtotal * standardPricing.breakdown.vatRate * 100) / 100
               const transferTotalPrice = Math.round((transferSubtotal + transferVatAmount) * 100) / 100
               
-              // DON'T add transferCost to basePrice - keep them separate!
-              // standardPricing.basePrice += transferCost  <- REMOVED THIS BAD LINE
+              // Update the pricing with transfer information
               standardPricing.totalPrice = transferTotalPrice
                
                // Create new breakdown with transfer information
@@ -1355,6 +1409,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
                  newTotal: transferTotalPrice,
                  transferRoute
                })
+            } else if (needsTransferCalculation) {
+              console.error("❌ CRITICAL ERROR: Standard disposition needs transfer but cost is zero!")
             }
           }
         }

@@ -109,71 +109,26 @@ export function calculateTotalPrice(
   vehicleType: string,
   passengers: number,
   luggage: number,
-  vehicleCount = 1,
-  // Parametri opzionali per il supplemento notturno
+  vehicleCount: number,
   hour?: string,
   minutes?: string,
   ampm?: string,
-  // Parametri opzionali per le coordinate (per check Milano interno)
   pickupCoords?: { lat: number; lng: number },
   destinationCoords?: { lat: number; lng: number }
 ): { basePrice: number; totalPrice: number; breakdown: any } {
-  // Check if this is an internal Milano transfer (both pickup and destination within 10km of Milano center)
-  const isMilanoInternal = isInternalMilanoTransfer(pickupCoords, destinationCoords)
-  
-  // Prezzo base
-  let basePrice: number
-  let isFixedPrice = false
-  
-  if (isMilanoInternal) {
-    // Fixed price for internal Milano transfers
-    basePrice = MILANO_INTERNAL_TRANSFER_PRICE
-    isFixedPrice = true
-    } else {
-    // Distance-based pricing for other transfers
-    basePrice = distanceKm * PRICE_PER_KM
-  }
-
-  // Applica i moltiplicatori
-  const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicleType] || 1.0
-  const passengerMultiplier = PASSENGER_MULTIPLIERS.getMultiplier(passengers)
-  const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(luggage)
-
-  // Calcola il prezzo finale
-  let pricePerVehicle = basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier
-  
-  // Applica supplemento notturno se applicabile
-  let nightSurcharge = 0
-  if (hour && minutes && ampm && isNightTime(hour, minutes, ampm)) {
-    nightSurcharge = pricePerVehicle * NIGHT_SURCHARGE_RATE
-    pricePerVehicle += nightSurcharge
-  }
-
-  const subtotal = Math.round(pricePerVehicle * vehicleCount * 100) / 100
-  const vatAmount = Math.round(subtotal * VAT_RATE * 100) / 100
-  const totalPrice = Math.round((subtotal + vatAmount) * 100) / 100
-
-  return {
-    basePrice,
-    totalPrice,
-    breakdown: {
-      distanceKm,
-      pricePerKm: isFixedPrice ? 0 : PRICE_PER_KM,
-      basePrice,
-      vehicleMultiplier,
-      passengerMultiplier,
-      luggageMultiplier,
-      nightSurcharge: nightSurcharge * vehicleCount,
-      nightSurchargeRate: hour && minutes && ampm && isNightTime(hour, minutes, ampm) ? NIGHT_SURCHARGE_RATE : 0,
-      vehicleCount,
-      pricePerVehicle: Math.round(pricePerVehicle),
-      subtotal,
-      vatAmount,
-      vatRate: VAT_RATE,
-      isMilanoInternal,
-      isFixedPrice,
-    },
-  }
+  return calculateUnifiedTransferPrice({
+    distanceKm,
+    vehicleType,
+    passengers,
+    luggage,
+    vehicleCount,
+    hour,
+    minutes,
+    ampm,
+    pickupCoords,
+    destinationCoords,
+    skipMultipliers: false
+  })
 }
 
 // Funzione per calcolare il prezzo totale con veicoli multipli configurati individualmente (transfer)
@@ -276,7 +231,7 @@ export function calculateDispositionPrice(
   vehicleType: string,
   passengers: number,
   luggage: number,
-  vehicleCount = 1,
+  vehicleCount: number,
 ): { basePrice: number; totalPrice: number; breakdown: any } {
   // Calcola la durata in ore utilizzando la conversione dal formato 12h al 24h
   const startTimeConverted = timeUtils.to24h(startTime, startMinutes, startTimeAmPm)
@@ -590,6 +545,92 @@ export function calculateMultipleNCCPrice(
       vatAmount: Math.round(vatAmount * 100) / 100,
       vatRate: VAT_RATE,
       totalWithVat: Math.round(totalWithVat * 100) / 100,
+    }
+  }
+}
+
+// Unified transfer calculation function - to be used by all service types
+export function calculateUnifiedTransferPrice(config: {
+  distanceKm: number
+  vehicleType: string
+  passengers: number
+  luggage: number
+  vehicleCount: number
+  hour?: string
+  minutes?: string
+  ampm?: string
+  pickupCoords?: { lat: number; lng: number }
+  destinationCoords?: { lat: number; lng: number }
+  skipMultipliers?: boolean // For disposition transfers, skip passenger/luggage multipliers
+}): { basePrice: number; totalPrice: number; breakdown: any } {
+  
+  // Use the existing calculateTotalPrice logic but with optional multiplier control
+  const {
+    distanceKm,
+    vehicleType,
+    passengers,
+    luggage,
+    vehicleCount,
+    hour,
+    minutes,
+    ampm,
+    pickupCoords,
+    destinationCoords,
+    skipMultipliers = false
+  } = config
+
+  // Check if this is an internal Milano transfer
+  const isMilanoInternal = isInternalMilanoTransfer(pickupCoords, destinationCoords)
+  
+  // Base price calculation
+  let basePrice: number
+  let isFixedPrice = false
+  
+  if (isMilanoInternal) {
+    basePrice = MILANO_INTERNAL_TRANSFER_PRICE
+    isFixedPrice = true
+  } else {
+    basePrice = distanceKm * PRICE_PER_KM
+  }
+
+  // Apply multipliers (can be skipped for disposition transfers if needed)
+  const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicleType] || 1.0
+  const passengerMultiplier = skipMultipliers ? 1.0 : PASSENGER_MULTIPLIERS.getMultiplier(passengers)
+  const luggageMultiplier = skipMultipliers ? 1.0 : LUGGAGE_MULTIPLIERS.getMultiplier(luggage)
+
+  // Calculate final price per vehicle
+  let pricePerVehicle = basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier
+  
+  // Apply night surcharge if applicable
+  let nightSurcharge = 0
+  if (hour && minutes && ampm && isNightTime(hour, minutes, ampm)) {
+    nightSurcharge = pricePerVehicle * NIGHT_SURCHARGE_RATE
+    pricePerVehicle += nightSurcharge
+  }
+
+  const subtotal = Math.round(pricePerVehicle * vehicleCount * 100) / 100
+  const vatAmount = Math.round(subtotal * VAT_RATE * 100) / 100
+  const totalPrice = Math.round((subtotal + vatAmount) * 100) / 100
+
+  return {
+    basePrice,
+    totalPrice,
+    breakdown: {
+      distanceKm,
+      pricePerKm: isFixedPrice ? 0 : PRICE_PER_KM,
+      basePrice,
+      vehicleMultiplier,
+      passengerMultiplier,
+      luggageMultiplier,
+      nightSurcharge: nightSurcharge * vehicleCount,
+      nightSurchargeRate: hour && minutes && ampm && isNightTime(hour, minutes, ampm) ? NIGHT_SURCHARGE_RATE : 0,
+      vehicleCount,
+      pricePerVehicle: Math.round(pricePerVehicle),
+      subtotal,
+      vatAmount,
+      vatRate: VAT_RATE,
+      isMilanoInternal,
+      isFixedPrice
     }
   }
 }
