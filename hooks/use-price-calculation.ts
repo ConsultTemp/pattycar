@@ -532,7 +532,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         meetGreetPrice,
         meetGreetBreakdown,
         eventRoute: {
-          name: "Milano-Cortina",
+          name: "",
           from: olympicRoute.from,
           to: olympicRoute.to,
           notes: ""
