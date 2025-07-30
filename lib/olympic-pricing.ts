@@ -813,6 +813,108 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 135
     },
     isEastCluster: true
+  },
+  {
+    from: 'Cortina d\'Ampezzo',
+    to: 'Verona',
+    fromLocationId: 'cortina',
+    toLocationId: 'verona',
+    prices: {
+      'olympic-sedan': 950,
+      'olympic-minivan': 1070,
+      'olympic-van': 1680,      // 950 * 1.77 = 1682 → 1680
+      'olympic-luxury': 1550    // 950 * 1.63 = 1549 → 1550
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    },
+    isEastCluster: true
+  },
+  {
+    from: 'Cortina Center',
+    to: 'Anterselva',
+    fromLocationId: 'cortina',
+    toLocationId: 'anterselva',
+    prices: {
+      'olympic-sedan': 460,
+      'olympic-minivan': 530,
+      'olympic-van': 810,       // 460 * 1.77 = 814 → 810
+      'olympic-luxury': 750     // 460 * 1.63 = 750 → 750
+      //toremove
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    },
+    isEastCluster: true
+  },
+  {
+    from: 'Cortina Center',
+    to: 'Val di Fiemme',
+    fromLocationId: 'cortina',
+    toLocationId: 'val-di-fiemme',
+    prices: {
+      'olympic-sedan': 590,
+      'olympic-minivan': 640,
+      'olympic-van': 1040,      // 590 * 1.77 = 1044 → 1040
+      'olympic-luxury': 960     // 590 * 1.63 = 962 → 960
+      //toremove
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    },
+    isEastCluster: true
+  },
+  {
+    from: 'Cortina Center',
+    to: 'Venezia',
+    fromLocationId: 'cortina',
+    toLocationId: 'venezia',
+    prices: {
+      'olympic-sedan': 800,
+      'olympic-minivan': 860,
+      'olympic-van': 1420,      // 800 * 1.77 = 1416 → 1420
+      'olympic-luxury': 1300    // 800 * 1.63 = 1304 → 1300
+
+      //toremove
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    },
+    isEastCluster: true
+  },
+  
+  // Additional route from pricing table
+  {
+    from: 'Cortina',
+    to: 'Venezia Hotel (incl. water taxi)',
+    fromLocationId: 'cortina',
+    toLocationId: 'venezia',
+    prices: {
+      'olympic-sedan': 800,
+      'olympic-minivan': 860,
+      'olympic-van': 1420,      // 800 * 1.77 = 1416 → 1420
+      'olympic-luxury': 1300    // 800 * 1.63 = 1304 → 1300
+      //toremove
+    },
+    extraHourRates: {
+      'olympic-sedan': 94,
+      'olympic-minivan': 108,
+      'olympic-van': 135,
+      'olympic-luxury': 135
+    },
+    isEastCluster: true
   }
 ]
 
@@ -936,25 +1038,6 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     isInterCluster: true
   },
   {
-    from: 'Cortina d\'Ampezzo',
-    to: 'Verona',
-    fromLocationId: 'cortina',
-    toLocationId: 'verona',
-    prices: {
-      'olympic-sedan': 950,
-      'olympic-minivan': 1070,
-      'olympic-van': 1680,      // 950 * 1.77 = 1682 → 1680
-      'olympic-luxury': 1550    // 950 * 1.63 = 1549 → 1550
-    },
-    extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
-    },
-    isInterCluster: true
-  },
-  {
     from: 'Livigno',
     to: 'Bormio',
     fromLocationId: 'livigno',
@@ -1053,85 +1136,7 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
   },
   
   // Additional Cortina routes from official table
-  {
-    from: 'Cortina Center',
-    to: 'Anterselva',
-    fromLocationId: 'cortina',
-    toLocationId: 'anterselva',
-    prices: {
-      'olympic-sedan': 460,
-      'olympic-minivan': 530,
-      'olympic-van': 810,       // 460 * 1.77 = 814 → 810
-      'olympic-luxury': 750     // 460 * 1.63 = 750 → 750
-    },
-    extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
-    },
-    isInterCluster: true
-  },
-  {
-    from: 'Cortina Center',
-    to: 'Val di Fiemme',
-    fromLocationId: 'cortina',
-    toLocationId: 'val-di-fiemme',
-    prices: {
-      'olympic-sedan': 590,
-      'olympic-minivan': 640,
-      'olympic-van': 1040,      // 590 * 1.77 = 1044 → 1040
-      'olympic-luxury': 960     // 590 * 1.63 = 962 → 960
-    },
-    extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
-    },
-    isInterCluster: true
-  },
-  {
-    from: 'Cortina Center',
-    to: 'Venezia',
-    fromLocationId: 'cortina',
-    toLocationId: 'venezia',
-    prices: {
-      'olympic-sedan': 800,
-      'olympic-minivan': 860,
-      'olympic-van': 1420,      // 800 * 1.77 = 1416 → 1420
-      'olympic-luxury': 1300    // 800 * 1.63 = 1304 → 1300
-    },
-    extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
-    },
-    isInterCluster: true
-  },
   
-  // Additional route from pricing table
-  {
-    from: 'Cortina',
-    to: 'Venezia Hotel (incl. water taxi)',
-    fromLocationId: 'cortina',
-    toLocationId: 'venezia',
-    prices: {
-      'olympic-sedan': 800,
-      'olympic-minivan': 860,
-      'olympic-van': 1420,      // 800 * 1.77 = 1416 → 1420
-      'olympic-luxury': 1300    // 800 * 1.63 = 1304 → 1300
-    },
-    extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
-    },
-    isInterCluster: true,
-    isEastCluster: true
-  }
 ]
 
 // Olympic Ceremony Events - Special pricing
