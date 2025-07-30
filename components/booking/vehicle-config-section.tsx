@@ -94,7 +94,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
           value: 'olympic-minivan',
           label: 'Mini Van',
           maxPassengers: 6,
-          maxLuggage: 4,
+          maxLuggage: 6,
           description: '6 passengers (4 with luggage)',
           category: 'standard'
         }
