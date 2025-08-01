@@ -41,19 +41,19 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
   if (!date) {
     return []
   }
-  
+
   if (!isOlympicPeriod(date)) {
     // Standard period: Transfer + Disposizione
     return [
-      { 
-        value: "transfer", 
-        label: dictionary?.serviceType?.transfer?.label || "Transfer", 
+      {
+        value: "transfer",
+        label: dictionary?.serviceType?.transfer?.label || "Transfer",
         description: dictionary?.serviceType?.transfer?.description || "Point-to-point transfer",
         icon: ""
       },
-      { 
-        value: "disposizione", 
-        label: dictionary?.serviceType?.disposition?.label || "Disposition", 
+      {
+        value: "disposizione",
+        label: dictionary?.serviceType?.disposition?.label || "Disposition",
         description: dictionary?.serviceType?.disposition?.description || "Time-based service with driver",
         icon: ""
       }
@@ -62,51 +62,51 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
 
   // Olympic period: base services
   const olympicServices: ServiceTypeOption[] = [
-    { 
-      value: "transfer", 
-      label: dictionary?.serviceType?.transfer?.label || "Transfer", 
+    {
+      value: "transfer",
+      label: dictionary?.serviceType?.transfer?.label || "Transfer",
       description: dictionary?.serviceType?.transfer?.olympicDescription || "Transfer with special prices",
       icon: "",
     },
-    { 
-      value: "altri-servizi", 
-      label: dictionary?.serviceType?.otherServices?.label || "Other Services", 
+    {
+      value: "altri-servizi",
+      label: dictionary?.serviceType?.otherServices?.label || "Other Services",
       description: dictionary?.serviceType?.otherServices?.description || "Disposition and Transfer between cities",
       icon: "",
     }
   ]
 
   // Check if it's a ceremony date and add ceremony service
-  if (isCeremonyDate(date)) {
+  /* if (isCeremonyDate(date)) {
     const ceremony = findOlympicCeremony(date)
     if (ceremony) {
       // Get specific ceremony label based on ceremony ID
       let ceremonyLabel = ""
       let ceremonyDescription = ""
-      
+
       if (ceremony.id === "opening-ceremony") {
-        ceremonyLabel = dictionary?.serviceType?.ceremonyNames?.["opening-ceremony"] || 
-                       dictionary?.serviceType?.ceremonyDispositionOpening || 
-                       "Opening Ceremony Disposition"
-        ceremonyDescription = dictionary?.serviceType?.ceremony?.openingDescription || 
-                             dictionary?.serviceType?.ceremony?.description || 
-                             "Special service for opening ceremony"
+        ceremonyLabel = dictionary?.serviceType?.ceremonyNames?.["opening-ceremony"] ||
+          dictionary?.serviceType?.ceremonyDispositionOpening ||
+          "Opening Ceremony Disposition"
+        ceremonyDescription = dictionary?.serviceType?.ceremony?.openingDescription ||
+          dictionary?.serviceType?.ceremony?.description ||
+          "Special service for opening ceremony"
       } else if (ceremony.id === "closing-ceremony") {
-        ceremonyLabel = dictionary?.serviceType?.ceremonyNames?.["closing-ceremony"] || 
-                       dictionary?.serviceType?.ceremonyDispositionClosing || 
-                       "Closing Ceremony Disposition"
-        ceremonyDescription = dictionary?.serviceType?.ceremony?.closingDescription || 
-                             dictionary?.serviceType?.ceremony?.description || 
-                             "Special service for closing ceremony"
+        ceremonyLabel = dictionary?.serviceType?.ceremonyNames?.["closing-ceremony"] ||
+          dictionary?.serviceType?.ceremonyDispositionClosing ||
+          "Closing Ceremony Disposition"
+        ceremonyDescription = dictionary?.serviceType?.ceremony?.closingDescription ||
+          dictionary?.serviceType?.ceremony?.description ||
+          "Special service for closing ceremony"
       } else {
         // Fallback for any other ceremony
-        ceremonyLabel = dictionary?.serviceType?.dispositionCeremony || 
-                       dictionary?.serviceType?.ceremony?.label || 
-                       "Ceremony Disposition"
-        ceremonyDescription = dictionary?.serviceType?.ceremony?.description || 
-                             "Special service for ceremonies and events"
+        ceremonyLabel = dictionary?.serviceType?.dispositionCeremony ||
+          dictionary?.serviceType?.ceremony?.label ||
+          "Ceremony Disposition"
+        ceremonyDescription = dictionary?.serviceType?.ceremony?.description ||
+          "Special service for ceremonies and events"
       }
-      
+
       olympicServices.push({
         value: "ceremony-disposition",
         label: ceremonyLabel,
@@ -114,7 +114,7 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
         icon: "",
       })
     }
-  }
+  } */
 
   return olympicServices
 }
@@ -132,12 +132,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   const availableServiceTypes = useMemo(() => {
     return getAvailableServiceTypes(state.journey.date, dictionary)
   }, [state.journey.date, dictionary])
-  
+
   // Check if we're in Olympic period and "altri-servizi" is selected OR sub-services are active
   const isOlympicPeriod_local = state.journey.date ? isOlympicPeriod(state.journey.date) : false
   const showSubServices = isOlympicPeriod_local && (
-    state.serviceType === "altri-servizi" || 
-    state.serviceType === "disposizione" || 
+    state.serviceType === "altri-servizi" ||
+    state.serviceType === "disposizione" ||
     state.serviceType === "inter-cluster"
   )
   const isCeremonyDate_local = state.journey.date ? isCeremonyDate(state.journey.date) : false
@@ -153,7 +153,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
   const handleJourneyChange = useCallback((journey: any) => {
     dispatch({ type: "SET_JOURNEY", payload: journey })
-    
+
     // If date changed, check if current service type is still available
     if (journey.date) {
       const newAvailableServices = getAvailableServiceTypes(journey.date, dictionary)
@@ -223,8 +223,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
     if (!isCorrectVenueSet) {
       // Auto-set the destination to the ceremony venue
-      dispatch({ 
-        type: "SET_JOURNEY", 
+      dispatch({
+        type: "SET_JOURNEY",
         payload: {
           destination: {
             address: venueLocation.displayName,
@@ -236,25 +236,25 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         }
       })
     }
-     }, [state.journey.date, state.serviceType, state.journey.destination?.locationId])
+  }, [state.journey.date, state.serviceType, state.journey.destination?.locationId])
 
   // Helper function to determine if destination should be disabled for ceremonies
   const isDestinationDisabledForCeremony = useCallback((): boolean => {
-    return Boolean(state.journey.date && 
-                   state.serviceType === "ceremony-disposition" && 
-                   isCeremonyDate(state.journey.date))
+    return Boolean(state.journey.date &&
+      state.serviceType === "ceremony-disposition" &&
+      isCeremonyDate(state.journey.date))
   }, [state.journey.date, state.serviceType])
 
   const handleSubmit = useCallback(async () => {
     // Mark that user has attempted to submit (for UI styling)
     dispatch({ type: "SET_ATTEMPTED_SUBMIT", payload: true })
-    
+
     // Clear previous errors
     dispatch({ type: "CLEAR_ERRORS" })
 
     // Validate form
     const errors = validateAll()
-    
+
     // Check cancellation policy acceptance
     if (!cancellationAccepted) {
       errors.push({
@@ -262,7 +262,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         message: dictionary.submit.cancellationRequired || "You must accept the cancellation policy"
       })
     }
-    
+
     // Debug log for validation
     console.log("Form validation:", {
       totalErrors: errors.length,
@@ -279,7 +279,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         vehicleConfig: state.vehicles
       }
     })
-    
+
     // IMPORTANT: Block submission if there are any validation errors
     if (errors.length > 0) {
       dispatch({ type: "SET_VALIDATION_ERRORS", payload: errors })
@@ -299,8 +299,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         pickup: state.journey.pickup.address,
         destination: state.journey.destination.address,
         date: state.journey.date ? format(state.journey.date, "yyyy-MM-dd") : "",
-        time: state.journey.time && state.journey.minutes && state.journey.timeAmPm 
-          ? formatTime24Hour(state.journey.time, state.journey.minutes, state.journey.timeAmPm) 
+        time: state.journey.time && state.journey.minutes && state.journey.timeAmPm
+          ? formatTime24Hour(state.journey.time, state.journey.minutes, state.journey.timeAmPm)
           : "",
         endTime:
           state.serviceType === "disposizione" && state.journey.endTime && state.journey.endMinutes && state.journey.endTimeAmPm
@@ -327,19 +327,19 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         sameVehicleType: state.vehicles.sameType,
         distance: state.journey.distance
           ? {
-              km: state.journey.distance.km,
-              text: state.journey.distance.text,
-              duration: state.journey.distance.duration,
-            }
+            km: state.journey.distance.km,
+            text: state.journey.distance.text,
+            duration: state.journey.distance.duration,
+          }
           : null,
         individualVehicles:
           !state.vehicles.sameType && state.vehicles.count > 1
             ? state.vehicles.multipleConfigs.map((config, index) => ({
-                id: `vehicle-${index + 1}`,
-                type: config.type,
-                passengers: config.passengers,
-                luggage: config.luggage,
-              }))
+              id: `vehicle-${index + 1}`,
+              type: config.type,
+              passengers: config.passengers,
+              luggage: config.luggage,
+            }))
             : null,
       }
 
@@ -440,8 +440,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {availableServiceTypes.map((serviceType) => (
-                  <label 
-                    key={serviceType.value} 
+                  <label
+                    key={serviceType.value}
                     className="flex items-start cursor-pointer p-4 border rounded-lg hover:border-blue-300 transition-colors"
                   >
                     <input
@@ -457,7 +457,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">{serviceType.icon}</span>
                         <span className="font-medium">{serviceType.label}</span>
-                        
+
                       </div>
                       <p className="text-sm text-gray-500">{serviceType.description}</p>
                     </div>
@@ -492,7 +492,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg"></span>
                         <span className="font-medium">{dictionary?.serviceType?.disposition?.label || "Disposition"}</span>
-                        
+
                       </div>
                       <p className="text-sm text-gray-500">{dictionary?.serviceType?.disposition?.olympicDescription || "Time-based service with Olympic rates"}</p>
                     </div>
@@ -510,7 +510,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">{dictionary?.serviceType?.interCluster?.label || "Transfer between cities"}</span>
-                        
+
                       </div>
                       <p className="text-sm text-gray-500">{dictionary?.serviceType?.interCluster?.description || "Transfer between Olympic venues"}</p>
                     </div>
@@ -554,25 +554,25 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             // Determine if current route is East Cluster or Inter-Cluster
             let isEastCluster = false
             let isInterCluster = false
-            
+
             if (isOlympicPeriod_local) {
               // Use same location resolution logic as pricing calculation
               const resolvedPickup = resolveLocationForPricing(
-                state.journey.pickup.locationId, 
+                state.journey.pickup.locationId,
                 state.journey.pickup.coordinates
               )
               const resolvedDestination = resolveLocationForPricing(
-                state.journey.destination.locationId, 
+                state.journey.destination.locationId,
                 state.journey.destination.coordinates
               )
-              
+
               if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
                 // Try to find Olympic route with resolved locations
                 let olympicRoute = findOlympicRoute(
-                  resolvedPickup.resolvedLocationId, 
+                  resolvedPickup.resolvedLocationId,
                   resolvedDestination.resolvedLocationId
                 )
-                
+
                 // Apply same fallback logic as pricing calculation
                 if (!olympicRoute) {
                   const meetGreetToGenericMap: Record<string, string> = {
@@ -583,20 +583,20 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                     'milano-linate': 'linate',
                     'verona-porta-nuova': 'verona'
                   }
-                  
+
                   const fallbackPickupId = meetGreetToGenericMap[resolvedPickup.resolvedLocationId] || resolvedPickup.resolvedLocationId
                   const fallbackDestinationId = meetGreetToGenericMap[resolvedDestination.resolvedLocationId] || resolvedDestination.resolvedLocationId
-                  
+
                   if (fallbackPickupId !== resolvedPickup.resolvedLocationId || fallbackDestinationId !== resolvedDestination.resolvedLocationId) {
                     olympicRoute = findOlympicRoute(fallbackPickupId, fallbackDestinationId)
                   }
                 }
-                
+
                 // IMPORTANT: Only East Cluster routes should limit vehicles to sedan/minivan
                 // Inter-Cluster routes should show all 4 vehicle types (sedan, minivan, van, luxury)
                 isEastCluster = olympicRoute?.isEastCluster === true
                 isInterCluster = olympicRoute?.isInterCluster === true
-                
+
                 console.log("🏔️ VEHICLE CONFIG - East/Inter Cluster Check:", {
                   pickup: resolvedPickup.resolvedLocationId,
                   destination: resolvedDestination.resolvedLocationId,
@@ -608,7 +608,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 })
               }
             }
-            
+
             return (
               <VehicleConfigSection
                 vehicleCount={state.vehicles.count}

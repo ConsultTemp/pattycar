@@ -154,7 +154,7 @@
                   "dateLabel": "Select transfer date *",
         "dateRequired": "Date required",
         "selectDate": "Select date",
-        "dateImportance": "The date is fundamental: prices and service availability depend on it. Please select the date before to proceed.",
+        "dateImportance": "Prices and availability are dependent on transfer date. Please select your service date in order to proceed.",
         "dateSelected": "Date selected! You can now proceed with the trip configuration."
       },
       "serviceType": {
@@ -165,9 +165,9 @@
           "olympicDescription": "Transfer requests are available between airports / train stations and your hotel only. If you have any other needs, feel free to contact us at: gamestime@pattycar.com"
         },
         "disposition": {
-          "label": "Disposition",
+          "label": "Daily on demand services",
           "description": "Time-based service with driver",
-          "olympicDescription": "Time-based service with special rates"
+          "olympicDescription": "Kindly note that, due to traffic limitations, this service will bring you as close as possible to the competition venue, though not directly to the entrance"
         },
         "otherServices": {
           "label": "Other Services",
@@ -431,13 +431,13 @@
         "baseServicePrice": "Base service ({passengers} passenger, {luggage} luggage included)",
         "vatPercentage": "VAT ({rate}%)",
         "totalMeetGreet": "Total Meet & Greet",
-        "enableService": "Enable Meet & Greet Service",
+        "enableService": "Add on Meet & Greet Service",
         "enableMeetGreetService": "Enable Meet & Greet Service",
         "groupsQuoteRequest": "Groups of more than 8 people will be quoted on request",
         "tarmacAvailability": "TARMAC service available only if aircraft is parked (on demand)",
         "maxLuggageNightSurcharge": "Maximum {max} pieces of luggage per operator for night surcharge",
         "serviceDetails": "Service Details",
-        "greeterMeetsClient": "The greeter meets the client/s at the finger exit",
+        "greeterMeetsClient": "Escort will greet you upon exiting aircraft",
         "passportControlHelp": "She/he helps with passports control [fast-track / skip the line is not possible]",
         "porterBaggageAssist": "There will be also a porter that will assist with baggage claim through a dedicated transport service",
         "escortToVehicle": "The greeter and porter will escort passenger/s to the reserved vehicle PATTY CAR",

@@ -154,7 +154,7 @@
                   "dateLabel": "Seleziona data del transfer *",
         "dateRequired": "Data richiesta",
         "selectDate": "Seleziona data",
-        "dateImportance": "La data è fondamentale: da essa dipendono i prezzi e la disponibilità dei servizi. Seleziona prima la data per procedere.",
+        "dateImportance": "I prezzi e la disponibilità dipendono dalla data del transfer. Seleziona la data del servizio per procedere.",
         "dateSelected": "Data selezionata! Ora puoi procedere con la configurazione del viaggio."
       },
       "serviceType": {
@@ -165,9 +165,9 @@
           "olympicDescription": "Le richieste di transfer sono disponibili solo tra aeroporti / stazioni ferroviarie e il vostro hotel. Per qualsiasi altra esigenza, contattateci a: gamestime@pattycar.com"
         },
         "disposition": {
-          "label": "Disposizione",
+          "label": "Servizi giornalieri su richiesta",
           "description": "Servizio a tempo con autista",
-          "olympicDescription": "Servizio a tempo con tariffe speciali"
+          "olympicDescription": "Si prega di notare che, a causa delle limitazioni del traffico, questo servizio vi porterà il più vicino possibile alla sede della competizione, anche se non direttamente all'ingresso"
         },
         "otherServices": {
           "label": "Altri Servizi",
@@ -430,13 +430,13 @@
         "baseServicePrice": "Servizio base ({passengers} passeggero, {luggage} bagagli inclusi)",
         "vatPercentage": "IVA ({rate}%)",
         "totalMeetGreet": "Totale Meet & Greet",
-        "enableService": "Abilita Servizio Meet & Greet",
+        "enableService": "Aggiungi Servizio Meet & Greet",
         "enableMeetGreetService": "Abilita Servizio Meet & Greet",
         "groupsQuoteRequest": "Gruppi di più di 8 persone saranno quotati su richiesta",
         "tarmacAvailability": "Servizio TARMAC disponibile solo se l'aereo è parcheggiato (su richiesta)",
         "maxLuggageForNightSurcharge": "Massimo {max} pezzi di bagaglio per operatore per supplemento notturno",
         "serviceDetails": "Dettagli del Servizio",
-        "greeterMeetsClient": "L'accoglitore incontra il/i cliente/i all'uscita del finger",
+        "greeterMeetsClient": "L'accompagnatore vi accoglierà all'uscita dall'aereo",
         "passportControlHelp": "Aiuta con il controllo passaporti [fast-track / saltare la fila non è possibile]",
         "porterBaggageAssist": "Ci sarà anche un facchino che assisterà con il ritiro bagagli attraverso un servizio di trasporto dedicato",
         "escortToVehicle": "L'accoglitore e il facchino scorteranno il/i passeggero/i al veicolo riservato PATTY CAR",

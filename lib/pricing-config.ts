@@ -100,7 +100,21 @@ const calculateDistanceKm = (coord1: { lat: number; lng: number }, coord2: { lat
 // Milano center coordinates (Duomo area)
 const MILANO_CENTER_COORDINATES = { lat: 45.4642, lng: 9.1900 }
 const MILANO_RADIUS_KM = 10 // 10km radius from Milano center
-const MILANO_INTERNAL_TRANSFER_PRICE = 125 // Fixed price for Milano internal transfers
+
+// Fixed prices for Milano internal transfers by vehicle type
+const MILANO_INTERNAL_TRANSFER_PRICES: Record<string, number> = {
+  sedan: 125,
+  berlina: 125,
+  minivan: 150,
+  van: 320,
+  minibus: 320, // Legacy - mapped to van
+  "luxury-sedan": 270,
+  'olympic-sedan': 125,
+  'olympic-minivan': 150,
+  'olympic-van': 320,
+  'olympic-minibus': 320,
+  'olympic-luxury': 270,
+}
 
 // Function to check if both pickup and destination are within Milano metropolitan area
 const isInternalMilanoTransfer = (
@@ -138,8 +152,8 @@ export function calculateTotalPrice(
   let isFixedPrice = false
   
   if (isMilanoInternal) {
-    // Fixed price for internal Milano transfers
-    basePrice = MILANO_INTERNAL_TRANSFER_PRICE
+    // Fixed price for internal Milano transfers by vehicle type
+    basePrice = MILANO_INTERNAL_TRANSFER_PRICES[vehicleType] || 125
     isFixedPrice = true
     } else {
     // Distance-based pricing for other transfers
@@ -147,7 +161,8 @@ export function calculateTotalPrice(
   }
 
   // Applica i moltiplicatori
-  const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicleType] || 1.0
+  // For Milano internal transfers, use fixed prices without vehicle multiplier
+  const vehicleMultiplier = isMilanoInternal ? 1.0 : (VEHICLE_MULTIPLIERS[vehicleType] || 1.0)
   const passengerMultiplier = PASSENGER_MULTIPLIERS.getMultiplier(passengers)
   const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(luggage)
 
@@ -221,8 +236,8 @@ export function calculateMultipleVehiclesPrice(
   let isFixedPrice = false
   
   if (isMilanoInternal) {
-    // Fixed price for internal Milano transfers
-    basePrice = MILANO_INTERNAL_TRANSFER_PRICE
+    // For Milano internal, we'll set vehicle-specific prices in the loop
+    basePrice = 0 // Will be set per vehicle
     isFixedPrice = true
     
   } else {
@@ -235,11 +250,21 @@ export function calculateMultipleVehiclesPrice(
 
   // Calcola il prezzo per ogni veicolo
   vehicles.forEach((vehicle, index) => {
-    const vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicle.type] || 1.0
+    // For Milano internal transfers, use fixed prices without vehicle multiplier
+    let vehicleBasePrice: number
+    let vehicleMultiplier: number
+    
+    if (isMilanoInternal) {
+      vehicleBasePrice = MILANO_INTERNAL_TRANSFER_PRICES[vehicle.type] || 125
+      vehicleMultiplier = 1.0 // No vehicle multiplier for fixed prices
+         } else {
+       vehicleBasePrice = basePrice
+       vehicleMultiplier = VEHICLE_MULTIPLIERS[vehicle.type] || 1.0
+     }
     const passengerMultiplier = PASSENGER_MULTIPLIERS.getMultiplier(vehicle.passengers)
     const luggageMultiplier = LUGGAGE_MULTIPLIERS.getMultiplier(vehicle.luggage)
 
-    let vehiclePrice = basePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier
+    let vehiclePrice = vehicleBasePrice * vehicleMultiplier * passengerMultiplier * luggageMultiplier
     
     // Applica supplemento notturno se applicabile
     let nightSurcharge = 0

@@ -605,6 +605,9 @@ export function MeetGreetSection({
             {dictionary.enableService}
           </label>
         </div>
+        <p className="text-sm text-gray-600 mt-1 ml-7">
+          {dictionary.greeterMeetsClient}
+        </p>
 
         {config.enabled && (
           <>
