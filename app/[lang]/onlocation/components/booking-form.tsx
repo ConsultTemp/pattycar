@@ -672,6 +672,10 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             onSubmit={handleSubmit}
             dictionary={dictionary.submit}
             validationErrors={state.ui.errors}
+            tripDistance={state.journey.distance}
+            pickupCoordinates={state.journey.pickup?.coordinates}
+            destinationCoordinates={state.journey.destination?.coordinates}
+            serviceType={state.serviceType}
           />
         </div>
       </div>
