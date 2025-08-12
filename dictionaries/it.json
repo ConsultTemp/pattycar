@@ -502,6 +502,9 @@
         "additionalQuotes": "Per altre quotazioni scrivere a gamestime@pattycar.com",
         "routeDisclaimer": "Si prega di notare che le restrizioni o regolamenti delle autorità competenti potrebbero influenzare il percorso utilizzato per raggiungere la vostra destinazione"
       },
+      "validation": {
+        "distanceRequired": "Il viaggio deve essere di almeno 80km a meno che uno dei punti non sia nella provincia di Milano."
+      },
       "success": {
         "title": "Prenotazione inviata con successo!",
         "description": "Ti contatteremo a breve per confermare la prenotazione.",
