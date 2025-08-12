@@ -7,7 +7,6 @@ import { bookingReducer, initialBookingState } from "@/lib/booking-reducer"
 import { useFormValidation } from "@/hooks/use-form-validation"
 import { usePriceCalculation } from "@/hooks/use-price-calculation"
 import { useErrorHandler } from "@/hooks/use-error-handler"
-import { validateDistanceRequirement } from "@/lib/distance-validation"
 import { CustomerInfoSection } from "@/components/booking/customer-info-section"
 import { DateSection } from "@/components/booking/date-section"
 import { JourneySection } from "@/components/booking/journey-section"
@@ -264,27 +263,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       })
     }
 
-    // NUEVA VALIDAZIONE: Distance requirement with Milano exception
-    const distanceValidation = validateDistanceRequirement(
-      state.journey.distance?.km,
-      state.journey.pickup,
-      state.journey.destination
-    )
-
-    if (!distanceValidation.isValid) {
-      errors.push({
-        field: "distance",
-        message: distanceValidation.errorMessage || dictionary.booking?.validation?.distanceRequired || "Distance requirement not met"
-      })
-    }
-
     // Debug log for validation
     console.log("Form validation:", {
       totalErrors: errors.length,
       errors: errors,
       isValid: isValid,
       cancellationAccepted: cancellationAccepted,
-      distanceValidation: distanceValidation,
       state: {
         serviceType: state.serviceType,
         hasDate: !!state.journey.date,
@@ -292,8 +276,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         hasDestination: !!state.journey.destination?.address,
         hasTime: !!state.journey.time,
         hasCustomer: !!state.customer.name && !!state.customer.email && !!state.customer.phone,
-        vehicleConfig: state.vehicles,
-        distance: state.journey.distance?.km
+        vehicleConfig: state.vehicles
       }
     })
 
@@ -689,6 +672,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             onSubmit={handleSubmit}
             dictionary={dictionary.submit}
             validationErrors={state.ui.errors}
+            journey={state.journey}
           />
         </div>
       </div>

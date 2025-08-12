@@ -217,7 +217,7 @@ function normalizeText(text: string): string {
 }
 
 // NEW: Funzione per estrarre città da indirizzi complessi
-export function extractCityFromAddress(address: string): string | null {
+function extractCityFromAddress(address: string): string | null {
   const normalizedAddress = normalizeText(address)
   
   // Pattern per riconoscere città negli indirizzi
