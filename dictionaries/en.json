@@ -502,7 +502,9 @@
         "validationMessage": "Fill in all required fields (*) to proceed to payment",
         "error": "Error creating payment session. Please try again.",
         "additionalQuotes": "For other quotes write to gamestime@pattycar.com",
-        "routeDisclaimer": "Please note that restrictions or regulations from relevant authorities may affect the route used to reach your destination"
+        "routeDisclaimer": "Please note that restrictions or regulations from relevant authorities may affect the route used to reach your destination",
+        "distanceValidationTitle": "Invalid trip distance",
+        "distanceValidationMessage": "Transfers with distance less than 80km are not possible."
       },
       "success": {
         "title": "Booking submitted successfully!",

@@ -97,10 +97,10 @@ export const SubmitSection = memo<SubmitSectionProps>(({
             <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <h4 className="font-medium text-red-900 mb-1">
-                Distanza del viaggio non valida
+                {dictionary.distanceValidationTitle}
               </h4>
               <p className="text-sm text-red-700">
-                {distanceValidation.reason}
+                {dictionary.distanceValidationMessage}
               </p>
             </div>
           </div>

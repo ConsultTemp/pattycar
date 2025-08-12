@@ -62,9 +62,7 @@ export function validateTripDistance(
     // Default to standard validation if coordinates are missing
     return {
       isValid: tripDistanceKm >= MIN_TRIP_DISTANCE_KM,
-      reason: tripDistanceKm < MIN_TRIP_DISTANCE_KM 
-        ? `La distanza minima richiesta è ${MIN_TRIP_DISTANCE_KM}km. Distanza attuale: ${tripDistanceKm.toFixed(1)}km`
-        : undefined
+      reason: tripDistanceKm < MIN_TRIP_DISTANCE_KM ? "DISTANCE_TOO_SHORT" : undefined
     }
   }
   
@@ -80,10 +78,7 @@ export function validateTripDistance(
   const isValid = tripDistanceKm >= MIN_TRIP_DISTANCE_KM
   return {
     isValid,
-    reason: isValid ? undefined : 
-      `I viaggi devono essere di almeno ${MIN_TRIP_DISTANCE_KM}km se non includono Milano. ` +
-      `Distanza attuale: ${tripDistanceKm.toFixed(1)}km. ` +
-      `Per viaggi più brevi, almeno un punto deve essere nell'area di Milano (entro ${MILAN_RADIUS_KM}km dal centro).`
+    reason: isValid ? undefined : "DISTANCE_TOO_SHORT"
   }
 }
 

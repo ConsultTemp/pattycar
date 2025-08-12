@@ -500,7 +500,9 @@
         "validationMessage": "Compila tutti i campi obbligatori (*) per procedere al pagamento",
         "error": "Errore durante la creazione della sessione di pagamento. Riprova.",
         "additionalQuotes": "Per altre quotazioni scrivere a gamestime@pattycar.com",
-        "routeDisclaimer": "Si prega di notare che le restrizioni o regolamenti delle autorità competenti potrebbero influenzare il percorso utilizzato per raggiungere la vostra destinazione"
+        "routeDisclaimer": "Si prega di notare che le restrizioni o regolamenti delle autorità competenti potrebbero influenzare il percorso utilizzato per raggiungere la vostra destinazione",
+        "distanceValidationTitle": "Distanza del viaggio non valida",
+        "distanceValidationMessage": "Non è possibile effettuare trasferimenti con distanza inferiore a 80km."
       },
       "success": {
         "title": "Prenotazione inviata con successo!",
