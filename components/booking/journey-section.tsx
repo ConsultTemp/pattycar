@@ -182,54 +182,53 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     journey.destination?.isCustom
   ])
 
-  // Calculate distance only for transfers and inter-cluster
+  // Calculate distance for ALL service types (needed for validation)
   useEffect(() => {
     const calculateDistance = async () => {
-      if (serviceType !== "transfer" && serviceType !== "inter-cluster") return
-
+      // Skip only if there are no addresses
       if (
-        journey.pickup?.address &&
-        journey.destination?.address &&
-        journey.pickup.address !== journey.destination.address &&
-        journey.pickup.placeId &&
-        journey.destination.placeId
-      ) {
-        setIsCalculatingDistance(true)
+        !journey.pickup?.address ||
+        !journey.destination?.address ||
+        journey.pickup.address === journey.destination.address ||
+        !journey.pickup.placeId ||
+        !journey.destination.placeId
+      ) return
 
-        try {
-          const requestBody = {
-            origins: [journey.pickup.address],
-            destinations: [journey.destination.address],
-          }
+      setIsCalculatingDistance(true)
 
-          const response = await fetch("/api/distance", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody),
-          })
-
-          if (response.ok) {
-            const data = await response.json()
-            onChange({
-              distance: {
-                km: data.distance.km,
-                text: data.distance.text,
-                duration: data.distance.duration,
-              },
-            })
-          }
-        } catch (error) {
-          } finally {
-          setIsCalculatingDistance(false)
+      try {
+        const requestBody = {
+          origins: [journey.pickup.address],
+          destinations: [journey.destination.address],
         }
+
+        const response = await fetch("/api/distance", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          onChange({
+            distance: {
+              km: data.distance.km,
+              text: data.distance.text,
+              duration: data.distance.duration,
+            },
+          })
+        }
+      } catch (error) {
+        console.error("Error calculating distance:", error)
+      } finally {
+        setIsCalculatingDistance(false)
       }
     }
 
     calculateDistance()
   }, [
-    serviceType,
     journey.pickup?.address,
     journey.destination?.address,
     journey.pickup?.placeId,
