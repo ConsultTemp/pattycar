@@ -87,7 +87,7 @@ export async function PUT(
 
     const { id } = params
     const body = await request.json()
-    const { name, billing_info } = body
+    const { name, billing_info, phone } = body
 
     if (!id) {
       return NextResponse.json(
@@ -124,7 +124,8 @@ export async function PUT(
       .from('customers')
       .update({
         name: name.trim(),
-        billing_info: billing_info ? billing_info.trim() : null
+        billing_info: billing_info ? billing_info.trim() : null,
+        phone: phone ? phone.trim() : null
       })
       .eq('id', id)
       .select()

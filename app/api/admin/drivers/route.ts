@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name } = body
+    const { name, phone } = body
 
     if (!name || name.trim() === '') {
       return NextResponse.json(
@@ -69,7 +69,10 @@ export async function POST(request: NextRequest) {
     
     const { data, error } = await supabase
       .from('drivers')
-      .insert([{ name: name.trim() }])
+      .insert([{ 
+        name: name.trim(),
+        phone: phone ? phone.trim() : null
+      }])
       .select()
       .single()
 

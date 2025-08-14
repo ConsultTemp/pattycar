@@ -10,13 +10,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Edit, Loader2, Users, User } from "lucide-react"
+import { Plus, Trash2, Edit, Loader2, Users, User, Phone } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 type CustomerRow = {
   id: string
   name: string
   billing_info: string | null
+  phone: string | null
   created_at: string
   updated_at: string
 }
@@ -35,8 +36,10 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null)
   const [newCustomerName, setNewCustomerName] = useState("")
   const [newCustomerBilling, setNewCustomerBilling] = useState("")
+  const [newCustomerPhone, setNewCustomerPhone] = useState("")
   const [editCustomerName, setEditCustomerName] = useState("")
   const [editCustomerBilling, setEditCustomerBilling] = useState("")
+  const [editCustomerPhone, setEditCustomerPhone] = useState("")
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const { toast } = useToast()
@@ -88,7 +91,8 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
         },
         body: JSON.stringify({
           name: newCustomerName.trim(),
-          billing_info: newCustomerBilling.trim() || null
+          billing_info: newCustomerBilling.trim() || null,
+          phone: newCustomerPhone.trim() || null
         }),
       })
 
@@ -101,6 +105,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
         })
         setNewCustomerName("")
         setNewCustomerBilling("")
+        setNewCustomerPhone("")
         setShowCreateDialog(false)
         
         // Call parent callback to refresh customers in dashboard
@@ -147,7 +152,8 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
         },
         body: JSON.stringify({
           name: editCustomerName.trim(),
-          billing_info: editCustomerBilling.trim() || null
+          billing_info: editCustomerBilling.trim() || null,
+          phone: editCustomerPhone.trim() || null
         }),
       })
 
@@ -161,6 +167,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
         setEditingCustomerId(null)
         setEditCustomerName("")
         setEditCustomerBilling("")
+        setEditCustomerPhone("")
         setShowEditDialog(false)
         
         // Call parent callback to refresh customers in dashboard
@@ -232,6 +239,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
     setEditingCustomerId(customer.id)
     setEditCustomerName(customer.name)
     setEditCustomerBilling(customer.billing_info || "")
+    setEditCustomerPhone(customer.phone || "")
     setShowEditDialog(true)
   }
 
@@ -269,6 +277,16 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
                   />
                 </div>
                 <div>
+                  <Label htmlFor="phone">{dictionary.admin?.customers?.phone || "Phone Number"}</Label>
+                  <Input
+                    id="phone"
+                    value={newCustomerPhone}
+                    onChange={(e) => setNewCustomerPhone(e.target.value)}
+                    placeholder={dictionary.admin?.customers?.phonePlaceholder || "Enter phone number"}
+                    type="tel"
+                  />
+                </div>
+                <div>
                   <Label htmlFor="billing_info">{dictionary.admin?.customers?.billingInfo || "Billing Info"}</Label>
                   <Textarea
                     id="billing_info"
@@ -279,7 +297,15 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
                   />
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowCreateDialog(false)
+                      setNewCustomerName("")
+                      setNewCustomerBilling("")
+                      setNewCustomerPhone("")
+                    }}
+                  >
                     {dictionary.admin?.customers?.cancel || "Cancel"}
                   </Button>
                   <Button onClick={createCustomer} disabled={creating} className="bg-black text-white hover:bg-gray-800">
@@ -312,6 +338,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
               <TableHeader>
                 <TableRow>
                   <TableHead>{dictionary.admin?.customers?.name || "Name"}</TableHead>
+                  <TableHead>{dictionary.admin?.customers?.phone || "Phone"}</TableHead>
                   <TableHead>{dictionary.admin?.customers?.billingInfo || "Billing Info"}</TableHead>
                   <TableHead>{dictionary.admin?.customers?.createdAt || "Created"}</TableHead>
                   <TableHead>{dictionary.admin?.customers?.actions || "Actions"}</TableHead>
@@ -320,7 +347,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
               <TableBody>
                 {customers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                       {dictionary.admin?.customers?.noCustomers || "No customers found"}
                     </TableCell>
                   </TableRow>
@@ -331,6 +358,20 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
                         <div className="flex items-center">
                           <User className="mr-2 h-4 w-4 text-gray-500" />
                           {customer.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          {customer.phone ? (
+                            <>
+                              <Phone className="mr-2 h-4 w-4 text-gray-500" />
+                              <span className="text-sm">{customer.phone}</span>
+                            </>
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">
+                              {dictionary.admin?.customers?.noPhone || "No phone"}
+                            </span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -416,6 +457,16 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
                 />
               </div>
               <div>
+                <Label htmlFor="edit-phone">{dictionary.admin?.customers?.phone || "Phone Number"}</Label>
+                <Input
+                  id="edit-phone"
+                  value={editCustomerPhone}
+                  onChange={(e) => setEditCustomerPhone(e.target.value)}
+                  placeholder={dictionary.admin?.customers?.phonePlaceholder || "Enter phone number"}
+                  type="tel"
+                />
+              </div>
+              <div>
                 <Label htmlFor="edit-billing_info">{dictionary.admin?.customers?.billingInfo || "Billing Info"}</Label>
                 <Textarea
                   id="edit-billing_info"
@@ -426,7 +477,16 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
                 />
               </div>
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowEditDialog(false)
+                    setEditCustomerName("")
+                    setEditCustomerBilling("")
+                    setEditCustomerPhone("")
+                    setEditingCustomerId(null)
+                  }}
+                >
                   {dictionary.admin?.customers?.cancel || "Cancel"}
                 </Button>
                 <Button onClick={() => editCustomer(editingCustomerId || "")} disabled={editing !== null} className="bg-black text-white hover:bg-gray-800">
