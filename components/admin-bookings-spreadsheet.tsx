@@ -30,7 +30,44 @@ function SpreadsheetCore({
   const [customers, setCustomers] = useState<CustomerRow[]>([])
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [modifiedRows, setModifiedRows] = useState(new Set<number>())
   const [isJsLoaded, setIsJsLoaded] = useState(false)
+
+  // Nomi delle colonne per creare l'oggetto (corrispondenti alla struttura attuale)
+  const columnNames = [
+    'id', // hidden
+    'data',
+    'società',
+    'ora',
+    'committente',
+    'passeggero_i',
+    'da',
+    'a',
+    'dispo_destinazione',
+    'mezzo',
+    'imponibile',
+    'iva',
+    'tot_fattura',
+    'autista',
+    'fatt_autista',
+    'comm_autista',
+    'incasso_diretto',
+    'cash_kk',
+    'note',
+    'targa'
+  ]
+
+  // Funzione per convertire una riga in oggetto
+  const rowToObject = (rowData: any[], rowIndex: number) => {
+    const obj: any = {}
+    columnNames.forEach((columnName, index) => {
+      if (index > 0) { // Skip hidden ID column
+        obj[columnName] = rowData[index] || ''
+      }
+    })
+    obj.rowIndex = rowIndex
+    return obj
+  }
   
   // Load drivers and customers
   useEffect(() => {
@@ -66,25 +103,48 @@ function SpreadsheetCore({
   useEffect(() => {
     const loadSpreadsheet = async () => {
       try {
+        // Check if already loaded
+        if (typeof window !== 'undefined' && (window as any).jspreadsheet) {
+          setIsJsLoaded(true)
+          return
+        }
+
         // Carica CSS prima
         const cssLink1 = document.createElement('link')
         cssLink1.rel = 'stylesheet'
         cssLink1.href = 'https://jspreadsheet.com/v4/jspreadsheet.css'
-        document.head.appendChild(cssLink1)
+        cssLink1.id = 'jspreadsheet-css'
+        if (!document.getElementById('jspreadsheet-css')) {
+          document.head.appendChild(cssLink1)
+        }
         
         const cssLink2 = document.createElement('link')
         cssLink2.rel = 'stylesheet'
         cssLink2.href = 'https://jsuites.net/v4/jsuites.css'
-        document.head.appendChild(cssLink2)
+        cssLink2.id = 'jsuites-css'
+        if (!document.getElementById('jsuites-css')) {
+          document.head.appendChild(cssLink2)
+        }
 
-        // Carica script
+        // Carica script con error handling migliorato
         const script1 = document.createElement('script')
         script1.src = 'https://jsuites.net/v4/jsuites.js'
+        script1.onerror = () => {
+          console.error('Failed to load jsuites.js')
+        }
         script1.onload = () => {
           const script2 = document.createElement('script')
           script2.src = 'https://jspreadsheet.com/v4/jspreadsheet.js'
+          script2.onerror = () => {
+            console.error('Failed to load jspreadsheet.js')
+          }
           script2.onload = () => {
-            setIsJsLoaded(true)
+            // Verifica che jspreadsheet sia disponibile
+            if (typeof (window as any).jspreadsheet !== 'undefined') {
+              setIsJsLoaded(true)
+            } else {
+              console.error('jspreadsheet not available after loading')
+            }
           }
           document.head.appendChild(script2)
         }
@@ -97,7 +157,7 @@ function SpreadsheetCore({
     loadSpreadsheet()
   }, [])
 
-  // Prepare data for spreadsheet - NEW ORDER as per requirements
+  // Prepare data for spreadsheet with pagination - NEW ORDER as per requirements
   const spreadsheetData = useMemo(() => {
     // Sort bookings by service_date chronologically
     const sortedBookings = [...bookings].sort((a, b) => {
@@ -106,54 +166,67 @@ function SpreadsheetCore({
       return dateA.getTime() - dateB.getTime()
     })
     
-    return sortedBookings.map(booking => [
-      booking.id || '', // Hidden column for ID - ensure not undefined
+    const bookingRows = sortedBookings.map(booking => [
+      String(booking.id || ''), // Hidden column for ID - ensure string
       // 1. data → service_date
-      booking.service_date || '',
+      String(booking.service_date || ''),
       // 2. società → customer name from customer relationship
-      booking.customer?.name || booking.customer_name || '',
+      String(booking.customer?.name || booking.customer_name || ''),
       // 3. ora → service_time
-      booking.service_time || '',
+      String(booking.service_time || ''),
       // 4. committente → new field (manual entry)
-      booking.committente || '',
+      String(booking.committente || ''),
       // 5. passeggero/i → new field passenger_details (manual text)
-      booking.passenger_details || '',
+      String(booking.passenger_details || ''),
       // 6. da → pickup_address
-      booking.pickup_address || '',
+      String(booking.pickup_address || ''),
       // 7. a → destination_address  
-      booking.destination_address || '',
+      String(booking.destination_address || ''),
       // 8. dispo/destinazione → new field (manual text)
-      booking.disposition_destination || '',
+      String(booking.disposition_destination || ''),
       // 9. mezzo → new field vehicle_details (manual text)
-      booking.vehicle_details || '',
+      String(booking.vehicle_details || ''),
       // 10. imponibile → net_amount (90% of total)
-      booking.net_amount ? booking.net_amount.toFixed(2) : (booking.amount_total ? ((booking.amount_total * 0.90) / 100).toFixed(2) : '0.00'),
+      booking.net_amount ? String(booking.net_amount.toFixed(2)) : (booking.amount_total ? String(((booking.amount_total * 0.90) / 100).toFixed(2)) : '0.00'),
       // 11. iva → vat_amount (10% of total)
-      booking.vat_amount ? booking.vat_amount.toFixed(2) : (booking.amount_total ? ((booking.amount_total * 0.10) / 100).toFixed(2) : '0.00'),
+      booking.vat_amount ? String(booking.vat_amount.toFixed(2)) : (booking.amount_total ? String(((booking.amount_total * 0.10) / 100).toFixed(2)) : '0.00'),
       // 12. tot fattura → amount_total
-      booking.amount_total ? (booking.amount_total / 100).toFixed(2) : '0.00',
+      booking.amount_total ? String((booking.amount_total / 100).toFixed(2)) : '0.00',
       // 13. autista → driver name
-      booking.driver?.name || '',
+      String(booking.driver?.name || ''),
       // 14. fatturazione autista → new field (manual entry)
-      booking.driver_billing ? booking.driver_billing.toFixed(2) : '',
+      booking.driver_billing ? String(booking.driver_billing.toFixed(2)) : '',
       // 15. commissioni autista → new field (manual entry)
-      booking.driver_commission ? booking.driver_commission.toFixed(2) : '',
+      booking.driver_commission ? String(booking.driver_commission.toFixed(2)) : '',
       // 16. importo incasso diretto → new field (manual entry)
-      booking.direct_collection ? booking.direct_collection.toFixed(2) : '',
+      booking.direct_collection ? String(booking.direct_collection.toFixed(2)) : '',
       // 17. cash/kk → new field payment_method (manual entry)
-      booking.payment_method || '',
+      String(booking.payment_method || ''),
       // 18. note → notes
-      booking.notes || '',
+      String(booking.notes || ''),
       // 19. targa → new field license_plate (manual entry)
-      booking.license_plate || ''
+      String(booking.license_plate || '')
     ])
+    
+    // Ensure we have exactly 50 rows for pagination
+    const ROWS_PER_PAGE = 50
+    const emptyRow = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''] // 20 empty columns (including hidden ID)
+    
+    // Fill with empty rows if we have less than 50
+    while (bookingRows.length < ROWS_PER_PAGE) {
+      bookingRows.push([...emptyRow])
+    }
+    
+    return bookingRows
   }, [bookings])
 
   // Driver options for dropdown
   const driverOptions = useMemo(() => {
     const options = ['']
     drivers.forEach(driver => {
-      options.push(driver.name)
+      if (driver && driver.name) {
+        options.push(String(driver.name))
+      }
     })
     return options
   }, [drivers])
@@ -162,25 +235,50 @@ function SpreadsheetCore({
   const customerOptions = useMemo(() => {
     const options = ['']
     customers.forEach(customer => {
-      options.push(customer.name)
+      if (customer && customer.name) {
+        options.push(String(customer.name))
+      }
     })
     return options
   }, [customers])
 
   // Initialize jspreadsheet
   useEffect(() => {
+    // Verifica che tutte le condizioni siano soddisfatte
     if (!containerRef.current || !spreadsheetData.length || !isJsLoaded) {
       console.log('Skipping spreadsheet init:', { 
         hasContainer: !!containerRef.current,
         hasData: !!spreadsheetData.length,
         hasDrivers: !!drivers.length,
         hasCustomers: !!customers.length,
-        isJsLoaded
+        isJsLoaded,
+        jspreadsheetAvailable: typeof (window as any).jspreadsheet !== 'undefined'
       })
       return
     }
+
+    // Verifica che jspreadsheet sia disponibile
+    if (typeof (window as any).jspreadsheet === 'undefined') {
+      console.error('jspreadsheet is not available')
+      return
+    }
     
-    console.log('Initializing spreadsheet with data:', spreadsheetData.length, 'bookings')
+    // Validate spreadsheet data to prevent undefined/null values
+    const validatedData = spreadsheetData.map(row => 
+      row.map(cell => {
+        if (cell === null || cell === undefined) {
+          return ''
+        }
+        // Assicurati che sia sempre una stringa
+        const stringValue = String(cell).trim()
+        return stringValue
+      })
+    )
+    
+    console.log('Initializing spreadsheet with validated data:', validatedData.length, 'rows')
+    console.log('Sample row:', validatedData[0])
+    console.log('Driver options:', driverOptions)
+    console.log('Customer options:', customerOptions)
 
     // Clean up existing instance
     if (jspreadsheetRef.current) {
@@ -189,6 +287,7 @@ function SpreadsheetCore({
       } catch (e) {
         console.log('Error destroying existing instance:', e)
       }
+      jspreadsheetRef.current = null
     }
 
     // NEW COLUMN STRUCTURE - 19 fields as per requirements
@@ -236,10 +335,12 @@ function SpreadsheetCore({
 
     try {
       // @ts-ignore - jspreadsheet è caricato dinamicamente
+      const jspreadsheet = (window as any).jspreadsheet
+      
       jspreadsheetRef.current = jspreadsheet(containerRef.current, {
-        data: spreadsheetData,
+        data: validatedData,
         columns: columns,
-        minDimensions: [20, 10], // Updated for 19 fields + 1 hidden ID column
+        minDimensions: [20, 50], // 19 fields + 1 hidden ID column, 50 rows
         allowInsertRow: false,
         allowDeleteRow: false,
         allowInsertColumn: false,
@@ -249,31 +350,109 @@ function SpreadsheetCore({
         columnDrag: false,
         rowResize: true,
         columnResize: true,
-        tableOverflow: true,
-        lazyLoading: true,
+        tableOverflow: true, // Enable horizontal scrolling but not vertical
+        lazyLoading: false, // Disable lazy loading for fixed 50 rows
         search: false, // Disable search bar
-        pagination: false,
+        pagination: false, // We handle pagination manually
         toolbar: false, // Remove toolbar
         freezeColumns: 4, // Freeze first 4 columns (ID, Data, Società, Ora)
+        contextMenu: false, // Disable right-click menu
+        defaultColWidth: 120,
+        defaultRowHeight: 25,
+        tableHeight: '1300px', // Set explicit table height
+        tableWidth: '100%',
         style: {
           'background-color': '#ffffff',
         },
         license: '', // Remove license message
-        onchange: (instance: any, cell: any, x: any, y: any, value: any) => {
-          console.log('Cell changed - onChange triggered:', { cell, x, y, value, hasChanges })
-          setHasChanges(true)
+        tabs: false, // Remove sheet tabs
+        onchange: (instance: any, cell: any, x: any, y: any, value: any, oldValue: any) => {
+          console.log('Cell changed - onChange triggered:', { cell, x, y, value, oldValue, hasChanges })
+          if (value !== oldValue) {
+            setHasChanges(true)
+            
+            // Aggiungi la riga alle righe modificate
+            setModifiedRows(prev => new Set(prev).add(y))
+            
+            // Ottieni tutti i dati della riga corrente
+            const rowData = instance.getRowData(y)
+            const modifiedRowObject = rowToObject(rowData, y)
+            
+            console.log('🔥 RIGA MODIFICATA - OGGETTO:', modifiedRowObject)
+          }
         },
-        oneditionend: (instance: any, cell: any, x: any, y: any, value: any) => {
-          console.log('Edition ended - setting hasChanges to true:', { cell, x, y, value })
-          setHasChanges(true)
+        oneditionend: (instance: any, cell: any, x: any, y: any, value: any, oldValue: any) => {
+          console.log('Edition ended - setting hasChanges to true:', { cell, x, y, value, oldValue })
+          if (value !== oldValue) {
+            setHasChanges(true)
+          }
+        },
+        onbeforechange: (instance: any, cell: any, x: any, y: any, value: any) => {
+          console.log('Before change event:', { cell, x, y, value })
+          return true
+        },
+        onafterchanges: (instance: any, records: any) => {
+          console.log('After changes event:', records)
+          if (records && records.length > 0) {
+            setHasChanges(true)
+          }
         },
         onload: (instance: any) => {
           console.log('Spreadsheet loaded successfully')
           // Remove any license messages that might appear
           const licenseElements = document.querySelectorAll('[style*="jexcel"], .jexcel-license')
           licenseElements.forEach(el => el.remove())
+          
+          // Remove whitespace and improve table styling
+          setTimeout(() => {
+            const table = containerRef.current?.querySelector('.jexcel') as HTMLElement
+            if (table) {
+              // Remove any extra margins/padding and set full size
+              table.style.margin = '0'
+              table.style.padding = '0'
+              table.style.border = 'none'
+              table.style.height = '100%'
+              table.style.width = '100%'
+              table.style.overflowX = 'auto'
+              table.style.overflowY = 'hidden'
+              
+              // Remove tabs container if it exists
+              const tabsContainer = containerRef.current?.querySelector('.jexcel_tabs') as HTMLElement
+              if (tabsContainer) {
+                tabsContainer.style.display = 'none'
+              }
+              
+              // Ensure table fits container perfectly
+              const tableContainer = containerRef.current?.querySelector('.jexcel_container') as HTMLElement
+              if (tableContainer) {
+                tableContainer.style.margin = '0'
+                tableContainer.style.padding = '0'
+                tableContainer.style.height = '100%'
+                tableContainer.style.width = '100%'
+                tableContainer.style.overflowX = 'auto'
+                tableContainer.style.overflowY = 'hidden'
+              }
+              
+              // Allow horizontal scroll for table content
+              const tableContent = containerRef.current?.querySelector('.jexcel_content') as HTMLElement
+              if (tableContent) {
+                tableContent.style.overflowX = 'auto'
+                tableContent.style.overflowY = 'hidden'
+                tableContent.style.height = '100%'
+              }
+              
+              // Force table body to show all rows
+              const tbody = table.querySelector('tbody') as HTMLElement
+              if (tbody) {
+                tbody.style.height = 'auto'
+                tbody.style.overflow = 'visible'
+              }
+            }
+          }, 100)
         }
       })
+      
+      console.log('Spreadsheet initialized successfully')
     } catch (error) {
       console.error('Error initializing jspreadsheet:', error)
     }
@@ -285,6 +464,7 @@ function SpreadsheetCore({
         } catch (e) {
           console.log('Cleanup error:', e)
         }
+        jspreadsheetRef.current = null
       }
     }
   }, [spreadsheetData, driverOptions, customerOptions, isJsLoaded])
@@ -294,11 +474,25 @@ function SpreadsheetCore({
     if (!isJsLoaded) return
     
     const cleanupLicense = () => {
+      // Remove license elements
       const licenseElements = document.querySelectorAll('.jexcel-license, [style*="jexcel"], .jss-about')
       licenseElements.forEach(el => {
         if (el.textContent?.includes('License') || el.textContent?.includes('jspreadsheet')) {
           el.remove()
         }
+      })
+      
+      // Hide tabs if they appear
+      const tabsElements = document.querySelectorAll('.jexcel_tabs, .jexcel-tabs')
+      tabsElements.forEach(el => {
+        (el as HTMLElement).style.display = 'none'
+      })
+      
+      // Remove any extra whitespace
+      const tables = document.querySelectorAll('.jexcel')
+      tables.forEach(table => {
+        (table as HTMLElement).style.margin = '0';
+        (table as HTMLElement).style.padding = '0'
       })
     }
     
@@ -317,12 +511,27 @@ function SpreadsheetCore({
     
     try {
       const data = jspreadsheetRef.current.getData()
+      
+      // Stampa tutte le righe modificate
+      console.log('📋 TUTTE LE RIGHE MODIFICATE:')
+      modifiedRows.forEach(rowIndex => {
+        const rowData = data[rowIndex]
+        if (rowData && rowData[0]) { // Se la riga ha un ID
+          const modifiedRowObject = rowToObject(rowData, rowIndex)
+          console.log(`Riga ${rowIndex}:`, modifiedRowObject)
+        }
+      })
+      
       const updatedBookings = []
       
       // Process each row to find changes
       for (let i = 0; i < data.length; i++) {
         const row = data[i]
         const bookingId = row[0]
+        
+        // Skip empty rows (rows without booking ID)
+        if (!bookingId || bookingId === '') continue
+        
         const originalBooking = bookings.find(b => b.id === bookingId)
         
         if (!originalBooking) continue
@@ -430,6 +639,7 @@ function SpreadsheetCore({
       })
       
       setHasChanges(false)
+      setModifiedRows(new Set()) // Reset delle righe modificate
       onBookingsUpdated()
       
     } catch (error) {
@@ -464,10 +674,10 @@ function SpreadsheetCore({
           <div>
             <CardTitle className="flex items-center">
               <FileText className="mr-2 h-5 w-5" />
-              {dictionary.admin?.dashboard?.bookingsCount?.replace('{count}', bookings.length) || `Prenotazioni (${bookings.length})`}
+              {dictionary.admin?.dashboard?.bookingsCount?.replace('{count}', bookings.length) || `Prenotazioni (${bookings.length} su 50 righe)`}
             </CardTitle>
             <CardDescription>
-              Tabella con 19 campi per la gestione completa delle prenotazioni - modifica diretta e salvataggio differito
+              Tabella con 19 campi per la gestione completa delle prenotazioni - 50 righe fisse, modifica diretta e salvataggio differito
             </CardDescription>
           </div>
           {hasChanges && (
@@ -480,16 +690,7 @@ function SpreadsheetCore({
               {isLoading ? 'Salvataggio...' : 'Salva Modifiche'}
             </Button>
           )}
-          {/* Debug info */}
-          <div className="text-xs text-gray-500 flex items-center gap-2">
-            Debug: hasChanges = {hasChanges.toString()}
-            <button 
-              onClick={() => setHasChanges(true)} 
-              className="px-2 py-1 bg-gray-200 text-xs rounded"
-            >
-              Test Save Button
-            </button>
-          </div>
+
         </div>
       </CardHeader>
       <CardContent>
@@ -501,23 +702,14 @@ function SpreadsheetCore({
           ref={containerRef} 
           className="w-full border rounded-lg"
           style={{ 
-            height: '600px', // Fixed height instead of viewport calculation
-            minHeight: '500px',
-            overflow: 'auto',
-            // Allow normal page scroll when mouse is over table
-            overflowY: 'auto',
-            overscrollBehavior: 'contain'
-          }}
-          onWheel={(e) => {
-            // Allow normal page scrolling when not actively scrolling table content
-            const element = e.currentTarget
-            const atTop = element.scrollTop === 0
-            const atBottom = element.scrollTop >= (element.scrollHeight - element.clientHeight)
-            
-            if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
-              // Let the event bubble up to scroll the page
-              return
-            }
+            height: '1350px', // Calculated: 50 rows * 25px height + header (~50px) + some padding
+            minHeight: '1350px',
+            maxHeight: '1350px',
+            overflowX: 'auto', // Allow horizontal scrolling
+            overflowY: 'hidden', // Block vertical scrolling
+            // Remove any padding/margin that creates whitespace
+            padding: 0,
+            margin: 0
           }}
         />
         {hasChanges && (

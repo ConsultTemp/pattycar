@@ -176,3 +176,53 @@ body {
   background-color: rgb(255, 255, 255) !important;
 }
 
+.jtabs-headers-container{
+  display: none !important;
+}
+
+/* Force jspreadsheet to show all rows without vertical scrolling, but allow horizontal */
+.jexcel_container {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  height: 100% !important;
+}
+
+.jexcel_content {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  height: 100% !important;
+}
+
+.jexcel tbody {
+  overflow: visible !important;
+  height: auto !important;
+}
+
+.jexcel {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  height: 100% !important;
+}
+
+/* Hide only vertical scrollbars */
+.jexcel_container::-webkit-scrollbar-track,
+.jexcel_content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.jexcel_container::-webkit-scrollbar,
+.jexcel_content::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.jexcel_container::-webkit-scrollbar-thumb,
+.jexcel_content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.jexcel_container::-webkit-scrollbar-thumb:hover,
+.jexcel_content::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
