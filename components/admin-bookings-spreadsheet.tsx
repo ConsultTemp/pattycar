@@ -97,7 +97,7 @@ function SpreadsheetCore({
     loadSpreadsheet()
   }, [])
 
-  // Prepare data for spreadsheet
+  // Prepare data for spreadsheet - NEW ORDER as per requirements
   const spreadsheetData = useMemo(() => {
     // Sort bookings by service_date chronologically
     const sortedBookings = [...bookings].sort((a, b) => {
@@ -108,32 +108,44 @@ function SpreadsheetCore({
     
     return sortedBookings.map(booking => [
       booking.id, // Hidden column for ID
+      // 1. data → service_date
       booking.service_date,
+      // 2. società → customer name from customer relationship
+      booking.customer?.name || booking.customer_name || '',
+      // 3. ora → service_time
       booking.service_time,
-      booking.service_end_time || '',
-      booking.customer_name,
-      booking.customer_email,
-      booking.customer_phone ? `${booking.customer_phone_prefix || ''} ${booking.customer_phone}`.trim() : '',
-      booking.service_type,
-      booking.service_duration || '',
+      // 4. committente → new field (manual entry)
+      booking.committente || '',
+      // 5. passeggero/i → new field passenger_details (manual text)
+      booking.passenger_details || '',
+      // 6. da → pickup_address
       booking.pickup_address,
+      // 7. a → destination_address  
       booking.destination_address,
-      booking.vehicle_type,
-      booking.passengers || 1,
-      booking.luggage || 0,
-      booking.vehicle_count || 1,
+      // 8. dispo/destinazione → new field (manual text)
+      booking.disposition_destination || '',
+      // 9. mezzo → new field vehicle_details (manual text)
+      booking.vehicle_details || '',
+      // 10. imponibile → net_amount (90% of total)
+      booking.net_amount ? booking.net_amount.toFixed(2) : ((booking.amount_total * 0.90) / 100).toFixed(2),
+      // 11. iva → vat_amount (10% of total)
+      booking.vat_amount ? booking.vat_amount.toFixed(2) : ((booking.amount_total * 0.10) / 100).toFixed(2),
+      // 12. tot fattura → amount_total
       (booking.amount_total / 100).toFixed(2),
-      booking.currency || 'EUR',
+      // 13. autista → driver name
       booking.driver?.name || '',
-      booking.customer?.name || '',
-      booking.payment_status,
-      booking.meet_and_greet ? 'Sì' : 'No',
-      booking.flight_info || '',
+      // 14. fatturazione autista → new field (manual entry)
+      booking.driver_billing ? booking.driver_billing.toFixed(2) : '',
+      // 15. commissioni autista → new field (manual entry)
+      booking.driver_commission ? booking.driver_commission.toFixed(2) : '',
+      // 16. importo incasso diretto → new field (manual entry)
+      booking.direct_collection ? booking.direct_collection.toFixed(2) : '',
+      // 17. cash/kk → new field payment_method (manual entry)
+      booking.payment_method || '',
+      // 18. note → notes
       booking.notes || '',
-      booking.distance || '',
-      booking.duration || '',
-      booking.night_surcharge || '',
-      booking.is_olympic_pricing ? 'Sì' : 'No'
+      // 19. targa → new field license_plate (manual entry)
+      booking.license_plate || ''
     ])
   }, [bookings])
 
@@ -170,34 +182,47 @@ function SpreadsheetCore({
       }
     }
 
+    // NEW COLUMN STRUCTURE - 19 fields as per requirements
     const columns = [
       { type: 'hidden', width: 0 }, // ID column (hidden)
-      { title: 'Data Servizio', type: 'calendar', width: 120, options: { format: 'YYYY-MM-DD' } },
-      { title: 'Ora Inizio', type: 'text', width: 80 },
-      { title: 'Ora Fine', type: 'text', width: 80 },
-      { title: 'Nome Cliente', type: 'text', width: 150 },
-      { title: 'Email Cliente', type: 'text', width: 200 },
-      { title: 'Telefono Cliente', type: 'text', width: 120 },
-      { title: 'Tipo Servizio', type: 'dropdown', width: 120, source: ['transfer', 'hourly', 'airport', 'event', 'tour'] },
-      { title: 'Durata (ore)', type: 'numeric', width: 80, mask: '#.##' },
-      { title: 'Indirizzo Partenza', type: 'text', width: 200 },
-      { title: 'Indirizzo Destinazione', type: 'text', width: 200 },
-      { title: 'Tipo Veicolo', type: 'dropdown', width: 120, source: ['Classe E', 'Classe S', 'Classe V', 'Sprinter', 'Ducato'] },
-      { title: 'Passeggeri', type: 'numeric', width: 80, mask: '#' },
-      { title: 'Bagagli', type: 'numeric', width: 80, mask: '#' },
-      { title: 'N. Veicoli', type: 'numeric', width: 80, mask: '#' },
-      { title: 'Importo (€)', type: 'numeric', width: 100, mask: '#.##' },
-      { title: 'Valuta', type: 'dropdown', width: 80, source: ['EUR', 'USD', 'GBP'] },
-      { title: 'Driver Assegnato', type: 'dropdown', width: 150, source: driverOptions },
-      { title: 'Customer Assegnato', type: 'dropdown', width: 150, source: customerOptions },
-      { title: 'Stato Pagamento', type: 'dropdown', width: 120, source: ['paid', 'pending', 'failed', 'cancelled'] },
-      { title: 'Meet & Greet', type: 'dropdown', width: 100, source: ['Sì', 'No'] },
-      { title: 'Info Volo', type: 'text', width: 150 },
+      // 1. data → Data Servizio (date input)
+      { title: 'Data', type: 'calendar', width: 120, options: { format: 'YYYY-MM-DD' } },
+      // 2. società → Cliente (dropdown con customers)
+      { title: 'Società', type: 'dropdown', width: 180, source: customerOptions },
+      // 3. ora → Ora Inizio (time-like text input) 
+      { title: 'Ora', type: 'text', width: 80 },
+      // 4. committente → Chi ha preso prenotazione (text input)
+      { title: 'Committente', type: 'text', width: 150 },
+      // 5. passeggero/i → Dettagli passeggeri (text input)
+      { title: 'Passeggero/i', type: 'text', width: 150 },
+      // 6. da → Indirizzo partenza (text input)
+      { title: 'Da', type: 'text', width: 200 },
+      // 7. a → Indirizzo arrivo (text input)
+      { title: 'A', type: 'text', width: 200 },
+      // 8. dispo/destinazione → Campo libero (text input)
+      { title: 'Dispo/Destinazione', type: 'text', width: 150 },
+      // 9. mezzo → Dettagli mezzo (text input)
+      { title: 'Mezzo', type: 'text', width: 120 },
+      // 10. imponibile → Prezzo netto (numeric input)
+      { title: 'Imponibile', type: 'numeric', width: 100, mask: '#.##' },
+      // 11. iva → IVA 10% (numeric input)
+      { title: 'IVA', type: 'numeric', width: 80, mask: '#.##' },
+      // 12. tot fattura → Totale (numeric input, readonly)
+      { title: 'Tot Fattura', type: 'numeric', width: 100, mask: '#.##' },
+      // 13. autista → Driver assegnato (dropdown)
+      { title: 'Autista', type: 'dropdown', width: 150, source: driverOptions },
+      // 14. fatturazione autista → Prezzo autista esterno (numeric input)
+      { title: 'Fatt. Autista', type: 'numeric', width: 100, mask: '#.##' },
+      // 15. commissioni autista → Commissioni autista (numeric input)
+      { title: 'Comm. Autista', type: 'numeric', width: 100, mask: '#.##' },
+      // 16. importo incasso diretto → Totale incassato (numeric input)
+      { title: 'Incasso Diretto', type: 'numeric', width: 120, mask: '#.##' },
+      // 17. cash/kk → Metodo pagamento (dropdown)
+      { title: 'Cash/KK', type: 'dropdown', width: 100, source: ['Cash', 'Carta', 'Bonifico', 'Assegno', 'Altro'] },
+      // 18. note → Note prenotazione (text input)
       { title: 'Note', type: 'text', width: 200 },
-      { title: 'Distanza', type: 'text', width: 100 },
-      { title: 'Durata Viaggio', type: 'text', width: 100 },
-      { title: 'Sovrapprezzo Notturno', type: 'text', width: 120 },
-      { title: 'Prezzi Olimpici', type: 'dropdown', width: 100, source: ['Sì', 'No'] }
+      // 19. targa → Targa veicolo (text input)
+      { title: 'Targa', type: 'text', width: 100 }
     ]
 
     try {
@@ -205,7 +230,7 @@ function SpreadsheetCore({
       jspreadsheetRef.current = jspreadsheet(containerRef.current, {
         data: spreadsheetData,
         columns: columns,
-        minDimensions: [27, 10],
+        minDimensions: [20, 10], // Updated for 19 fields + 1 hidden ID column
         allowInsertRow: false,
         allowDeleteRow: false,
         allowInsertColumn: false,
@@ -219,7 +244,7 @@ function SpreadsheetCore({
         lazyLoading: true,
         search: true,
         pagination: false,
-        freezeColumns: 5,
+        freezeColumns: 4, // Freeze first 4 columns (ID, Data, Società, Ora)
         style: {
           'background-color': '#ffffff',
         },
@@ -260,65 +285,79 @@ function SpreadsheetCore({
         
         if (!originalBooking) continue
         
-        // Map spreadsheet data back to booking object
+        // Map spreadsheet data back to booking object - NEW FIELD MAPPING
         const updatedBooking: any = {
           id: bookingId,
+          // 1. data → service_date
           service_date: row[1],
-          service_time: row[2],
-          service_end_time: row[3] || null,
-          customer_name: row[4],
-          customer_email: row[5],
-          customer_phone: row[6] ? row[6].replace(/^\+?\d+\s*/, '') : null,
-          customer_phone_prefix: row[6] ? row[6].match(/^\+?\d+/)?.[0] : null,
-          service_type: row[7],
-          service_duration: row[8] ? parseFloat(row[8]) : null,
-          pickup_address: row[9],
-          destination_address: row[10],
-          vehicle_type: row[11],
-          passengers: parseInt(row[12]) || 1,
-          luggage: parseInt(row[13]) || 0,
-          vehicle_count: parseInt(row[14]) || 1,
-          amount_total: Math.round(parseFloat(row[15]) * 100),
-          currency: row[16] || 'EUR',
-          payment_status: row[19],
-          meet_and_greet: row[20] === 'Sì',
-          flight_info: row[21] || null,
-          notes: row[22] || null,
-          distance: row[23] || null,
-          duration: row[24] || null,
-          night_surcharge: row[25] || null,
-          is_olympic_pricing: row[26] === 'Sì'
+          // 2. società → customer will be resolved from name to ID below
+          // 3. ora → service_time  
+          service_time: row[3],
+          // 4. committente → new field
+          committente: row[4] || null,
+          // 5. passeggero/i → new field passenger_details
+          passenger_details: row[5] || null,
+          // 6. da → pickup_address
+          pickup_address: row[6],
+          // 7. a → destination_address
+          destination_address: row[7],
+          // 8. dispo/destinazione → new field
+          disposition_destination: row[8] || null,
+          // 9. mezzo → new field vehicle_details
+          vehicle_details: row[9] || null,
+          // 10. imponibile → net_amount
+          net_amount: row[10] ? parseFloat(row[10]) : null,
+          // 11. iva → vat_amount
+          vat_amount: row[11] ? parseFloat(row[11]) : null,
+          // 12. tot fattura → amount_total (convert back to cents)
+          amount_total: Math.round(parseFloat(row[12]) * 100),
+          // 13. autista → driver will be resolved from name to ID below
+          // 14. fatturazione autista → new field
+          driver_billing: row[14] ? parseFloat(row[14]) : null,
+          // 15. commissioni autista → new field
+          driver_commission: row[15] ? parseFloat(row[15]) : null,
+          // 16. importo incasso diretto → new field
+          direct_collection: row[16] ? parseFloat(row[16]) : null,
+          // 17. cash/kk → new field payment_method
+          payment_method: row[17] || null,
+          // 18. note → notes
+          notes: row[18] || null,
+          // 19. targa → new field license_plate
+          license_plate: row[19] || null
         }
         
-        // Find driver_id from name
-        const driverName = row[17]
-        const driver = drivers.find(d => d.name === driverName)
-        updatedBooking.driver_id = driver?.id || null
-        
-        // Find customer_id from name
-        const customerName = row[18]
+        // Find customer_id from name (società - column 2)
+        const customerName = row[2]
         const customer = customers.find(c => c.name === customerName)
         updatedBooking.customer_id = customer?.id || null
         
-        // Check if booking has changes by comparing key fields
+        // Find driver_id from name (autista - column 13)
+        const driverName = row[13]
+        const driver = drivers.find(d => d.name === driverName)
+        updatedBooking.driver_id = driver?.id || null
+        
+        // Check if booking has changes by comparing all fields
         const hasBookingChanges = 
           originalBooking.service_date !== updatedBooking.service_date ||
           originalBooking.service_time !== updatedBooking.service_time ||
-          originalBooking.customer_name !== updatedBooking.customer_name ||
-          originalBooking.customer_email !== updatedBooking.customer_email ||
-          originalBooking.service_type !== updatedBooking.service_type ||
           originalBooking.pickup_address !== updatedBooking.pickup_address ||
           originalBooking.destination_address !== updatedBooking.destination_address ||
-          originalBooking.vehicle_type !== updatedBooking.vehicle_type ||
-          originalBooking.passengers !== updatedBooking.passengers ||
-          originalBooking.luggage !== updatedBooking.luggage ||
           originalBooking.amount_total !== updatedBooking.amount_total ||
+          originalBooking.notes !== updatedBooking.notes ||
           originalBooking.driver_id !== updatedBooking.driver_id ||
           originalBooking.customer_id !== updatedBooking.customer_id ||
-          originalBooking.payment_status !== updatedBooking.payment_status ||
-          originalBooking.meet_and_greet !== updatedBooking.meet_and_greet ||
-          originalBooking.notes !== updatedBooking.notes ||
-          originalBooking.is_olympic_pricing !== updatedBooking.is_olympic_pricing
+          // New fields comparison
+          originalBooking.committente !== updatedBooking.committente ||
+          originalBooking.passenger_details !== updatedBooking.passenger_details ||
+          originalBooking.disposition_destination !== updatedBooking.disposition_destination ||
+          originalBooking.vehicle_details !== updatedBooking.vehicle_details ||
+          originalBooking.net_amount !== updatedBooking.net_amount ||
+          originalBooking.vat_amount !== updatedBooking.vat_amount ||
+          originalBooking.driver_billing !== updatedBooking.driver_billing ||
+          originalBooking.driver_commission !== updatedBooking.driver_commission ||
+          originalBooking.direct_collection !== updatedBooking.direct_collection ||
+          originalBooking.payment_method !== updatedBooking.payment_method ||
+          originalBooking.license_plate !== updatedBooking.license_plate
         
         if (hasBookingChanges) {
           updatedBookings.push(updatedBooking)
@@ -386,7 +425,7 @@ function SpreadsheetCore({
               {dictionary.admin?.dashboard?.bookingsCount?.replace('{count}', bookings.length) || `Prenotazioni (${bookings.length})`}
             </CardTitle>
             <CardDescription>
-              Tabella Excel-like per modificare le prenotazioni direttamente
+              Tabella con 19 campi per la gestione completa delle prenotazioni - modifica diretta e salvataggio differito
             </CardDescription>
           </div>
           {hasChanges && (
@@ -403,8 +442,8 @@ function SpreadsheetCore({
       </CardHeader>
       <CardContent>
         <div className="mb-4 text-sm text-gray-600">
-          <strong>Istruzioni:</strong> Usa le frecce per navigare, clicca per modificare, i dropdown per selezionare driver/clienti. 
-          Tutte le modifiche vengono salvate facendo clic su "Salva Modifiche".
+          <strong>Istruzioni:</strong> Modifica i campi direttamente in tabella. Usa dropdown per Società/Autista/Metodo Pagamento. 
+          I campi numerici (Imponibile, IVA, ecc.) accettano decimali. Il bottone "Salva Modifiche" appare quando ci sono modifiche da salvare.
         </div>
         <div 
           ref={containerRef} 
