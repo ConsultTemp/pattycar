@@ -1,12 +1,12 @@
 "use client"
 
 import React, { useEffect, useRef, useState, useMemo } from "react"
-import dynamic from "next/dynamic"
 import { Database } from "@/types/database.types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { FileText, Save } from "lucide-react"
+import dynamic from "next/dynamic"
 
 type BookingRow = Database['public']['Tables']['bookings']['Row']
 type DriverRow = Database['public']['Tables']['drivers']['Row']
@@ -18,36 +18,19 @@ interface AdminBookingsSpreadsheetProps {
   onBookingsUpdated: () => void
 }
 
-// Component that will be dynamically loaded
-function SpreadsheetComponent({ 
+// Il componente principale che gestirà jspreadsheet
+function SpreadsheetCore({ 
   bookings, 
   dictionary, 
   onBookingsUpdated 
 }: AdminBookingsSpreadsheetProps) {
-  const jspreadsheetRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const jspreadsheetRef = useRef<any>(null)
   const [drivers, setDrivers] = useState<DriverRow[]>([])
   const [customers, setCustomers] = useState<CustomerRow[]>([])
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [jspreadsheet, setJspreadsheet] = useState<any>(null)
-  
-  // Load jspreadsheet on client side
-  useEffect(() => {
-    const loadJspreadsheet = async () => {
-      try {
-        const jss = await import('jspreadsheet-ce')
-        // Also load CSS
-        await import('jspreadsheet-ce/dist/jspreadsheet.css')
-        await import('jsuites/dist/jsuites.css')
-        setJspreadsheet(jss.default || jss)
-      } catch (error) {
-        console.error('Failed to load jspreadsheet:', error)
-      }
-    }
-    
-    loadJspreadsheet()
-  }, [])
+  const [isJsLoaded, setIsJsLoaded] = useState(false)
   
   // Load drivers and customers
   useEffect(() => {
@@ -79,6 +62,41 @@ function SpreadsheetComponent({
     fetchDriversAndCustomers()
   }, [])
 
+  // Load jspreadsheet dynamically
+  useEffect(() => {
+    const loadSpreadsheet = async () => {
+      try {
+        // Carica CSS prima
+        const cssLink1 = document.createElement('link')
+        cssLink1.rel = 'stylesheet'
+        cssLink1.href = 'https://jspreadsheet.com/v4/jspreadsheet.css'
+        document.head.appendChild(cssLink1)
+        
+        const cssLink2 = document.createElement('link')
+        cssLink2.rel = 'stylesheet'
+        cssLink2.href = 'https://jsuites.net/v4/jsuites.css'
+        document.head.appendChild(cssLink2)
+
+        // Carica script
+        const script1 = document.createElement('script')
+        script1.src = 'https://jsuites.net/v4/jsuites.js'
+        script1.onload = () => {
+          const script2 = document.createElement('script')
+          script2.src = 'https://jspreadsheet.com/v4/jspreadsheet.js'
+          script2.onload = () => {
+            setIsJsLoaded(true)
+          }
+          document.head.appendChild(script2)
+        }
+        document.head.appendChild(script1)
+      } catch (error) {
+        console.error('Error loading jspreadsheet:', error)
+      }
+    }
+
+    loadSpreadsheet()
+  }, [])
+
   // Prepare data for spreadsheet
   const spreadsheetData = useMemo(() => {
     // Sort bookings by service_date chronologically
@@ -104,7 +122,7 @@ function SpreadsheetComponent({
       booking.passengers || 1,
       booking.luggage || 0,
       booking.vehicle_count || 1,
-      (booking.amount_total / 100).toFixed(2), // Convert from cents to euros
+      (booking.amount_total / 100).toFixed(2),
       booking.currency || 'EUR',
       booking.driver?.name || '',
       booking.customer?.name || '',
@@ -139,13 +157,17 @@ function SpreadsheetComponent({
 
   // Initialize jspreadsheet
   useEffect(() => {
-    if (!containerRef.current || !spreadsheetData.length || !drivers.length || !customers.length || !jspreadsheet) {
+    if (!containerRef.current || !spreadsheetData.length || !drivers.length || !customers.length || !isJsLoaded) {
       return
     }
 
     // Clean up existing instance
     if (jspreadsheetRef.current) {
-      jspreadsheetRef.current.destroy()
+      try {
+        jspreadsheetRef.current.destroy()
+      } catch (e) {
+        console.log('Error destroying existing instance:', e)
+      }
     }
 
     const columns = [
@@ -178,47 +200,51 @@ function SpreadsheetComponent({
       { title: 'Prezzi Olimpici', type: 'dropdown', width: 100, source: ['Sì', 'No'] }
     ]
 
-    // Initialize jspreadsheet
-    jspreadsheetRef.current = jspreadsheet(containerRef.current, {
-      data: spreadsheetData,
-      columns: columns,
-      minDimensions: [27, 10], // 27 columns, minimum 10 rows
-      allowInsertRow: false,
-      allowDeleteRow: false,
-      allowInsertColumn: false,
-      allowDeleteColumn: false,
-      allowRenameColumn: false,
-      columnSorting: true,
-      columnDrag: false,
-      rowResize: true,
-      columnResize: true,
-      tableOverflow: true,
-      lazyLoading: true,
-      loadingSpin: true,
-      search: true,
-      pagination: false,
-      freezeColumns: 5, // Freeze first 5 columns for better UX
-      style: {
-        'background-color': '#ffffff',
-      },
-      onchange: () => {
-        setHasChanges(true)
-      },
-      onselection: (instance: any, x1: number, y1: number, x2: number, y2: number) => {
-        // Handle selection changes if needed
-      }
-    })
+    try {
+      // @ts-ignore - jspreadsheet è caricato dinamicamente
+      jspreadsheetRef.current = jspreadsheet(containerRef.current, {
+        data: spreadsheetData,
+        columns: columns,
+        minDimensions: [27, 10],
+        allowInsertRow: false,
+        allowDeleteRow: false,
+        allowInsertColumn: false,
+        allowDeleteColumn: false,
+        allowRenameColumn: false,
+        columnSorting: true,
+        columnDrag: false,
+        rowResize: true,
+        columnResize: true,
+        tableOverflow: true,
+        lazyLoading: true,
+        search: true,
+        pagination: false,
+        freezeColumns: 5,
+        style: {
+          'background-color': '#ffffff',
+        },
+        onchange: () => {
+          setHasChanges(true)
+        }
+      })
+    } catch (error) {
+      console.error('Error initializing jspreadsheet:', error)
+    }
 
     return () => {
       if (jspreadsheetRef.current) {
-        jspreadsheetRef.current.destroy()
+        try {
+          jspreadsheetRef.current.destroy()
+        } catch (e) {
+          console.log('Cleanup error:', e)
+        }
       }
     }
-  }, [spreadsheetData, driverOptions, customerOptions, jspreadsheet])
+  }, [spreadsheetData, driverOptions, customerOptions, isJsLoaded])
 
   // Save changes to database
   const handleSave = async () => {
-    if (!jspreadsheetRef.current || !hasChanges || !jspreadsheet) return
+    if (!jspreadsheetRef.current || !hasChanges) return
     
     setIsLoading(true)
     
@@ -229,7 +255,7 @@ function SpreadsheetComponent({
       // Process each row to find changes
       for (let i = 0; i < data.length; i++) {
         const row = data[i]
-        const bookingId = row[0] // Hidden ID column
+        const bookingId = row[0]
         const originalBooking = bookings.find(b => b.id === bookingId)
         
         if (!originalBooking) continue
@@ -242,7 +268,7 @@ function SpreadsheetComponent({
           service_end_time: row[3] || null,
           customer_name: row[4],
           customer_email: row[5],
-          customer_phone: row[6] ? row[6].replace(/^\+?\d+\s*/, '') : null, // Extract phone without prefix
+          customer_phone: row[6] ? row[6].replace(/^\+?\d+\s*/, '') : null,
           customer_phone_prefix: row[6] ? row[6].match(/^\+?\d+/)?.[0] : null,
           service_type: row[7],
           service_duration: row[8] ? parseFloat(row[8]) : null,
@@ -252,7 +278,7 @@ function SpreadsheetComponent({
           passengers: parseInt(row[12]) || 1,
           luggage: parseInt(row[13]) || 0,
           vehicle_count: parseInt(row[14]) || 1,
-          amount_total: Math.round(parseFloat(row[15]) * 100), // Convert to cents
+          amount_total: Math.round(parseFloat(row[15]) * 100),
           currency: row[16] || 'EUR',
           payment_status: row[19],
           meet_and_greet: row[20] === 'Sì',
@@ -337,14 +363,13 @@ function SpreadsheetComponent({
     }
   }
 
-  // Show loading while jspreadsheet is loading
-  if (!jspreadsheet) {
+  if (!isJsLoaded) {
     return (
       <Card>
         <CardContent className="p-8">
           <div className="text-center">
-            <div className="text-lg">Caricamento tabella...</div>
-            <div className="text-sm text-gray-500 mt-2">Inizializzazione del foglio di calcolo</div>
+            <div className="text-lg">Caricamento jspreadsheet...</div>
+            <div className="text-sm text-gray-500 mt-2">Inizializzazione libreria</div>
           </div>
         </CardContent>
       </Card>
@@ -361,7 +386,7 @@ function SpreadsheetComponent({
               {dictionary.admin?.dashboard?.bookingsCount?.replace('{count}', bookings.length) || `Prenotazioni (${bookings.length})`}
             </CardTitle>
             <CardDescription>
-              {dictionary.admin?.dashboard?.bookingsDescription || "Tabella Excel-like per modificare le prenotazioni direttamente"}
+              Tabella Excel-like per modificare le prenotazioni direttamente
             </CardDescription>
           </div>
           {hasChanges && (
@@ -402,9 +427,9 @@ function SpreadsheetComponent({
   )
 }
 
-// Export the dynamically imported component
+// Export con dynamic import per evitare SSR
 const AdminBookingsSpreadsheet = dynamic(
-  () => Promise.resolve(SpreadsheetComponent),
+  () => Promise.resolve(SpreadsheetCore),
   { 
     ssr: false,
     loading: () => (
