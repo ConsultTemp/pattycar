@@ -48,6 +48,7 @@
     "embla-carousel-react": "8.5.1",
     "fs": "latest",
     "input-otp": "1.4.1",
+    "jspreadsheet-ce": "^5.0.3",
     "lucide-react": "^0.454.0",
     "negotiator": "^0.6.4",
     "next": "15.2.4",
