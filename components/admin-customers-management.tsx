@@ -266,7 +266,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
               <DialogHeader>
                 <DialogTitle>{dictionary.admin?.customers?.addCustomer || "Add Customer"}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 bg-white">
                 <div>
                   <Label htmlFor="name">{dictionary.admin?.customers?.name || "Name"}</Label>
                   <Input
@@ -442,7 +442,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
 
         {/* Edit Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent>
+          <DialogContent className="bg-white">
             <DialogHeader>
               <DialogTitle>{dictionary.admin?.customers?.editCustomer || "Edit Customer"}</DialogTitle>
             </DialogHeader>
