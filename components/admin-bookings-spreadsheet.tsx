@@ -107,31 +107,31 @@ function SpreadsheetCore({
     })
     
     return sortedBookings.map(booking => [
-      booking.id, // Hidden column for ID
+      booking.id || '', // Hidden column for ID - ensure not undefined
       // 1. data → service_date
-      booking.service_date,
+      booking.service_date || '',
       // 2. società → customer name from customer relationship
       booking.customer?.name || booking.customer_name || '',
       // 3. ora → service_time
-      booking.service_time,
+      booking.service_time || '',
       // 4. committente → new field (manual entry)
       booking.committente || '',
       // 5. passeggero/i → new field passenger_details (manual text)
       booking.passenger_details || '',
       // 6. da → pickup_address
-      booking.pickup_address,
+      booking.pickup_address || '',
       // 7. a → destination_address  
-      booking.destination_address,
+      booking.destination_address || '',
       // 8. dispo/destinazione → new field (manual text)
       booking.disposition_destination || '',
       // 9. mezzo → new field vehicle_details (manual text)
       booking.vehicle_details || '',
       // 10. imponibile → net_amount (90% of total)
-      booking.net_amount ? booking.net_amount.toFixed(2) : ((booking.amount_total * 0.90) / 100).toFixed(2),
+      booking.net_amount ? booking.net_amount.toFixed(2) : (booking.amount_total ? ((booking.amount_total * 0.90) / 100).toFixed(2) : '0.00'),
       // 11. iva → vat_amount (10% of total)
-      booking.vat_amount ? booking.vat_amount.toFixed(2) : ((booking.amount_total * 0.10) / 100).toFixed(2),
+      booking.vat_amount ? booking.vat_amount.toFixed(2) : (booking.amount_total ? ((booking.amount_total * 0.10) / 100).toFixed(2) : '0.00'),
       // 12. tot fattura → amount_total
-      (booking.amount_total / 100).toFixed(2),
+      booking.amount_total ? (booking.amount_total / 100).toFixed(2) : '0.00',
       // 13. autista → driver name
       booking.driver?.name || '',
       // 14. fatturazione autista → new field (manual entry)
@@ -169,9 +169,18 @@ function SpreadsheetCore({
 
   // Initialize jspreadsheet
   useEffect(() => {
-    if (!containerRef.current || !spreadsheetData.length || !drivers.length || !customers.length || !isJsLoaded) {
+    if (!containerRef.current || !spreadsheetData.length || !isJsLoaded) {
+      console.log('Skipping spreadsheet init:', { 
+        hasContainer: !!containerRef.current,
+        hasData: !!spreadsheetData.length,
+        hasDrivers: !!drivers.length,
+        hasCustomers: !!customers.length,
+        isJsLoaded
+      })
       return
     }
+    
+    console.log('Initializing spreadsheet with data:', spreadsheetData.length, 'bookings')
 
     // Clean up existing instance
     if (jspreadsheetRef.current) {
@@ -217,8 +226,8 @@ function SpreadsheetCore({
       { title: 'Comm. Autista', type: 'numeric', width: 100, mask: '#.##' },
       // 16. importo incasso diretto → Totale incassato (numeric input)
       { title: 'Incasso Diretto', type: 'numeric', width: 120, mask: '#.##' },
-      // 17. cash/kk → Metodo pagamento (dropdown)
-      { title: 'Cash/KK', type: 'dropdown', width: 100, source: ['Cash', 'Carta', 'Bonifico', 'Assegno', 'Altro'] },
+      // 17. cash/kk → Metodo pagamento (text libero)
+      { title: 'Cash/KK', type: 'text', width: 100 },
       // 18. note → Note prenotazione (text input)
       { title: 'Note', type: 'text', width: 200 },
       // 19. targa → Targa veicolo (text input)
@@ -242,14 +251,27 @@ function SpreadsheetCore({
         columnResize: true,
         tableOverflow: true,
         lazyLoading: true,
-        search: true,
+        search: false, // Disable search bar
         pagination: false,
+        toolbar: false, // Remove toolbar
         freezeColumns: 4, // Freeze first 4 columns (ID, Data, Società, Ora)
         style: {
           'background-color': '#ffffff',
         },
-        onchange: () => {
+        license: '', // Remove license message
+        onchange: (instance: any, cell: any, x: any, y: any, value: any) => {
+          console.log('Cell changed - onChange triggered:', { cell, x, y, value, hasChanges })
           setHasChanges(true)
+        },
+        oneditionend: (instance: any, cell: any, x: any, y: any, value: any) => {
+          console.log('Edition ended - setting hasChanges to true:', { cell, x, y, value })
+          setHasChanges(true)
+        },
+        onload: (instance: any) => {
+          console.log('Spreadsheet loaded successfully')
+          // Remove any license messages that might appear
+          const licenseElements = document.querySelectorAll('[style*="jexcel"], .jexcel-license')
+          licenseElements.forEach(el => el.remove())
         }
       })
     } catch (error) {
@@ -266,6 +288,26 @@ function SpreadsheetCore({
       }
     }
   }, [spreadsheetData, driverOptions, customerOptions, isJsLoaded])
+
+  // Clean up license messages periodically
+  useEffect(() => {
+    if (!isJsLoaded) return
+    
+    const cleanupLicense = () => {
+      const licenseElements = document.querySelectorAll('.jexcel-license, [style*="jexcel"], .jss-about')
+      licenseElements.forEach(el => {
+        if (el.textContent?.includes('License') || el.textContent?.includes('jspreadsheet')) {
+          el.remove()
+        }
+      })
+    }
+    
+    // Clean immediately and then periodically
+    cleanupLicense()
+    const interval = setInterval(cleanupLicense, 1000)
+    
+    return () => clearInterval(interval)
+  }, [isJsLoaded])
 
   // Save changes to database
   const handleSave = async () => {
@@ -438,6 +480,16 @@ function SpreadsheetCore({
               {isLoading ? 'Salvataggio...' : 'Salva Modifiche'}
             </Button>
           )}
+          {/* Debug info */}
+          <div className="text-xs text-gray-500 flex items-center gap-2">
+            Debug: hasChanges = {hasChanges.toString()}
+            <button 
+              onClick={() => setHasChanges(true)} 
+              className="px-2 py-1 bg-gray-200 text-xs rounded"
+            >
+              Test Save Button
+            </button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -449,9 +501,23 @@ function SpreadsheetCore({
           ref={containerRef} 
           className="w-full border rounded-lg"
           style={{ 
-            height: 'calc(100vh - 400px)', 
+            height: '600px', // Fixed height instead of viewport calculation
             minHeight: '500px',
-            overflow: 'auto' 
+            overflow: 'auto',
+            // Allow normal page scroll when mouse is over table
+            overflowY: 'auto',
+            overscrollBehavior: 'contain'
+          }}
+          onWheel={(e) => {
+            // Allow normal page scrolling when not actively scrolling table content
+            const element = e.currentTarget
+            const atTop = element.scrollTop === 0
+            const atBottom = element.scrollTop >= (element.scrollHeight - element.clientHeight)
+            
+            if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
+              // Let the event bubble up to scroll the page
+              return
+            }
           }}
         />
         {hasChanges && (
