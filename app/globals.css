@@ -176,3 +176,170 @@ body {
   background-color: rgb(255, 255, 255) !important;
 }
 
+/* jspreadsheet-ce styles */
+@import url('https://cdn.jsdelivr.net/npm/jspreadsheet-ce@5/dist/jspreadsheet.css');
+
+/* Custom spreadsheet styling */
+.jexcel_container {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.jexcel_container .jexcel_content {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.jexcel_container .jexcel_content tbody td {
+  border: 1px solid #f3f4f6;
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.jexcel_container .jexcel_content thead td {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  padding: 10px 8px;
+}
+
+.jexcel_container .jexcel_content tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.jexcel_container .jexcel_content tbody tr.selected {
+  background-color: #eff6ff;
+}
+
+.jexcel_container .jexcel_content tbody td.highlight {
+  background-color: #dbeafe;
+}
+
+.jexcel_container .jexcel_content tbody td.readonly {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Toolbar styling */
+.jexcel_container .jexcel_toolbar {
+  background-color: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px;
+  border-radius: 8px 8px 0 0;
+}
+
+.jexcel_container .jexcel_toolbar i {
+  margin-right: 8px;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.jexcel_container .jexcel_toolbar i:hover {
+  background-color: #f3f4f6;
+}
+
+/* Context menu styling */
+.jcontextmenu {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  font-size: 14px;
+}
+
+.jcontextmenu > div {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.jcontextmenu > div:hover {
+  background-color: #f3f4f6;
+}
+
+.jcontextmenu hr {
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Search box styling */
+.jexcel_search input {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Dropdown styling */
+.jdropdown {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.jdropdown .jdropdown-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.jdropdown .jdropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+/* Calendar styling */
+.jcalendar {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.jcalendar .jcalendar-header {
+  background-color: #f9fafb;
+  padding: 8px;
+  font-weight: 600;
+}
+
+.jcalendar .jcalendar-weekday {
+  background-color: #f3f4f6;
+  padding: 4px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.jcalendar .jcalendar-day {
+  padding: 6px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.jcalendar .jcalendar-day:hover {
+  background-color: #e5e7eb;
+}
+
+.jcalendar .jcalendar-day.selected {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .jexcel_container {
+    font-size: 12px;
+  }
+  
+  .jexcel_container .jexcel_content tbody td,
+  .jexcel_container .jexcel_content thead td {
+    padding: 6px 4px;
+  }
+}
+
