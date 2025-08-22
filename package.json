@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:sms": "node scripts/test-sms.js",
+    "test:sms:ts": "npx tsx scripts/test-twilio-integration.ts",
+    "cron:notify": "curl -X POST http://localhost:3000/api/cron/notify-customers"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.6.1",
@@ -72,6 +75,7 @@
     "styled-jsx": "^5.1.6",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "twilio": "^5.8.0",
     "vaul": "^0.9.6",
     "zod": "^3.24.1"
   },
