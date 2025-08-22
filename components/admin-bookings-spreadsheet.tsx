@@ -43,7 +43,6 @@ function SpreadsheetCore({
     'passeggero_i',
     'da',
     'a',
-    'dispo_destinazione',
     'mezzo',
     'imponibile',
     'iva',
@@ -182,35 +181,33 @@ function SpreadsheetCore({
       String(booking.pickup_address || ''),
       // 7. a → destination_address  
       String(booking.destination_address || ''),
-      // 8. dispo/destinazione → new field (manual text)
-      String(booking.disposition_destination || ''),
-      // 9. mezzo → new field vehicle_details (manual text)
+      // 8. mezzo → new field vehicle_details (manual text)
       String(booking.vehicle_details || ''),
-      // 10. imponibile → net_amount (90% of total)
+      // 9. imponibile → net_amount (90% of total)
       booking.net_amount ? String(booking.net_amount.toFixed(2)) : (booking.amount_total ? String(((booking.amount_total * 0.90) / 100).toFixed(2)) : '0.00'),
-      // 11. iva → vat_amount (10% of total)
+      // 10. iva → vat_amount (10% of total)
       booking.vat_amount ? String(booking.vat_amount.toFixed(2)) : (booking.amount_total ? String(((booking.amount_total * 0.10) / 100).toFixed(2)) : '0.00'),
-      // 12. tot fattura → amount_total
+      // 11. tot fattura → amount_total
       booking.amount_total ? String((booking.amount_total / 100).toFixed(2)) : '0.00',
-      // 13. autista → driver name
+      // 12. autista → driver name
       String(booking.driver?.name || ''),
-      // 14. fatturazione autista → new field (manual entry)
+      // 13. fatturazione autista → new field (manual entry)
       booking.driver_billing ? String(booking.driver_billing.toFixed(2)) : '',
-      // 15. commissioni autista → new field (manual entry)
+      // 14. commissioni autista → new field (manual entry)
       booking.driver_commission ? String(booking.driver_commission.toFixed(2)) : '',
-      // 16. importo incasso diretto → new field (manual entry)
+      // 15. importo incasso diretto → new field (manual entry)
       booking.direct_collection ? String(booking.direct_collection.toFixed(2)) : '',
-      // 17. cash/kk → new field payment_method (manual entry)
+      // 16. cash/kk → new field payment_method (manual entry)
       String(booking.payment_method || ''),
-      // 18. note → notes
+      // 17. note → notes
       String(booking.notes || ''),
-      // 19. targa → new field license_plate (manual entry)
+      // 18. targa → new field license_plate (manual entry)
       String(booking.license_plate || '')
     ])
     
     // Ensure we have exactly 50 rows for pagination
     const ROWS_PER_PAGE = 50
-    const emptyRow = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''] // 20 empty columns (including hidden ID)
+    const emptyRow = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''] // 19 empty columns (including hidden ID)
     
     // Fill with empty rows if we have less than 50
     while (bookingRows.length < ROWS_PER_PAGE) {
@@ -294,7 +291,7 @@ function SpreadsheetCore({
     const columns = [
       { type: 'hidden', width: 0 }, // ID column (hidden)
       // 1. data → Data Servizio (date input)
-      { title: 'Data', type: 'calendar', width: 120, options: { format: 'YYYY-MM-DD' } },
+      { title: 'Data', type: 'calendar', width: 120, options: { format: 'DD-MM-YYYY' } },
       // 2. società → Cliente (dropdown con customers)
       { title: 'Società', type: 'dropdown', width: 180, source: customerOptions },
       // 3. ora → Ora Inizio (time-like text input) 
@@ -307,40 +304,37 @@ function SpreadsheetCore({
       { title: 'Da', type: 'text', width: 200 },
       // 7. a → Indirizzo arrivo (text input)
       { title: 'A', type: 'text', width: 200 },
-      // 8. dispo/destinazione → Campo libero (text input)
-      { title: 'Dispo/Destinazione', type: 'text', width: 150 },
-      // 9. mezzo → Dettagli mezzo (text input)
+      // 8. mezzo → Dettagli mezzo (text input)
       { title: 'Mezzo', type: 'text', width: 120 },
-      // 10. imponibile → Prezzo netto (numeric input)
+      // 9. imponibile → Prezzo netto (numeric input)
       { title: 'Imponibile', type: 'numeric', width: 100, mask: '#.##' },
-      // 11. iva → IVA 10% (numeric input)
+      // 10. iva → IVA 10% (numeric input)
       { title: 'IVA', type: 'numeric', width: 80, mask: '#.##' },
-      // 12. tot fattura → Totale (numeric input, readonly)
+      // 11. tot fattura → Totale (numeric input, readonly)
       { title: 'Tot Fattura', type: 'numeric', width: 100, mask: '#.##' },
-      // 13. autista → Driver assegnato (dropdown)
+      // 12. autista → Driver assegnato (dropdown)
       { title: 'Autista', type: 'dropdown', width: 150, source: driverOptions },
-      // 14. fatturazione autista → Prezzo autista esterno (numeric input)
+      // 13. fatturazione autista → Prezzo autista esterno (numeric input)
       { title: 'Fatt. Autista', type: 'numeric', width: 100, mask: '#.##' },
-      // 15. commissioni autista → Commissioni autista (numeric input)
+      // 14. commissioni autista → Commissioni autista (numeric input)
       { title: 'Comm. Autista', type: 'numeric', width: 100, mask: '#.##' },
-      // 16. importo incasso diretto → Totale incassato (numeric input)
+      // 15. importo incasso diretto → Totale incassato (numeric input)
       { title: 'Incasso Diretto', type: 'numeric', width: 120, mask: '#.##' },
-      // 17. cash/kk → Metodo pagamento (text libero)
+      // 16. cash/kk → Metodo pagamento (text libero)
       { title: 'Cash/KK', type: 'text', width: 100 },
-      // 18. note → Note prenotazione (text input)
+      // 17. note → Note prenotazione (text input)
       { title: 'Note', type: 'text', width: 200 },
-      // 19. targa → Targa veicolo (text input)
+      // 18. targa → Targa veicolo (text input)
       { title: 'Targa', type: 'text', width: 100 }
     ]
 
     try {
-      // @ts-ignore - jspreadsheet è caricato dinamicamente
       const jspreadsheet = (window as any).jspreadsheet
       
       jspreadsheetRef.current = jspreadsheet(containerRef.current, {
         data: validatedData,
         columns: columns,
-        minDimensions: [20, 50], // 19 fields + 1 hidden ID column, 50 rows
+        minDimensions: [19, 50], // 18 fields + 1 hidden ID column, 50 rows
         allowInsertRow: false,
         allowDeleteRow: false,
         allowInsertColumn: false,
@@ -552,29 +546,27 @@ function SpreadsheetCore({
           pickup_address: row[6],
           // 7. a → destination_address
           destination_address: row[7],
-          // 8. dispo/destinazione → new field
-          disposition_destination: row[8] || null,
-          // 9. mezzo → new field vehicle_details
-          vehicle_details: row[9] || null,
-          // 10. imponibile → net_amount
-          net_amount: row[10] ? parseFloat(row[10]) : null,
-          // 11. iva → vat_amount
-          vat_amount: row[11] ? parseFloat(row[11]) : null,
-          // 12. tot fattura → amount_total (convert back to cents)
-          amount_total: Math.round(parseFloat(row[12]) * 100),
-          // 13. autista → driver will be resolved from name to ID below
-          // 14. fatturazione autista → new field
-          driver_billing: row[14] ? parseFloat(row[14]) : null,
-          // 15. commissioni autista → new field
-          driver_commission: row[15] ? parseFloat(row[15]) : null,
-          // 16. importo incasso diretto → new field
-          direct_collection: row[16] ? parseFloat(row[16]) : null,
-          // 17. cash/kk → new field payment_method
-          payment_method: row[17] || null,
-          // 18. note → notes
-          notes: row[18] || null,
-          // 19. targa → new field license_plate
-          license_plate: row[19] || null
+          // 8. mezzo → new field vehicle_details
+          vehicle_details: row[8] || null,
+          // 9. imponibile → net_amount
+          net_amount: row[9] ? parseFloat(row[9]) : null,
+          // 10. iva → vat_amount
+          vat_amount: row[10] ? parseFloat(row[10]) : null,
+          // 11. tot fattura → amount_total (convert back to cents)
+          amount_total: Math.round(parseFloat(row[11]) * 100),
+          // 12. autista → driver will be resolved from name to ID below
+          // 13. fatturazione autista → new field
+          driver_billing: row[13] ? parseFloat(row[13]) : null,
+          // 14. commissioni autista → new field
+          driver_commission: row[14] ? parseFloat(row[14]) : null,
+          // 15. importo incasso diretto → new field
+          direct_collection: row[15] ? parseFloat(row[15]) : null,
+          // 16. cash/kk → new field payment_method
+          payment_method: row[16] || null,
+          // 17. note → notes
+          notes: row[17] || null,
+          // 18. targa → new field license_plate
+          license_plate: row[18] || null
         }
         
         // Find customer_id from name (società - column 2)
@@ -582,8 +574,8 @@ function SpreadsheetCore({
         const customer = customers.find(c => c.name === customerName)
         updatedBooking.customer_id = customer?.id || null
         
-        // Find driver_id from name (autista - column 13)
-        const driverName = row[13]
+        // Find driver_id from name (autista - column 12)
+        const driverName = row[12]
         const driver = drivers.find(d => d.name === driverName)
         updatedBooking.driver_id = driver?.id || null
         
@@ -600,7 +592,6 @@ function SpreadsheetCore({
           // New fields comparison
           originalBooking.committente !== updatedBooking.committente ||
           originalBooking.passenger_details !== updatedBooking.passenger_details ||
-          originalBooking.disposition_destination !== updatedBooking.disposition_destination ||
           originalBooking.vehicle_details !== updatedBooking.vehicle_details ||
           originalBooking.net_amount !== updatedBooking.net_amount ||
           originalBooking.vat_amount !== updatedBooking.vat_amount ||
@@ -677,7 +668,7 @@ function SpreadsheetCore({
               {dictionary.admin?.dashboard?.bookingsCount?.replace('{count}', bookings.length) || `Prenotazioni (${bookings.length} su 50 righe)`}
             </CardTitle>
             <CardDescription>
-              Tabella con 19 campi per la gestione completa delle prenotazioni - 50 righe fisse, modifica diretta e salvataggio differito
+              Tabella con 18 campi per la gestione completa delle prenotazioni - 50 righe fisse, modifica diretta e salvataggio differito
             </CardDescription>
           </div>
           {hasChanges && (

@@ -167,7 +167,8 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
         booking.customer_name.toLowerCase().includes(searchLower) ||
         booking.customer_email.toLowerCase().includes(searchLower) ||
         booking.pickup_address.toLowerCase().includes(searchLower) ||
-        booking.destination_address.toLowerCase().includes(searchLower)
+        booking.destination_address.toLowerCase().includes(searchLower) ||
+        (booking.notes && booking.notes.toLowerCase().includes(searchLower))
       )
     }
 
