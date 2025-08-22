@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useEffect, useRef, useState, useMemo } from "react"
+import React, { useEffect, useRef, useState, useMemo, useCallback } from "react"
 import { Database } from "@/types/database.types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { FileText, Save } from "lucide-react"
+import { FileText, Save, Plus, RefreshCw } from "lucide-react"
 import dynamic from "next/dynamic"
 
 type BookingRow = Database['public']['Tables']['bookings']['Row']
@@ -16,6 +16,13 @@ interface AdminBookingsSpreadsheetProps {
   bookings: any[]
   dictionary: any
   onBookingsUpdated: () => void
+}
+
+interface ModifiedBooking {
+  id: string | null // null for new bookings
+  data: any
+  isNew: boolean
+  rowIndex: number
 }
 
 // Il componente principale che gestirà jspreadsheet
@@ -31,6 +38,8 @@ function SpreadsheetCore({
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [modifiedRows, setModifiedRows] = useState(new Set<number>())
+  const [modifiedBookings, setModifiedBookings] = useState<ModifiedBooking[]>([])
+  const [newRowsCount, setNewRowsCount] = useState(0)
   const [isJsLoaded, setIsJsLoaded] = useState(false)
 
   // Nomi delle colonne per creare l'oggetto (corrispondenti alla struttura attuale)
@@ -57,7 +66,7 @@ function SpreadsheetCore({
   ]
 
   // Funzione per convertire una riga in oggetto
-  const rowToObject = (rowData: any[], rowIndex: number) => {
+  const rowToObject = useCallback((rowData: any[], rowIndex: number) => {
     const obj: any = {}
     columnNames.forEach((columnName, index) => {
       if (index > 0) { // Skip hidden ID column
@@ -66,7 +75,77 @@ function SpreadsheetCore({
     })
     obj.rowIndex = rowIndex
     return obj
-  }
+  }, [])
+
+  // Funzione per aggiungere una nuova riga
+  const addNewRow = useCallback(() => {
+    if (!jspreadsheetRef.current) return
+    
+    try {
+      // Crea una nuova riga vuota con ID temporaneo
+      const tempId = `new_${Date.now()}_${newRowsCount}`
+      const newRowData = [tempId, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+      
+      // Inserisci la riga all'inizio (dopo l'header)
+      jspreadsheetRef.current.insertRow(newRowData, 0)
+      
+      // Aggiungi la nuova riga a modifiedBookings
+      const newBooking: ModifiedBooking = {
+        id: null, // null indica che è una nuova prenotazione
+        data: rowToObject(newRowData, 0),
+        isNew: true,
+        rowIndex: 0
+      }
+      
+      setModifiedBookings(prev => [newBooking, ...prev])
+      setNewRowsCount(prev => prev + 1)
+      setHasChanges(true)
+      
+      // Evidenzia la riga come nuova
+      setTimeout(() => {
+        const firstRow = containerRef.current?.querySelector('tbody tr:first-child')
+        if (firstRow) {
+          firstRow.style.backgroundColor = '#e8f5e8'
+          firstRow.style.border = '2px solid #4ade80'
+        }
+      }, 100)
+      
+      toast({
+        title: "Nuova riga aggiunta",
+        description: "È stata aggiunta una nuova riga in cima alla tabella",
+      })
+      
+    } catch (error) {
+      console.error('Error adding new row:', error)
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiungere una nuova riga",
+        variant: "destructive",
+      })
+    }
+  }, [newRowsCount, rowToObject])
+
+  // Funzione per tracciare le modifiche
+  const trackModification = useCallback((rowIndex: number, rowData: any[]) => {
+    const bookingId = rowData[0]
+    const isNewBooking = !bookingId || bookingId.startsWith('new_')
+    
+    const modifiedBooking: ModifiedBooking = {
+      id: isNewBooking ? null : bookingId,
+      data: rowToObject(rowData, rowIndex),
+      isNew: isNewBooking,
+      rowIndex
+    }
+    
+    setModifiedBookings(prev => {
+      // Rimuovi duplicati basati su rowIndex
+      const filtered = prev.filter(mb => mb.rowIndex !== rowIndex)
+      return [...filtered, modifiedBooking]
+    })
+    
+    setHasChanges(true)
+    console.log('🔥 PRENOTAZIONE MODIFICATA/NUOVA:', modifiedBooking)
+  }, [rowToObject])
   
   // Load drivers and customers
   useEffect(() => {
@@ -335,7 +414,7 @@ function SpreadsheetCore({
         data: validatedData,
         columns: columns,
         minDimensions: [19, 50], // 18 fields + 1 hidden ID column, 50 rows
-        allowInsertRow: false,
+        allowInsertRow: true, // Allow adding new rows
         allowDeleteRow: false,
         allowInsertColumn: false,
         allowDeleteColumn: false,
@@ -361,24 +440,21 @@ function SpreadsheetCore({
         license: '', // Remove license message
         tabs: false, // Remove sheet tabs
         onchange: (instance: any, cell: any, x: any, y: any, value: any, oldValue: any) => {
-          console.log('Cell changed - onChange triggered:', { cell, x, y, value, oldValue, hasChanges })
+          console.log('Cell changed - onChange triggered:', { cell, x, y, value, oldValue })
           if (value !== oldValue) {
-            setHasChanges(true)
-            
-            // Aggiungi la riga alle righe modificate
-            setModifiedRows(prev => new Set(prev).add(y))
-            
             // Ottieni tutti i dati della riga corrente
             const rowData = instance.getRowData(y)
-            const modifiedRowObject = rowToObject(rowData, y)
+            trackModification(y, rowData)
             
-            console.log('🔥 RIGA MODIFICATA - OGGETTO:', modifiedRowObject)
+            // Aggiungi la riga alle righe modificate per evidenziazione visiva
+            setModifiedRows(prev => new Set(prev).add(y))
           }
         },
         oneditionend: (instance: any, cell: any, x: any, y: any, value: any, oldValue: any) => {
-          console.log('Edition ended - setting hasChanges to true:', { cell, x, y, value, oldValue })
+          console.log('Edition ended:', { cell, x, y, value, oldValue })
           if (value !== oldValue) {
-            setHasChanges(true)
+            const rowData = instance.getRowData(y)
+            trackModification(y, rowData)
           }
         },
         onbeforechange: (instance: any, cell: any, x: any, y: any, value: any) => {
@@ -461,13 +537,35 @@ function SpreadsheetCore({
         jspreadsheetRef.current = null
       }
     }
-  }, [spreadsheetData, driverOptions, customerOptions, isJsLoaded])
+  }, [spreadsheetData, driverOptions, customerOptions, isJsLoaded, trackModification])
 
-  // Clean up license messages periodically
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+S to save
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault()
+        if (hasChanges && modifiedBookings.length > 0) {
+          handleSave()
+        }
+      }
+      
+      // Ctrl+N to add new row
+      if (event.ctrlKey && event.key === 'n') {
+        event.preventDefault()
+        addNewRow()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [hasChanges, modifiedBookings.length, handleSave, addNewRow])
+
+  // Clean up license messages and apply visual indicators
   useEffect(() => {
     if (!isJsLoaded) return
     
-    const cleanupLicense = () => {
+    const cleanupAndStyle = () => {
       // Remove license elements
       const licenseElements = document.querySelectorAll('.jexcel-license, [style*="jexcel"], .jss-about')
       licenseElements.forEach(el => {
@@ -488,156 +586,218 @@ function SpreadsheetCore({
         (table as HTMLElement).style.margin = '0';
         (table as HTMLElement).style.padding = '0'
       })
+
+      // Apply visual indicators for modified rows
+      if (containerRef.current && modifiedRows.size > 0) {
+        const tbody = containerRef.current.querySelector('tbody')
+        if (tbody) {
+          const rows = tbody.querySelectorAll('tr')
+          
+          // Reset all row styles first
+          rows.forEach(row => {
+            row.style.backgroundColor = ''
+            row.style.borderLeft = ''
+          })
+          
+          // Apply styling to modified rows
+          modifiedRows.forEach(rowIndex => {
+            const row = rows[rowIndex]
+            if (row) {
+              // Check if it's a new booking (starts with 'new_')
+              const firstCell = row.querySelector('td')
+              const isNewRow = firstCell?.textContent?.startsWith('new_')
+              
+              if (isNewRow) {
+                row.style.backgroundColor = '#f0fdf4' // Light green for new rows
+                row.style.borderLeft = '4px solid #22c55e' // Green border
+              } else {
+                row.style.backgroundColor = '#fef3c7' // Light yellow for modified rows
+                row.style.borderLeft = '4px solid #f59e0b' // Orange border
+              }
+            }
+          })
+        }
+      }
     }
     
-    // Clean immediately and then periodically
-    cleanupLicense()
-    const interval = setInterval(cleanupLicense, 1000)
+    // Clean and style immediately and then periodically
+    cleanupAndStyle()
+    const interval = setInterval(cleanupAndStyle, 1000)
     
     return () => clearInterval(interval)
-  }, [isJsLoaded])
+  }, [isJsLoaded, modifiedRows])
 
-  // Save changes to database
+  // Funzione per convertire dati modificati in formato API
+  const prepareBookingForAPI = useCallback((modifiedBooking: ModifiedBooking) => {
+    const data = modifiedBooking.data
+    
+    // Find customer_id from name (società - column 2)
+    const customerName = data.società
+    const customer = customers.find(c => c.name === customerName)
+    
+    // Find driver_id from name (autista - column 12)
+    const driverName = data.autista
+    const driver = drivers.find(d => d.name === driverName)
+    
+    // Calculate amounts
+    const netAmount = parseFloat(data.imponibile) || 0
+    const vatAmount = parseFloat(data.iva) || 0
+    const totalAmount = parseFloat(data.tot_fattura) || (netAmount + vatAmount)
+    
+    if (modifiedBooking.isNew) {
+      // Prepare data for new booking creation
+      return {
+        // Required fields for new booking
+        customer_name: customerName || 'Cliente Generico',
+        customer_email: customer?.email || 'admin@pattycar.com',
+        customer_phone: customer?.phone || null,
+        customer_phone_prefix: customer?.phone_prefix || null,
+        service_type: 'transfer', // Default service type
+        service_label: 'Transfer Service',
+        pickup_address: data.da || 'Indirizzo non specificato',
+        destination_address: data.a || 'Destinazione non specificata',
+        service_date: data.data || new Date().toISOString().split('T')[0],
+        service_time: data.ora || '09:00',
+        vehicle_type: data.mezzo || 'Class E',
+        passengers: 1, // Default
+        amount_total: Math.round(totalAmount * 100), // Convert to cents
+        currency: 'EUR',
+        
+        // Optional fields from spreadsheet
+        notes: data.note || null,
+        driver_id: driver?.id || null,
+        customer_id: customer?.id || null,
+        
+        // New spreadsheet fields
+        committente: data.committente || null,
+        passenger_details: data.passeggero_i || null,
+        vehicle_details: data.mezzo || null,
+        net_amount: netAmount || null,
+        vat_amount: vatAmount || null,
+        driver_billing: parseFloat(data.fatt_autista) || null,
+        driver_commission: parseFloat(data.comm_autista) || null,
+        direct_collection: parseFloat(data.incasso_diretto) || null,
+        payment_method: data.cash_kk || null,
+        license_plate: data.targa || null
+      }
+    } else {
+      // Prepare data for existing booking update
+      return {
+        id: modifiedBooking.id,
+        // 1. data → service_date
+        service_date: data.data,
+        // 3. ora → service_time  
+        service_time: data.ora,
+        // 4. committente → new field
+        committente: data.committente || null,
+        // 5. passeggero/i → new field passenger_details
+        passenger_details: data.passeggero_i || null,
+        // 6. da → pickup_address
+        pickup_address: data.da,
+        // 7. a → destination_address
+        destination_address: data.a,
+        // 8. mezzo → new field vehicle_details
+        vehicle_details: data.mezzo || null,
+        // 9. imponibile → net_amount
+        net_amount: netAmount || null,
+        // 10. iva → vat_amount
+        vat_amount: vatAmount || null,
+        // 11. tot fattura → amount_total (convert back to cents)
+        amount_total: Math.round(totalAmount * 100),
+        // 13. fatturazione autista → new field
+        driver_billing: parseFloat(data.fatt_autista) || null,
+        // 14. commissioni autista → new field
+        driver_commission: parseFloat(data.comm_autista) || null,
+        // 15. importo incasso diretto → new field
+        direct_collection: parseFloat(data.incasso_diretto) || null,
+        // 16. cash/kk → new field payment_method
+        payment_method: data.cash_kk || null,
+        // 17. note → notes
+        notes: data.note || null,
+        // 18. targa → new field license_plate
+        license_plate: data.targa || null,
+        // ID references
+        customer_id: customer?.id || null,
+        driver_id: driver?.id || null
+      }
+    }
+  }, [customers, drivers])
+
+  // Save changes to database - BATCH API LOGIC
   const handleSave = async () => {
-    if (!jspreadsheetRef.current || !hasChanges) return
+    if (!jspreadsheetRef.current || !hasChanges || modifiedBookings.length === 0) return
     
     setIsLoading(true)
     
     try {
-      const data = jspreadsheetRef.current.getData()
+      console.log('📋 SAVING MODIFIED BOOKINGS:', modifiedBookings)
       
-      // Stampa tutte le righe modificate
-      console.log('📋 TUTTE LE RIGHE MODIFICATE:')
-      modifiedRows.forEach(rowIndex => {
-        const rowData = data[rowIndex]
-        if (rowData && rowData[0]) { // Se la riga ha un ID
-          const modifiedRowObject = rowToObject(rowData, rowIndex)
-          console.log(`Riga ${rowIndex}:`, modifiedRowObject)
+      // Separate new bookings from existing ones
+      const updates = []
+      const creates = []
+      
+      for (const modifiedBooking of modifiedBookings) {
+        const apiData = prepareBookingForAPI(modifiedBooking)
+        
+        if (modifiedBooking.isNew) {
+          creates.push(apiData)
+        } else {
+          updates.push(apiData)
         }
+      }
+      
+      // Send batch request to new endpoint
+      const response = await fetch('/api/admin/batch-save-bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          updates,
+          creates
+        }),
       })
       
-      const updatedBookings = []
-      
-      // Process each row to find changes
-      for (let i = 0; i < data.length; i++) {
-        const row = data[i]
-        const bookingId = row[0]
-        
-        // Skip empty rows (rows without booking ID)
-        if (!bookingId || bookingId === '') continue
-        
-        const originalBooking = bookings.find(b => b.id === bookingId)
-        
-        if (!originalBooking) continue
-        
-        // Map spreadsheet data back to booking object - NEW FIELD MAPPING
-        const updatedBooking: any = {
-          id: bookingId,
-          // 1. data → service_date
-          service_date: row[1],
-          // 2. società → customer will be resolved from name to ID below
-          // 3. ora → service_time  
-          service_time: row[3],
-          // 4. committente → new field
-          committente: row[4] || null,
-          // 5. passeggero/i → new field passenger_details
-          passenger_details: row[5] || null,
-          // 6. da → pickup_address
-          pickup_address: row[6],
-          // 7. a → destination_address
-          destination_address: row[7],
-          // 8. mezzo → new field vehicle_details
-          vehicle_details: row[8] || null,
-          // 9. imponibile → net_amount
-          net_amount: row[9] ? parseFloat(row[9]) : null,
-          // 10. iva → vat_amount
-          vat_amount: row[10] ? parseFloat(row[10]) : null,
-          // 11. tot fattura → amount_total (convert back to cents)
-          amount_total: Math.round(parseFloat(row[11]) * 100),
-          // 12. autista → driver will be resolved from name to ID below
-          // 13. fatturazione autista → new field
-          driver_billing: row[13] ? parseFloat(row[13]) : null,
-          // 14. commissioni autista → new field
-          driver_commission: row[14] ? parseFloat(row[14]) : null,
-          // 15. importo incasso diretto → new field
-          direct_collection: row[15] ? parseFloat(row[15]) : null,
-          // 16. cash/kk → new field payment_method
-          payment_method: row[16] || null,
-          // 17. note → notes
-          notes: row[17] || null,
-          // 18. targa → new field license_plate
-          license_plate: row[18] || null
-        }
-        
-        // Find customer_id from name (società - column 2)
-        const customerName = row[2]
-        const customer = customers.find(c => c.name === customerName)
-        updatedBooking.customer_id = customer?.id || null
-        
-        // Find driver_id from name (autista - column 12)
-        const driverName = row[12]
-        const driver = drivers.find(d => d.name === driverName)
-        updatedBooking.driver_id = driver?.id || null
-        
-        // Check if booking has changes by comparing all fields
-        const hasBookingChanges = 
-          originalBooking.service_date !== updatedBooking.service_date ||
-          originalBooking.service_time !== updatedBooking.service_time ||
-          originalBooking.pickup_address !== updatedBooking.pickup_address ||
-          originalBooking.destination_address !== updatedBooking.destination_address ||
-          originalBooking.amount_total !== updatedBooking.amount_total ||
-          originalBooking.notes !== updatedBooking.notes ||
-          originalBooking.driver_id !== updatedBooking.driver_id ||
-          originalBooking.customer_id !== updatedBooking.customer_id ||
-          // New fields comparison
-          originalBooking.committente !== updatedBooking.committente ||
-          originalBooking.passenger_details !== updatedBooking.passenger_details ||
-          originalBooking.vehicle_details !== updatedBooking.vehicle_details ||
-          originalBooking.net_amount !== updatedBooking.net_amount ||
-          originalBooking.vat_amount !== updatedBooking.vat_amount ||
-          originalBooking.driver_billing !== updatedBooking.driver_billing ||
-          originalBooking.driver_commission !== updatedBooking.driver_commission ||
-          originalBooking.direct_collection !== updatedBooking.direct_collection ||
-          originalBooking.payment_method !== updatedBooking.payment_method ||
-          originalBooking.license_plate !== updatedBooking.license_plate
-        
-        if (hasBookingChanges) {
-          updatedBookings.push(updatedBooking)
-        }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Errore durante il salvataggio')
       }
       
-      // Update each changed booking
-      const updatePromises = updatedBookings.map(booking => 
-        fetch('/api/admin/update-booking', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(booking),
-        })
-      )
+      const result = await response.json()
       
-      const responses = await Promise.all(updatePromises)
-      const failedUpdates = responses.filter(response => !response.ok)
-      
-      if (failedUpdates.length > 0) {
-        throw new Error(`${failedUpdates.length} prenotazioni non sono state aggiornate correttamente`)
+      if (!result.success) {
+        throw new Error(result.error || 'Operazione fallita')
       }
       
+      const { updated, created, errors } = result.results
+      
+      // Show success message
       toast({
         title: "Prenotazioni salvate",
-        description: `${updatedBookings.length} prenotazioni sono state aggiornate con successo`,
+        description: `${updated} modifiche e ${created} nuove prenotazioni salvate con successo` + 
+                    (errors > 0 ? ` (${errors} errori)` : ''),
+        variant: errors > 0 ? "destructive" : "default"
       })
       
+      // Log any errors for debugging
+      if (errors > 0) {
+        console.warn('Some operations failed:', result.results.details.errors)
+      }
+      
+      // Reset state
       setHasChanges(false)
-      setModifiedRows(new Set()) // Reset delle righe modificate
+      setModifiedRows(new Set())
+      setModifiedBookings([])
+      setNewRowsCount(0)
+      
+      // Refresh data
       onBookingsUpdated()
       
     } catch (error) {
       console.error('Error saving bookings:', error)
       toast({
         title: "Errore nel salvataggio",
-        description: "Si è verificato un errore durante il salvataggio delle prenotazioni",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante il salvataggio delle prenotazioni",
         variant: "destructive",
       })
     } finally {
@@ -668,27 +828,70 @@ function SpreadsheetCore({
               {dictionary.admin?.dashboard?.bookingsCount?.replace('{count}', bookings.length) || `Prenotazioni (${bookings.length} su 50 righe)`}
             </CardTitle>
             <CardDescription>
-              Tabella con 18 campi per la gestione completa delle prenotazioni - 50 righe fisse, modifica diretta e salvataggio differito
+              Tabella con 18 campi per la gestione completa delle prenotazioni - modifica diretta e salvataggio differito
             </CardDescription>
           </div>
-          {hasChanges && (
+          <div className="flex gap-2">
             <Button 
-              onClick={handleSave} 
+              onClick={addNewRow} 
+              variant="outline"
               disabled={isLoading}
-              className="ml-4"
             >
-              <Save className="mr-2 h-4 w-4" />
-              {isLoading ? 'Salvataggio...' : 'Salva Modifiche'}
+              <Plus className="mr-2 h-4 w-4" />
+              Aggiungi Riga
             </Button>
-          )}
-
+            {hasChanges && modifiedBookings.length > 0 && (
+              <Button 
+                onClick={handleSave} 
+                disabled={isLoading}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Salvataggio...
+                  </>
+                ) : (
+                  `Salva Modifiche (${modifiedBookings.length})`
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="mb-4 text-sm text-gray-600">
-          <strong>Istruzioni:</strong> Modifica i campi direttamente in tabella. Usa dropdown per Società/Autista/Metodo Pagamento. 
-          I campi numerici (Imponibile, IVA, ecc.) accettano decimali. Il bottone "Salva Modifiche" appare quando ci sono modifiche da salvare.
+          <strong>Istruzioni:</strong> Modifica i campi direttamente in tabella. Usa dropdown per Società/Autista. 
+          I campi numerici (Imponibile, IVA, ecc.) accettano decimali. 
+          <strong>Nuove righe:</strong> Clicca "Aggiungi Riga" per creare nuove prenotazioni (solo la data è obbligatoria).
+          <br />
+          <strong>Scorciatoie:</strong> <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Ctrl+S</kbd> per salvare, 
+          <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Ctrl+N</kbd> per aggiungere riga.
+          <br />
+          <strong>Indicatori:</strong> <span className="inline-block w-3 h-3 bg-green-100 border-l-4 border-green-500 mr-1"></span> Nuove righe • 
+          <span className="inline-block w-3 h-3 bg-yellow-100 border-l-4 border-orange-500 mr-1"></span> Righe modificate
         </div>
+        
+        {/* Status indicator */}
+        {hasChanges && modifiedBookings.length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-800 font-medium">
+                  📝 {modifiedBookings.length} modifiche in attesa di salvataggio
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {modifiedBookings.filter(mb => mb.isNew).length} nuove prenotazioni • {modifiedBookings.filter(mb => !mb.isNew).length} modifiche esistenti
+                </p>
+              </div>
+              <Button onClick={handleSave} disabled={isLoading} size="sm">
+                Salva Ora
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <div 
           ref={containerRef} 
           className="w-full border rounded-lg"
@@ -703,13 +906,6 @@ function SpreadsheetCore({
             margin: 0
           }}
         />
-        {hasChanges && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              ⚠️ Ci sono modifiche non salvate. Clicca su "Salva Modifiche" per applicarle.
-            </p>
-          </div>
-        )}
       </CardContent>
     </Card>
   )
