@@ -270,8 +270,15 @@ function SpreadsheetCore({
         allowDeleteRow: false,
         allowInsertColumn: false,
         allowDeleteColumn: false,
+        allowRenameColumn: false,
+        editable: true, // FONDAMENTALE - permette modifiche
         tableHeight: '600px',
         tableWidth: '100%',
+        columnSorting: false,
+        columnDrag: false,
+        rowResize: false,
+        columnResize: true,
+        contextMenu: true, // Menu destro per debug
         
         // EVENT HANDLERS - ULTRA SIMPLIFIED
         onchange: function(instance, cell, x, y, value, oldValue) {
@@ -284,14 +291,35 @@ function SpreadsheetCore({
           }
         },
         
+        oneditionstart: function(instance, cell, x, y) {
+          addDebugLog(`📝 EDITION START: cell[${x},${y}]`)
+          console.log('📝 EDITION START:', { cell, x, y })
+        },
+        
         oneditionend: function(instance, cell, x, y, value, oldValue) {
           addDebugLog(`📝 EDITION END: cell[${x},${y}] = "${value}" (was "${oldValue}")`)
           console.log('📝 EDITION END:', { cell, x, y, value, oldValue })
         },
         
+        onclick: function(instance, cell, x, y, value, event) {
+          addDebugLog(`👆 CELL CLICK: cell[${x},${y}] = "${value}"`)
+          console.log('👆 CELL CLICK:', { cell, x, y, value })
+        },
+        
         onload: function(instance) {
           addDebugLog('✅ Spreadsheet caricato con successo!')
           console.log('✅ Spreadsheet loaded:', instance)
+          
+          // Test che le celle siano editabili
+          setTimeout(() => {
+            addDebugLog('🔍 Test editabilità celle...')
+            const firstDataCell = containerRef.current?.querySelector('tbody tr:first-child td:nth-child(2)')
+            if (firstDataCell) {
+              addDebugLog(`✅ Prima cella data trovata: ${firstDataCell.textContent}`)
+            } else {
+              addDebugLog('❌ Prima cella data non trovata')
+            }
+          }, 500)
         },
         
         onerror: function(instance, error) {
