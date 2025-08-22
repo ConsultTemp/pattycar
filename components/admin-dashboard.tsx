@@ -19,6 +19,7 @@ import { AdminBookingViewModal } from "@/components/admin-booking-view-modal"
 import AdminDriversManagement from "@/components/admin-drivers-management"
 import AdminCustomersManagement from "@/components/admin-customers-management"
 import AdminBookingsSpreadsheet from "@/components/admin-bookings-spreadsheet"
+import AdminSmsTest from "@/components/admin-sms-test"
 import { format } from "date-fns"
 import { it } from "date-fns/locale"
 import { 
@@ -685,6 +686,9 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
 
       {/* Customers Management */}
       <AdminCustomersManagement dictionary={dictionary} onCustomersUpdated={refreshCustomers} />
+
+      {/* SMS Test Component */}
+      <AdminSmsTest dictionary={dictionary} />
     </div>
   )
 } 

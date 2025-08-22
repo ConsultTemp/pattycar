@@ -5,7 +5,11 @@ import { Database } from "@/types/database.types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { FileText, Save } from "lucide-react"
+import { FileText, Save, MessageSquare, Calendar } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import dynamic from "next/dynamic"
 
 type BookingRow = Database['public']['Tables']['bookings']['Row']
@@ -32,6 +36,10 @@ function SpreadsheetCore({
   const [isLoading, setIsLoading] = useState(false)
   const [modifiedRows, setModifiedRows] = useState(new Set<number>())
   const [isJsLoaded, setIsJsLoaded] = useState(false)
+  const [selectedRows, setSelectedRows] = useState(new Set<number>())
+  const [isNotifyDialogOpen, setIsNotifyDialogOpen] = useState(false)
+  const [notificationDates, setNotificationDates] = useState<string[]>([])
+  const [isNotifyLoading, setIsNotifyLoading] = useState(false)
 
   // Nomi delle colonne per creare l'oggetto (corrispondenti alla struttura attuale)
   const columnNames = [
@@ -355,6 +363,17 @@ function SpreadsheetCore({
         defaultRowHeight: 25,
         tableHeight: '1300px', // Set explicit table height
         tableWidth: '100%',
+        onselection: (instance: any, x1: any, y1: any, x2: any, y2: any) => {
+          // Track row selections for driver notifications
+          const newSelectedRows = new Set<number>()
+          for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+            const rowData = instance.getRowData(y)
+            if (rowData && rowData[0]) { // Only select rows with booking ID
+              newSelectedRows.add(y)
+            }
+          }
+          setSelectedRows(newSelectedRows)
+        },
         style: {
           'background-color': '#ffffff',
         },
@@ -645,6 +664,89 @@ function SpreadsheetCore({
     }
   }
 
+  // Handle driver notifications
+  const handleNotifyDrivers = async () => {
+    if (selectedRows.size === 0 && notificationDates.length === 0) {
+      toast({
+        title: "Errore",
+        description: "Seleziona delle righe o specifica delle date per le notifiche",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsNotifyLoading(true)
+
+    try {
+      let requestBody: any = {}
+
+      if (selectedRows.size > 0) {
+        // Get booking IDs from selected rows
+        const data = jspreadsheetRef.current.getData()
+        const bookingIds = Array.from(selectedRows).map(rowIndex => data[rowIndex][0]).filter(id => id)
+        requestBody.bookingIds = bookingIds
+      } else if (notificationDates.length > 0) {
+        requestBody.dates = notificationDates
+      }
+
+      const response = await fetch('/api/admin/notify-drivers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast({
+          title: "Notifiche inviate",
+          description: result.message,
+        })
+      } else {
+        toast({
+          title: "Errore invio notifiche",
+          description: result.error || "Si è verificato un errore",
+          variant: "destructive",
+        })
+      }
+
+      // Reset selections and close dialog
+      setSelectedRows(new Set())
+      setNotificationDates([])
+      setIsNotifyDialogOpen(false)
+
+    } catch (error) {
+      console.error('Error sending driver notifications:', error)
+      toast({
+        title: "Errore di connessione",
+        description: "Impossibile inviare le notifiche",
+        variant: "destructive",
+      })
+    } finally {
+      setIsNotifyLoading(false)
+    }
+  }
+
+  // Get unique dates from current bookings for date selection
+  const availableDates = useMemo(() => {
+    const dates = new Set<string>()
+    bookings.forEach(booking => {
+      if (booking.service_date) {
+        dates.add(booking.service_date)
+      }
+    })
+    return Array.from(dates).sort()
+  }, [bookings])
+
+  // Get bookings count for selected dates
+  const getBookingsCountForDates = (dates: string[]) => {
+    return bookings.filter(booking => 
+      dates.includes(booking.service_date) && booking.driver_id
+    ).length
+  }
+
   if (!isJsLoaded) {
     return (
       <Card>
@@ -671,16 +773,110 @@ function SpreadsheetCore({
               Tabella con 18 campi per la gestione completa delle prenotazioni - 50 righe fisse, modifica diretta e salvataggio differito
             </CardDescription>
           </div>
-          {hasChanges && (
-            <Button 
-              onClick={handleSave} 
-              disabled={isLoading}
-              className="ml-4"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {isLoading ? 'Salvataggio...' : 'Salva Modifiche'}
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {hasChanges && (
+              <Button 
+                onClick={handleSave} 
+                disabled={isLoading}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {isLoading ? 'Salvataggio...' : 'Salva Modifiche'}
+              </Button>
+            )}
+            
+            <Dialog open={isNotifyDialogOpen} onOpenChange={setIsNotifyDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Notifica Drivers
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Invia notifiche agli autisti</DialogTitle>
+                  <DialogDescription>
+                    Seleziona righe specifiche o date per inviare SMS agli autisti assegnati
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  {selectedRows.size > 0 && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm font-medium text-blue-800">
+                        Righe selezionate: {selectedRows.size}
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        Verranno notificati i drivers delle righe selezionate
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Oppure seleziona date:</Label>
+                    <div className="max-h-32 overflow-y-auto space-y-2">
+                      {availableDates.map(date => {
+                        const bookingsCount = getBookingsCountForDates([date])
+                        return (
+                          <div key={date} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`date-${date}`}
+                              checked={notificationDates.includes(date)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setNotificationDates(prev => [...prev, date])
+                                } else {
+                                  setNotificationDates(prev => prev.filter(d => d !== date))
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`date-${date}`} className="text-sm">
+                              {new Date(date).toLocaleDateString('it-IT', {
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })} ({bookingsCount} servizi)
+                            </Label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  
+                  {notificationDates.length > 0 && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm font-medium text-green-800">
+                        Date selezionate: {notificationDates.length}
+                      </p>
+                      <p className="text-xs text-green-600">
+                        Verranno notificati {getBookingsCountForDates(notificationDates)} drivers
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedRows(new Set())
+                        setNotificationDates([])
+                        setIsNotifyDialogOpen(false)
+                      }}
+                    >
+                      Annulla
+                    </Button>
+                    <Button
+                      onClick={handleNotifyDrivers}
+                      disabled={isNotifyLoading || (selectedRows.size === 0 && notificationDates.length === 0)}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      {isNotifyLoading ? 'Invio...' : 'Invia Notifiche'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
 
         </div>
       </CardHeader>
@@ -688,6 +884,8 @@ function SpreadsheetCore({
         <div className="mb-4 text-sm text-gray-600">
           <strong>Istruzioni:</strong> Modifica i campi direttamente in tabella. Usa dropdown per Società/Autista/Metodo Pagamento. 
           I campi numerici (Imponibile, IVA, ecc.) accettano decimali. Il bottone "Salva Modifiche" appare quando ci sono modifiche da salvare.
+          <br />
+          <strong>Notifiche SMS:</strong> Seleziona righe specifiche trascinando sulla tabella, oppure usa il dialogo per selezionare date intere.
         </div>
         <div 
           ref={containerRef} 

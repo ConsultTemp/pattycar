@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/notify-customers",
+      "schedule": "0 18 * * *"
+    }
+  ],
+  "functions": {
+    "app/api/cron/notify-customers/route.ts": {
+      "maxDuration": 300
+    }
+  }
+}
