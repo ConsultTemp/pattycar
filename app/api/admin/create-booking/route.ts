@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       transfer_route: body.transfer_route || null,
       event_route: body.event_route || null,
       night_surcharge: body.night_surcharge || null,
-      vat_rate: body.vat_rate || '22',
+      vat_rate: body.vat_rate || '10',
       price_breakdown: body.price_breakdown || null,
       
       // Olympic/Event pricing

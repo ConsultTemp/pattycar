@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
         eventRoute = "",
         isOlympicPricing = "false",
         nightSurcharge = "",
-        vatRate = "22",
+        vatRate = "10",
       } = metadata
 
       // Parsa i veicoli individuali se presenti
@@ -359,7 +359,7 @@ export async function POST(req: NextRequest) {
             const googleSheetsOperation = (async () => {
             // Calculate taxable amount and VAT from total
             const totalAmount = insertResult.data!.amount_total / 100 // Convert from cents to euros
-            const vatRateNum = parseFloat(vatRate) || 22 // Default 22% VAT
+            const vatRateNum = parseFloat(vatRate) || 10 // Default 22% VAT
             const taxableAmount = totalAmount / (1 + vatRateNum / 100)
             const vatAmount = totalAmount - taxableAmount
 
