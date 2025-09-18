@@ -79,16 +79,64 @@ Grazie per averci scelto!`
 }
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 SMS Endpoint called at:', new Date().toISOString())
+  
   try {
     // Parse the request body
-    const payload: GoogleSheetsSMSPayload = await request.json()
+    const rawBody = await request.text()
+    console.log('📥 Raw request body:', rawBody)
     
-    // Validate required fields
-    if (!payload.data || !payload.ora || !payload.target) {
+    let payload: GoogleSheetsSMSPayload
+    try {
+      payload = JSON.parse(rawBody)
+    } catch (parseError) {
+      console.error('❌ JSON Parse Error:', parseError)
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Missing required fields: data, ora, target' 
+          error: 'Invalid JSON in request body',
+          details: parseError instanceof Error ? parseError.message : 'Unknown parse error'
+        },
+        { status: 400 }
+      )
+    }
+    
+    console.log('📋 Parsed payload:', JSON.stringify(payload, null, 2))
+    
+    // Validate required fields with more detailed logging
+    const missingFields = []
+    
+    console.log('🔍 Field validation:')
+    console.log('  - data:', typeof payload.data, payload.data)
+    console.log('  - ora:', typeof payload.ora, payload.ora)
+    console.log('  - target:', typeof payload.target, payload.target)
+    console.log('  - clientePhone:', typeof payload.clientePhone, payload.clientePhone)
+    console.log('  - driverPhone:', typeof payload.driverPhone, payload.driverPhone)
+    
+    if (!payload.data) missingFields.push('data')
+    if (!payload.ora) missingFields.push('ora') 
+    if (!payload.target) missingFields.push('target')
+    
+    if (missingFields.length > 0) {
+      console.error('❌ Missing required fields:', missingFields)
+      console.error('❌ FULL PAYLOAD RECEIVED:', JSON.stringify(payload, null, 2))
+      console.error('❌ This will return 400 - Missing fields:', missingFields.join(', '))
+      
+      // Force log flush before returning error
+      setTimeout(() => {
+        console.error('❌ ERROR 400 RETURNED - Missing fields:')
+      }, 100)
+      
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `Missing required fields: ${missingFields.join(', ')}`,
+          received: payload,
+          debug: {
+            missingFields,
+            receivedFields: Object.keys(payload),
+            timestamp: new Date().toISOString()
+          }
         },
         { status: 400 }
       )
@@ -96,14 +144,26 @@ export async function POST(request: NextRequest) {
     
     // Validate target
     if (!['driver', 'cliente', 'entrambi'].includes(payload.target)) {
+      console.error('❌ Invalid target:', payload.target)
+      console.error('❌ FULL PAYLOAD FOR INVALID TARGET:', JSON.stringify(payload, null, 2))
+      console.error('❌ This will return 400 - Invalid target:', payload.target)
+      
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Invalid target. Must be: driver, cliente, or entrambi' 
+          error: 'Invalid target. Must be: driver, cliente, or entrambi',
+          received: payload.target,
+          validOptions: ['driver', 'cliente', 'entrambi'],
+          debug: {
+            fullPayload: payload,
+            timestamp: new Date().toISOString()
+          }
         },
         { status: 400 }
       )
     }
+    
+    console.log('✅ Validation passed, processing SMS requests...')
     
     const results: Array<{
       target: string
@@ -211,12 +271,14 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error in send-sms endpoint:', error)
+    console.error('❌ Unexpected error in send-sms endpoint:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
       { 
         success: false, 
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     )
@@ -225,10 +287,28 @@ export async function POST(request: NextRequest) {
 
 // Optional: Add GET method for testing/health check
 export async function GET() {
-  return NextResponse.json({
+  const response = NextResponse.json({
     message: 'SMS endpoint is active',
     supportedTargets: ['driver', 'cliente', 'entrambi'],
     requiredFields: ['data', 'ora', 'target'],
     optionalFields: ['customerName', 'pickup', 'destination', 'clientePhone', 'driverPhone']
   })
+  
+  // Add CORS headers for Google Apps Script
+  response.headers.set('Access-Control-Allow-Origin', '*')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type')
+  
+  return response
+}
+
+// Add OPTIONS method for CORS preflight
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 200 })
+  
+  response.headers.set('Access-Control-Allow-Origin', '*')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type')
+  
+  return response
 }
