@@ -55,6 +55,7 @@ export interface GoogleSheetsBookingData {
 // Add booking to Google Sheets by reading headers and mapping data correctly
 export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingData): Promise<{ success: boolean; error?: string }> {
   try {
+    console.log('🔧 Creating Google Sheets auth client...')
     const auth = createAuthClient()
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID
 
@@ -62,6 +63,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
       throw new Error('Google Sheets spreadsheet ID not configured')
     }
 
+    console.log('📋 Reading sheet headers...')
     // First, read the headers to understand the column structure
     const headersResponse = await sheets.spreadsheets.values.get({
       auth,
@@ -70,93 +72,72 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
     })
 
     const headers = headersResponse.data.values?.[0] || []
-    console.log('Sheet headers:', headers)
-    console.log('Headers length:', headers.length)
-    headers.forEach((header: string, index: number) => {
-      console.log(`Column ${index}: "${header}"`)
-    })
+    console.log(`📊 Found ${headers.length} headers in sheet`)
 
     // Create a mapping object for the data based on column names
     const columnMapping: { [key: string]: any } = {}
     
+    console.log('🗂️ Mapping booking data to columns...')
     // Map the booking data to the correct column names
     headers.forEach((header: string, index: number) => {
       const headerName = header ? header.toLowerCase().trim() : ''
-      console.log(`Processing column ${index}: "${headerName}"`)
       
       switch (headerName) {
         case 'data':
           columnMapping[index] = bookingData.service_date
-          console.log(`  -> Mapped data to column ${index}`)
           break
         case 'società':
           columnMapping[index] = bookingData.company
-          console.log(`  -> Mapped società to column ${index}`)
           break
         case 'ora':
           columnMapping[index] = bookingData.service_time
-          console.log(`  -> Mapped ora to column ${index}`)
           break
         case 'committente':
           columnMapping[index] = bookingData.customer_name
-          console.log(`  -> Mapped committente to column ${index}`)
           break
         case 'passeggero/i':
           columnMapping[index] = bookingData.passengers_info
-          console.log(`  -> Mapped passeggero/i to column ${index}`)
           break
         case 'da':
           columnMapping[index] = bookingData.pickup_address
-          console.log(`  -> Mapped da to column ${index}`)
           break
         case 'dispo / destinazione':
           columnMapping[index] = bookingData.destination_address
-          console.log(`  -> Mapped dispo / destinazione to column ${index}`)
           break
         case 'mezzo':
           // Only map to the first "mezzo" column (index 10), not the second one (index 21)
           if (index === 10) {
             columnMapping[index] = bookingData.vehicle_type
-            console.log(`  -> Mapped mezzo to column ${index}`)
           } else {
             columnMapping[index] = '' // Leave the second MEZZO column empty
           }
           break
         case 'imponibile':
           columnMapping[index] = bookingData.taxable_amount
-          console.log(`  -> Mapped imponibile to column ${index}`)
           break
         case 'iva':
           columnMapping[index] = bookingData.vat_amount
-          console.log(`  -> Mapped iva to column ${index}`)
           break
         case 'tot fattura':
           columnMapping[index] = bookingData.total_invoice
-          console.log(`  -> Mapped tot fattura to column ${index}`)
           break
         case 'autista':
           columnMapping[index] = bookingData.driver_name || ''
-          console.log(`  -> Mapped autista to column ${index}`)
           break
         case 'fatturazione autista':
           columnMapping[index] = bookingData.driver_billing || ''
-          console.log(`  -> Mapped fatturazione autista to column ${index}`)
           break
         case 'commissioni autista':
           columnMapping[index] = bookingData.driver_commission || ''
-          console.log(`  -> Mapped commissioni autista to column ${index}`)
           break
         case 'importo incasso diretto':
           columnMapping[index] = bookingData.direct_collection || ''
-          console.log(`  -> Mapped importo incasso diretto to column ${index}`)
           break
         case 'cash/kk':
           columnMapping[index] = bookingData.payment_method || ''
-          console.log(`  -> Mapped cash/kk to column ${index}`)
           break
         case 'note':
           columnMapping[index] = bookingData.notes || ''
-          console.log(`  -> Mapped note to column ${index}`)
           break
         default:
           // For all other columns, leave empty
@@ -171,20 +152,60 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
       row[i] = columnMapping[i] || ''
     }
 
-    console.log('Row to be inserted:', row)
+    console.log('💾 Finding next available row in Google Sheets...')
 
-    // Find the next empty row by getting all data
+    // Get all data to find the actual last row with content
     const dataResponse = await sheets.spreadsheets.values.get({
       auth,
       spreadsheetId,
-      range: 'Sheet1!A:ZZ', // Get all data to find the actual last row
+      range: 'Sheet1!A:ZZ', // Get all data to find the real last row
     })
 
     const existingData = dataResponse.data.values || []
-    const nextRow = existingData.length + 1
+    
+    // Find the last row that has any content
+    let lastRowWithData = 0
+    for (let i = existingData.length - 1; i >= 0; i--) {
+      const row = existingData[i]
+      // Check if row has any non-empty cells
+      if (row && row.some(cell => cell && cell.toString().trim() !== '')) {
+        lastRowWithData = i + 1 // +1 because array is 0-indexed but sheets are 1-indexed
+        break
+      }
+    }
+    
+    let nextRow = lastRowWithData + 1
+    console.log(`📍 Last row with data: ${lastRowWithData}, checking row: ${nextRow}`)
 
-    console.log(`Total existing rows: ${existingData.length}`)
-    console.log(`Inserting data in row ${nextRow}`)
+    // Double-check that the target row is actually empty
+    const targetRowCheck = await sheets.spreadsheets.values.get({
+      auth,
+      spreadsheetId,
+      range: `Sheet1!A${nextRow}:ZZ${nextRow}`,
+    })
+    
+    const targetRowData = targetRowCheck.data.values?.[0] || []
+    const hasExistingData = targetRowData.some(cell => cell && cell.toString().trim() !== '')
+    
+    if (hasExistingData) {
+      console.log(`⚠️ Row ${nextRow} has existing data, finding next truly empty row...`)
+      // Find the next truly empty row
+      let emptyRow = nextRow + 1
+      while (emptyRow <= lastRowWithData + 10) { // Check up to 10 rows ahead
+        const checkResponse = await sheets.spreadsheets.values.get({
+          auth,
+          spreadsheetId,
+          range: `Sheet1!A${emptyRow}:ZZ${emptyRow}`,
+        })
+        const checkData = checkResponse.data.values?.[0] || []
+        if (!checkData.some(cell => cell && cell.toString().trim() !== '')) {
+          nextRow = emptyRow
+          break
+        }
+        emptyRow++
+      }
+      console.log(`📍 Using truly empty row: ${nextRow}`)
+    }
 
     // Insert the row at the specific position using UPDATE instead of APPEND
     const response = await sheets.spreadsheets.values.update({
@@ -197,7 +218,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
       }
     })
 
-    console.log('Successfully added booking to Google Sheets:', response.data)
+    console.log('✅ Google Sheets booking inserted successfully')
     return { success: true }
 
   } catch (error) {

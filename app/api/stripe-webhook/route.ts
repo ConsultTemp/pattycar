@@ -347,8 +347,16 @@ export async function POST(req: NextRequest) {
         
         if (insertResult.success) {
           console.log('✅ Booking saved to database with ID:', insertResult.data?.id)
-          // Also send to Google Sheets
+          // Also send to Google Sheets - WITH OPTIMIZATIONS
           try {
+            console.log('📊 Starting Google Sheets integration...')
+            
+            // Set timeout for Google Sheets operation (max 10 seconds)
+            const googleSheetsTimeout = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Google Sheets timeout')), 10000)
+            )
+            
+            const googleSheetsOperation = (async () => {
             // Calculate taxable amount and VAT from total
             const totalAmount = insertResult.data!.amount_total / 100 // Convert from cents to euros
             const vatRateNum = parseFloat(vatRate) || 22 // Default 22% VAT
@@ -529,14 +537,32 @@ export async function POST(req: NextRequest) {
               amount: totalAmount
             })
 
+            // Import Google Sheets function dynamically to reduce initial load
+            const { addBookingToGoogleSheets } = await import('@/lib/google-sheets')
             const googleSheetsResult = await addBookingToGoogleSheets(googleSheetsData)
-            if (googleSheetsResult.success) {
-              console.log('✅ Successfully added booking to Google Sheets')
-            } else {
-              console.error('❌ Failed to add booking to Google Sheets:', googleSheetsResult.error)
+            
+            return googleSheetsResult
+            })()
+
+            // Race between Google Sheets operation and timeout
+            const result = await Promise.race([googleSheetsOperation, googleSheetsTimeout])
+            
+            if (result && typeof result === 'object' && 'success' in result) {
+              if (result.success) {
+                console.log('✅ Successfully added booking to Google Sheets')
+              } else {
+                console.error('❌ Failed to add booking to Google Sheets:', 'error' in result ? result.error : 'Unknown error')
+              }
             }
+            
           } catch (sheetsError) {
-            console.error('❌ Error sending booking to Google Sheets:', sheetsError)
+            if (sheetsError instanceof Error && sheetsError.message === 'Google Sheets timeout') {
+              console.error('⏱️ Google Sheets operation timed out after 10 seconds')
+            } else {
+              console.error('❌ Error sending booking to Google Sheets:', sheetsError)
+            }
+            // Don't fail the webhook - Google Sheets is not critical
+            console.log('⚠️ Continuing webhook processing despite Google Sheets error')
           }
         } else {
           console.log('❌ Database insert failed:', insertResult.error)
