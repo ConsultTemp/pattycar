@@ -86,9 +86,7 @@ const stripeEventPayload = {
  * Create Stripe webhook signature
  * This mimics exactly how Stripe creates the signature
  */
-function createStripeSignature(payload, secret, timestamp) {
-  const payloadString = JSON.stringify(payload);
-  
+function createStripeSignature(payloadString, secret, timestamp) {
   // Remove the 'whsec_' prefix from the secret
   const key = secret.replace('whsec_', '');
   
@@ -123,8 +121,8 @@ async function testStripeWebhook() {
     // Convert payload to string exactly as it will be sent
     const payloadString = JSON.stringify(stripeEventPayload);
     
-    // Create Stripe signature
-    const stripeSignature = createStripeSignature(stripeEventPayload, WEBHOOK_SECRET, timestamp);
+    // Create Stripe signature using the exact payload string
+    const stripeSignature = createStripeSignature(payloadString, WEBHOOK_SECRET, timestamp);
     
     console.log('\n🔐 Signature Details:');
     console.log('Timestamp:', timestamp);
@@ -196,7 +194,7 @@ async function testDifferentEvents() {
   try {
     const timestamp = Math.floor(Date.now() / 1000);
     const payloadString = JSON.stringify(unsupportedEvent);
-    const stripeSignature = createStripeSignature(unsupportedEvent, WEBHOOK_SECRET, timestamp);
+    const stripeSignature = createStripeSignature(payloadString, WEBHOOK_SECRET, timestamp);
     
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',

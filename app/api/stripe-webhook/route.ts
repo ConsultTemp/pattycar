@@ -65,100 +65,22 @@ function formatDate(date: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  console.log('🔵 Stripe webhook received')
-  
   try {
-    // Leggi il raw body come buffer per Stripe
-    console.log('📥 Reading request body...')
-    const buffer = await req.arrayBuffer()
-    const body = Buffer.from(buffer).toString('utf8')
-    console.log('📏 Body length:', body.length)
-    console.log('🔍 Body type:', typeof body)
-    
+    // Leggi il raw body come buffer
+    const body = await req.text()
     const signature = req.headers.get("stripe-signature")
-    console.log('🔐 Stripe signature present:', !!signature)
 
     if (!signature) {
-      console.log('❌ Missing Stripe signature')
       return NextResponse.json({ error: "Stripe signature mancante" }, { status: 400 })
     }
 
     let event: Stripe.Event
 
     try {
-      console.log('🔍 Verifying webhook signature...')
-      console.log('🌍 Environment:', process.env.NODE_ENV)
-      console.log('🔑 Webhook secret exists:', !!process.env.STRIPE_WEBHOOK_SECRET)
-      console.log('🔑 Webhook secret starts with whsec_:', process.env.STRIPE_WEBHOOK_SECRET?.startsWith('whsec_'))
-      console.log('🔑 Webhook secret first 20 chars:', process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 20))
-      console.log('🔑 Webhook secret full:', process.env.STRIPE_WEBHOOK_SECRET)
-      console.log('🔐 Signature header:', signature)
-      console.log('📏 Body length for verification:', body.length)
-      console.log('🔤 First 200 chars of body:', body.substring(0, 200))
-      console.log('🔤 Last 100 chars of body:', body.substring(body.length - 100))
-      console.log('🔍 Body type:', typeof body)
-      console.log('🔍 Body constructor:', body.constructor.name)
-      
-      // Extract timestamp from signature for debugging
-      const sigParts = signature.split(',');
-      const timestamp = sigParts.find(part => part.startsWith('t='))?.split('=')[1];
-      const v1Signature = sigParts.find(part => part.startsWith('v1='))?.split('=')[1];
-      
-      console.log('🕐 Extracted timestamp:', timestamp);
-      console.log('🔐 Extracted v1 signature:', v1Signature);
-      
-      // Manual signature verification for debugging
-      if (timestamp && v1Signature) {
-        const crypto = require('crypto');
-        const secret = process.env.STRIPE_WEBHOOK_SECRET!.replace('whsec_', '');
-        const signedPayload = timestamp + '.' + body;
-        const expectedSignature = crypto
-          .createHmac('sha256', secret)
-          .update(signedPayload, 'utf8')
-          .digest('hex');
-        
-        console.log('🔍 Manual verification:');
-        console.log('  - Secret (without whsec_):', secret);
-        console.log('  - Signed payload length:', signedPayload.length);
-        console.log('  - Expected signature:', expectedSignature);
-        console.log('  - Received signature:', v1Signature);
-        console.log('  - Signatures match:', expectedSignature === v1Signature);
-      }
-      
-      // 🚨 TEMPORARY: Skip signature verification for debugging
-      if (process.env.NODE_ENV === 'development' || process.env.SKIP_WEBHOOK_VERIFICATION === 'true') {
-        console.log('⚠️ SKIPPING WEBHOOK VERIFICATION FOR DEBUGGING')
-        event = JSON.parse(body)
-      } else {
-        // Verifica la firma del webhook con la chiave segreta
-        console.log('🔍 Calling stripe.webhooks.constructEvent...')
-        event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
-        console.log('✅ stripe.webhooks.constructEvent succeeded')
-      }
-      
-      console.log('✅ Webhook signature verified (or skipped)')
-      console.log('📋 Event type:', event.type)
-      console.log('🆔 Event ID:', event.id)
+      // Verifica la firma del webhook con la chiave segreta
+      event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
     } catch (err) {
-      console.log('❌ Invalid webhook signature:', err)
-      console.log('❌ Error name:', err instanceof Error ? err.name : 'Unknown')
-      console.log('❌ Error message:', err instanceof Error ? err.message : 'Unknown')
-      console.log('❌ Error stack:', err instanceof Error ? err.stack : 'No stack')
-      console.log('🔑 Secret being used:', process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 30) + '...')
-      console.log('🔐 Full signature header:', signature)
-      console.log('📏 Body length when error:', body.length)
-      console.log('🔤 Body starts with:', body.substring(0, 200))
-      console.log('🔤 Body ends with:', body.substring(body.length - 100))
-      return NextResponse.json({ 
-        error: "Firma webhook non valida",
-        debug: {
-          errorName: err instanceof Error ? err.name : 'Unknown',
-          errorMessage: err instanceof Error ? err.message : 'Unknown',
-          bodyLength: body.length,
-          signatureReceived: signature,
-          secretExists: !!process.env.STRIPE_WEBHOOK_SECRET
-        }
-      }, { status: 400 })
+      return NextResponse.json({ error: "Firma webhook non valida" }, { status: 400 })
     }
 
     // Gestisci solo l'evento checkout.session.completed
@@ -407,7 +329,8 @@ export async function POST(req: NextRequest) {
         
         if (insertResult.success) {
           console.log('✅ Booking saved to database with ID:', insertResult.data?.id)
-          // Also send to Google Sheets - WITH OPTIMIZATIONS
+          // Also send to Google Sheets - TEMPORARILY DISABLED
+          /*
           try {
             console.log('📊 Starting Google Sheets integration...')
             
@@ -624,6 +547,7 @@ export async function POST(req: NextRequest) {
             // Don't fail the webhook - Google Sheets is not critical
             console.log('⚠️ Continuing webhook processing despite Google Sheets error')
           }
+          */
         } else {
           console.log('❌ Database insert failed:', insertResult.error)
           // Continue with email sending even if database insert fails
