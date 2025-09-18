@@ -64,6 +64,22 @@ function formatDate(date: string): string {
   return date
 }
 
+// Funzione per pulire il nome del veicolo rimuovendo "olympic-" e capitalizzando
+function cleanVehicleName(vehicleName: string): string {
+  if (!vehicleName) return vehicleName
+  
+  // Rimuovi "olympic-" se presente
+  let cleanName = vehicleName.replace(/^olympic-/i, '')
+  
+  // Converti i trattini rimanenti in spazi
+  cleanName = cleanName.replace(/-/g, ' ')
+  
+  // Capitalizza la prima lettera
+  cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1)
+  
+  return cleanName
+}
+
 export async function POST(req: NextRequest) {
   console.log('🔵 Stripe webhook received')
   try {
@@ -392,11 +408,11 @@ export async function POST(req: NextRequest) {
             const passengersInfoForSheets = (() => {
               if (hasIndividualVehicles) {
                 const vehicleDetails = parsedIndividualVehicles.map((vehicle, index) => 
-                  `V${index + 1}: ${vehicle.passengers}pax/${vehicle.luggage}bag (${vehicle.type})`
+                  `V${index + 1}: ${vehicle.passengers}pax/${vehicle.luggage}bag (${cleanVehicleName(vehicle.type)})`
                 ).join(', ')
                 return `${passengers} pax totali - ${vehicleDetails}`
               } else if (isMultipleVehicles) {
-                return `${passengers} pax - ${vehicleCount} veicoli (${vehicleType})`
+                return `${passengers} pax - ${vehicleCount} veicoli (${cleanVehicleName(vehicleType)})`
               } else {
                 return `${passengers} pax`
               }
@@ -504,7 +520,7 @@ export async function POST(req: NextRequest) {
               passengers_info: passengersInfoForSheets,
               pickup_address: insertResult.data!.pickup_address,
               destination_address: insertResult.data!.destination_address,
-              vehicle_type: hasIndividualVehicles ? `${parsedIndividualVehicles.length} veicoli misti` : insertResult.data!.vehicle_type,
+              vehicle_type: hasIndividualVehicles ? `${parsedIndividualVehicles.length} veicoli misti` : cleanVehicleName(insertResult.data!.vehicle_type),
               taxable_amount: Math.round(taxableAmount * 100) / 100, // Round to 2 decimals
               vat_amount: Math.round(vatAmount * 100) / 100,
               total_invoice: totalAmount,
@@ -781,7 +797,7 @@ export async function POST(req: NextRequest) {
                         </div>
                         <div style="display: grid; gap: 8px; font-size: 14px;">
                           <div style="color: #374151;">
-                            <strong>Type:</strong> <span style="color: #6b7280;">${vehicle.type}</span>
+                            <strong>Type:</strong> <span style="color: #6b7280;">${cleanVehicleName(vehicle.type)}</span>
                           </div>
                           <div style="color: #374151;">
                             <strong>Passengers:</strong> <span style="color: #6b7280;">${vehicle.passengers}</span>
@@ -802,7 +818,7 @@ export async function POST(req: NextRequest) {
                       <span style="color: #ec4899; font-size: 18px; margin-right: 12px;">🚙</span>
                       <div>
                         <strong style="color: #374151;">Vehicle:</strong>
-                        <span style="color: #6b7280; margin-left: 8px;">${vehicleType}</span>
+                        <span style="color: #6b7280; margin-left: 8px;">${cleanVehicleName(vehicleType)}</span>
                       </div>
                     </div>
                     
@@ -1226,7 +1242,7 @@ export async function POST(req: NextRequest) {
                         </div>
                         <div style="display: grid; gap: 4px; font-size: 12px;">
                           <div style="color: #1e40af;">
-                            <strong>Tipo:</strong> <span style="color: #3730a3;">${vehicle.type}</span>
+                            <strong>Tipo:</strong> <span style="color: #3730a3;">${cleanVehicleName(vehicle.type)}</span>
                           </div>
                           <div style="color: #1e40af;">
                             <strong>Passeggeri:</strong> <span style="color: #3730a3;">${vehicle.passengers}</span>
@@ -1244,7 +1260,7 @@ export async function POST(req: NextRequest) {
                         : `
                     <!-- Configurazione Unica Veicolo Admin -->
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>Veicolo:</strong> <span style="color: #3730a3;">${vehicleType}</span>
+                      <strong>Veicolo:</strong> <span style="color: #3730a3;">${cleanVehicleName(vehicleType)}</span>
                     </p>
                     ${
                       isMultipleVehicles
@@ -1402,24 +1418,6 @@ export async function POST(req: NextRequest) {
                     </p>
                     `
                     }
-                  </div>
-                </div>
-                
-                <!-- Technical Debug Info -->
-                <div style="background: #fafafa; border: 1px solid #d4d4d8; border-radius: 8px; padding: 20px; margin: 25px 0;">
-                  <h3 style="color: #71717a; margin: 0 0 15px 0; font-size: 14px; font-weight: 600;">
-                    🔍 Info Tecniche (Debug)
-                  </h3>
-                  <div style="font-size: 12px; color: #71717a; line-height: 1.4;">
-                    <p style="margin: 0 0 5px 0;"><strong>Sessione Stripe:</strong> ${session.id}</p>
-                    ${paymentIntentId ? `<p style="margin: 0 0 5px 0;"><strong>Payment Intent:</strong> ${paymentIntentId}</p>` : ""}
-                    <p style="margin: 0 0 5px 0;"><strong>Fattura Presente:</strong> ${session.invoice ? "Sì" : "No"}</p>
-                    <p style="margin: 0 0 5px 0;"><strong>Customer ID:</strong> ${session.customer || "N/A"}</p>
-                    <p style="margin: 0 0 5px 0;"><strong>Service Type:</strong> ${serviceType}</p>
-                    ${isOlympic ? `<p style="margin: 0 0 5px 0;"><strong>Olympic Pricing:</strong> Attivo</p>` : ""}
-                    ${parsedMeetGreetConfig ? `<p style="margin: 0 0 5px 0;"><strong>Meet & Greet Config:</strong> Presente</p>` : ""}
-                    ${hasIndividualVehicles ? `<p style="margin: 0 0 5px 0;"><strong>Individual Vehicles:</strong> ${parsedIndividualVehicles.length} configurazioni</p>` : ""}
-                    <p style="margin: 0;"><strong>Metadata Count:</strong> ${Object.keys(metadata).length} campi</p>
                   </div>
                 </div>
               </div>
