@@ -65,21 +65,32 @@ function formatDate(date: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  console.log('🔵 Stripe webhook received')
   try {
     // Leggi il raw body come buffer
     const body = await req.text()
     const signature = req.headers.get("stripe-signature")
+    console.log('🔐 Signature present:', !!signature)
+    console.log('🔑 Secret exists:', !!process.env.STRIPE_WEBHOOK_SECRET)
 
     if (!signature) {
+      console.log('❌ Missing signature')
       return NextResponse.json({ error: "Stripe signature mancante" }, { status: 400 })
     }
 
     let event: Stripe.Event
 
     try {
+      console.log('🔍 Verifying signature...')
+      console.log('🔑 Secret:', process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 20) + '...')
+      console.log('🔐 Signature:', signature?.substring(0, 50) + '...')
       // Verifica la firma del webhook con la chiave segreta
       event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+      console.log('✅ Signature verified, event:', event.type)
     } catch (err) {
+      console.log('❌ Signature verification failed:', err)
+      console.log('🔑 Full secret:', process.env.STRIPE_WEBHOOK_SECRET)
+      console.log('🔐 Full signature:', signature)
       return NextResponse.json({ error: "Firma webhook non valida" }, { status: 400 })
     }
 
