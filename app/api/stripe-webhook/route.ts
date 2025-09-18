@@ -68,13 +68,15 @@ export async function POST(req: NextRequest) {
   console.log('🔵 Stripe webhook received')
   
   try {
-    // Leggi il raw body come buffer
-    console.log('📥 Reading request body...')
-    const body = await req.text()
-    console.log('📏 Body length:', body.length)
+    // Leggi il raw body come buffer - IMPORTANTE: deve essere bytes per Stripe
+    console.log('📥 Reading request body as buffer...')
+    const body = await req.arrayBuffer()
+    const bodyString = Buffer.from(body).toString('utf8')
+    console.log('📏 Body length:', bodyString.length)
     
     const signature = req.headers.get("stripe-signature")
     console.log('🔐 Stripe signature present:', !!signature)
+    console.log('🔐 Stripe signature value:', signature?.substring(0, 50) + '...')
 
     if (!signature) {
       console.log('❌ Missing Stripe signature')
@@ -85,8 +87,10 @@ export async function POST(req: NextRequest) {
 
     try {
       console.log('🔍 Verifying webhook signature...')
-      // Verifica la firma del webhook con la chiave segreta
-      event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+      console.log('🔑 Using webhook secret:', process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 10) + '...')
+      
+      // Verifica la firma del webhook con la chiave segreta - usa il buffer
+      event = stripe.webhooks.constructEvent(Buffer.from(body), signature, process.env.STRIPE_WEBHOOK_SECRET!)
       console.log('✅ Webhook signature verified')
       console.log('📋 Event type:', event.type)
       console.log('🆔 Event ID:', event.id)
