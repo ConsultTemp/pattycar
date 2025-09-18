@@ -65,40 +65,59 @@ function formatDate(date: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  console.log('🔵 Stripe webhook received')
+  
   try {
     // Leggi il raw body come buffer
+    console.log('📥 Reading request body...')
     const body = await req.text()
+    console.log('📏 Body length:', body.length)
+    
     const signature = req.headers.get("stripe-signature")
+    console.log('🔐 Stripe signature present:', !!signature)
 
     if (!signature) {
+      console.log('❌ Missing Stripe signature')
       return NextResponse.json({ error: "Stripe signature mancante" }, { status: 400 })
     }
 
     let event: Stripe.Event
 
     try {
+      console.log('🔍 Verifying webhook signature...')
       // Verifica la firma del webhook con la chiave segreta
       event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+      console.log('✅ Webhook signature verified')
+      console.log('📋 Event type:', event.type)
+      console.log('🆔 Event ID:', event.id)
     } catch (err) {
+      console.log('❌ Invalid webhook signature:', err)
       return NextResponse.json({ error: "Firma webhook non valida" }, { status: 400 })
     }
 
     // Gestisci solo l'evento checkout.session.completed
     if (event.type === "checkout.session.completed") {
+      console.log('🎯 Processing checkout.session.completed event')
       const session = event.data.object as Stripe.Checkout.Session
-
-      
+      console.log('💳 Session ID:', session.id)
+      console.log('💰 Amount total:', session.amount_total)
 
       // Estrai i dati del cliente
       const customerEmail = session.customer_details?.email
       const customerName = session.customer_details?.name || "Cliente"
+      console.log('👤 Customer email:', customerEmail)
+      console.log('👤 Customer name:', customerName)
 
       if (!customerEmail) {
+        console.log('❌ Missing customer email')
         return NextResponse.json({ error: "Email cliente mancante" }, { status: 400 })
       }
 
       // Estrai i metadata della prenotazione
       const metadata = session.metadata || {}
+      console.log('📋 Metadata keys:', Object.keys(metadata))
+      console.log('📋 Metadata count:', Object.keys(metadata).length)
+      
       const {
         serviceType = "transfer",
         pickup = "Non specificato",
@@ -238,6 +257,7 @@ export async function POST(req: NextRequest) {
       }
 
       // 💾 SALVA NEL DATABASE SUPABASE
+      console.log('💾 Saving booking to database...')
       try {
         const bookingData = {
           // Stripe/Payment info
@@ -307,9 +327,20 @@ export async function POST(req: NextRequest) {
           raw_metadata: metadata
         }
         
+        console.log('📊 Booking data prepared:', {
+          serviceType: bookingData.service_type,
+          customerName: bookingData.customer_name,
+          customerEmail: bookingData.customer_email,
+          amountTotal: bookingData.amount_total,
+          serviceDate: bookingData.service_date,
+          serviceTime: bookingData.service_time
+        })
+        
         const insertResult = await insertBooking(bookingData)
+        console.log('💾 Database insert result:', insertResult.success ? 'SUCCESS' : 'FAILED')
         
         if (insertResult.success) {
+          console.log('✅ Booking saved to database with ID:', insertResult.data?.id)
           // Also send to Google Sheets
           try {
             // Calculate taxable amount and VAT from total
@@ -502,14 +533,17 @@ export async function POST(req: NextRequest) {
             console.error('❌ Error sending booking to Google Sheets:', sheetsError)
           }
         } else {
+          console.log('❌ Database insert failed:', insertResult.error)
           // Continue with email sending even if database insert fails
         }
         
       } catch (dbError) {
+        console.log('❌ Database error:', dbError)
         // Continue with email sending even if database insert fails
       }
 
       try {
+        console.log('📧 Sending customer confirmation email...')
         // 📧 EMAIL AL CLIENTE - Conferma prenotazione completa
         const customerEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
@@ -995,13 +1029,15 @@ export async function POST(req: NextRequest) {
           `,
         })
 
-        
+        console.log('✅ Customer email sent successfully')
 
       } catch (customerEmailError) {
+        console.log('❌ Customer email error:', customerEmailError)
         // Non fermare il processo, continua con l'email admin
       }
 
       try {
+        console.log('📧 Sending admin notification email...')
         // 📧 EMAIL ALL'ADMIN - Versione completa con tutti i dettagli
         const adminEmailResult = await resend.emails.send({
           from: process.env.RESEND_FROM!,
@@ -1364,15 +1400,20 @@ export async function POST(req: NextRequest) {
           `,
         })
 
-        
+        console.log('✅ Admin email sent successfully')
 
       } catch (adminEmailError) {
-        }
+        console.log('❌ Admin email error:', adminEmailError)
+      }
+    } else {
+      console.log('ℹ️ Ignoring event type:', event.type)
     }
 
     // Ritorna 200 OK per confermare la ricezione del webhook
+    console.log('✅ Webhook processed successfully')
     return NextResponse.json({ received: true }, { status: 200 })
   } catch (error) {
+    console.log('❌ Webhook processing error:', error)
     return NextResponse.json({ error: "Errore interno del server" }, { status: 500 })
   }
 }
