@@ -85,6 +85,11 @@ export async function POST(req: NextRequest) {
 
     try {
       console.log('🔍 Verifying webhook signature...')
+      console.log('🌍 Environment:', process.env.NODE_ENV)
+      console.log('🔑 Webhook secret exists:', !!process.env.STRIPE_WEBHOOK_SECRET)
+      console.log('🔑 Webhook secret starts with whsec_:', process.env.STRIPE_WEBHOOK_SECRET?.startsWith('whsec_'))
+      console.log('🔑 Webhook secret first 20 chars:', process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 20))
+      
       // Verifica la firma del webhook con la chiave segreta
       event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
       console.log('✅ Webhook signature verified')
@@ -92,6 +97,7 @@ export async function POST(req: NextRequest) {
       console.log('🆔 Event ID:', event.id)
     } catch (err) {
       console.log('❌ Invalid webhook signature:', err)
+      console.log('🔑 Secret being used:', process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 30) + '...')
       return NextResponse.json({ error: "Firma webhook non valida" }, { status: 400 })
     }
 
@@ -1411,9 +1417,13 @@ export async function POST(req: NextRequest) {
 
     // Ritorna 200 OK per confermare la ricezione del webhook
     console.log('✅ Webhook processed successfully')
+    console.log('🌐 FINAL CHECK - URL being called:', req.url)
+    console.log('🌐 FINAL CHECK - Host:', req.headers.get('host'))
     return NextResponse.json({ received: true }, { status: 200 })
   } catch (error) {
     console.log('❌ Webhook processing error:', error)
+    console.log('🌐 ERROR CHECK - URL being called:', req.url)
+    console.log('🌐 ERROR CHECK - Host:', req.headers.get('host'))
     return NextResponse.json({ error: "Errore interno del server" }, { status: 500 })
   }
 }
