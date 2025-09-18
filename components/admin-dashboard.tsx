@@ -12,9 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
 import { adminLogout } from "@/lib/supabase-auth"
-import { AdminBookingModal } from "@/components/admin-booking-modal"
-import { AdminDeleteModal } from "@/components/admin-delete-modal"
 import { AdminBookingViewModal } from "@/components/admin-booking-view-modal"
 import AdminDriversManagement from "@/components/admin-drivers-management"
 import AdminCustomersManagement from "@/components/admin-customers-management"
@@ -39,7 +38,10 @@ import {
   Clock2,
   CheckCircle,
   Info,
-  CalendarIcon
+  CalendarIcon,
+  MessageSquare,
+  UserCheck,
+  UsersIcon
 } from "lucide-react"
 
 type BookingRow = Database['public']['Tables']['bookings']['Row']
@@ -73,6 +75,11 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
   const [refreshKey, setRefreshKey] = useState(0)
   const [drivers, setDrivers] = useState<any[]>([])
   const [customers, setCustomers] = useState<any[]>([])
+  
+  // Selection state for bulk SMS
+  const [selectedBookings, setSelectedBookings] = useState<Set<string>>(new Set())
+  const [isSelectAll, setIsSelectAll] = useState(false)
+  const [isSendingSMS, setIsSendingSMS] = useState(false)
 
   // Load drivers on component mount
   useEffect(() => {
@@ -153,6 +160,138 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
       driverId: "",
       customerId: ""
     })
+  }
+
+  // Selection functions
+  const handleSelectBooking = (bookingId: string, checked: boolean) => {
+    const newSelected = new Set(selectedBookings)
+    if (checked) {
+      newSelected.add(bookingId)
+    } else {
+      newSelected.delete(bookingId)
+    }
+    setSelectedBookings(newSelected)
+    setIsSelectAll(newSelected.size === filteredBookings.length && filteredBookings.length > 0)
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(filteredBookings.map(booking => booking.id))
+      setSelectedBookings(allIds)
+      setIsSelectAll(true)
+    } else {
+      setSelectedBookings(new Set())
+      setIsSelectAll(false)
+    }
+  }
+
+  // SMS sending functions
+  const sendSMSToDrivers = async () => {
+    setIsSendingSMS(true)
+    try {
+      const selectedBookingData = filteredBookings.filter(booking => selectedBookings.has(booking.id))
+      const response = await fetch('/api/admin/send-sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'drivers',
+          bookings: selectedBookingData
+        })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        alert(`SMS inviati con successo a ${result.sentCount} driver!`)
+      } else {
+        alert(`Errore nell'invio SMS: ${result.error}`)
+      }
+    } catch (error) {
+      alert('Errore nell\'invio SMS')
+    } finally {
+      setIsSendingSMS(false)
+    }
+  }
+
+  const sendSMSToCustomers = async () => {
+    setIsSendingSMS(true)
+    try {
+      const selectedBookingData = filteredBookings.filter(booking => selectedBookings.has(booking.id))
+      const response = await fetch('/api/admin/send-sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'customers',
+          bookings: selectedBookingData
+        })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        alert(`SMS inviati con successo a ${result.sentCount} clienti!`)
+      } else {
+        alert(`Errore nell'invio SMS: ${result.error}`)
+      }
+    } catch (error) {
+      alert('Errore nell\'invio SMS')
+    } finally {
+      setIsSendingSMS(false)
+    }
+  }
+
+  const sendSMSToAll = async () => {
+    setIsSendingSMS(true)
+    try {
+      const selectedBookingData = filteredBookings.filter(booking => selectedBookings.has(booking.id))
+      const response = await fetch('/api/admin/send-sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'all',
+          bookings: selectedBookingData
+        })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        alert(`SMS inviati con successo a ${result.sentCount} contatti!`)
+      } else {
+        alert(`Errore nell'invio SMS: ${result.error}`)
+      }
+    } catch (error) {
+      alert('Errore nell\'invio SMS')
+    } finally {
+      setIsSendingSMS(false)
+    }
+  }
+
+  const testReminders = async () => {
+    setIsSendingSMS(true)
+    try {
+      const response = await fetch('/api/admin/test-reminders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        const { results } = result
+        alert(`Test reminder completato!\n\nDomani: ${results.tomorrow.sentCount} inviati, ${results.tomorrow.failedCount} falliti\n7 giorni: ${results.sevenDays.sentCount} inviati, ${results.sevenDays.failedCount} falliti\n\nTotale: ${results.totalSent} SMS inviati`)
+      } else {
+        alert(`Errore nel test reminder: ${result.error}`)
+      }
+    } catch (error) {
+      alert('Errore nel test reminder')
+    } finally {
+      setIsSendingSMS(false)
+    }
   }
 
   // Filter and sort bookings
@@ -273,10 +412,6 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
           </Card>
         </div>
         <div className="flex items-center space-x-2">
-          <AdminBookingModal 
-            dictionary={dictionary} 
-            onBookingCreated={refreshBookings}
-          />
           <Button variant="outline" onClick={handleLogout} className="flex-shrink-0">
             <LogOut className="mr-2 h-4 w-4" />
             {dictionary.admin?.header?.logout || "Logout"}
@@ -398,12 +533,73 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
           <CardDescription>
             {dictionary.admin?.dashboard?.bookingsDescription || "All paid bookings from customers"}
           </CardDescription>
+          
+          {/* SMS Action Buttons */}
+          {selectedBookings.size > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4 p-4 bg-blue-50 rounded-lg border">
+              <div className="flex items-center gap-2 text-sm text-blue-700 font-medium">
+                <MessageSquare className="h-4 w-4" />
+                {selectedBookings.size} prenotazioni selezionate
+              </div>
+              <div className="flex flex-wrap gap-2 ml-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={sendSMSToDrivers}
+                  disabled={isSendingSMS}
+                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                >
+                  <UserCheck className="mr-2 h-4 w-4" />
+                  Contatta Driver
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={sendSMSToCustomers}
+                  disabled={isSendingSMS}
+                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Contatta Cliente
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={sendSMSToAll}
+                  disabled={isSendingSMS}
+                  className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                >
+                  <UsersIcon className="mr-2 h-4 w-4" />
+                  Contatta Tutti
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={testReminders}
+                  disabled={isSendingSMS}
+                  className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Test Reminder
+                </Button>
+              </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={isSelectAll}
+                        onCheckedChange={handleSelectAll}
+                      />
+                      <span className="text-xs">Tutti</span>
+                    </div>
+                  </TableHead>
                   <TableHead className="cursor-pointer whitespace-nowrap" onClick={() => {
                     if (sortBy === "created_at") {
                       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
@@ -435,6 +631,12 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
               <TableBody>
                 {filteredBookings.map((booking) => (
                   <TableRow key={booking.id}>
+                    <TableCell className="w-12">
+                      <Checkbox
+                        checked={selectedBookings.has(booking.id)}
+                        onCheckedChange={(checked) => handleSelectBooking(booking.id, checked as boolean)}
+                      />
+                    </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="space-y-1">
                         <div className="font-medium">{booking.service_date}</div>
@@ -631,17 +833,6 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                       <div className="flex items-center space-x-1">
                         <AdminBookingViewModal 
                           booking={booking}
-                          dictionary={dictionary}
-                        />
-                        <AdminBookingModal 
-                          dictionary={dictionary} 
-                          onBookingCreated={refreshBookings}
-                          booking={booking}
-                          mode="edit"
-                        />
-                        <AdminDeleteModal 
-                          booking={booking}
-                          onBookingDeleted={refreshBookings}
                           dictionary={dictionary}
                         />
                         {booking.invoice_url && (

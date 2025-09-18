@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast"
 type CustomerRow = {
   id: string
   name: string
+  phone: string | null
   billing_info: string | null
   created_at: string
   updated_at: string
@@ -34,8 +35,10 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
   const [deleting, setDeleting] = useState<string | null>(null)
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null)
   const [newCustomerName, setNewCustomerName] = useState("")
+  const [newCustomerPhone, setNewCustomerPhone] = useState("")
   const [newCustomerBilling, setNewCustomerBilling] = useState("")
   const [editCustomerName, setEditCustomerName] = useState("")
+  const [editCustomerPhone, setEditCustomerPhone] = useState("")
   const [editCustomerBilling, setEditCustomerBilling] = useState("")
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -88,6 +91,7 @@ export default function AdminCustomersManagement({ dictionary, onCustomersUpdate
         },
         body: JSON.stringify({
           name: newCustomerName.trim(),
+          phone: newCustomerPhone.trim() || null,
           billing_info: newCustomerBilling.trim() || null
         }),
       })

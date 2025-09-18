@@ -238,3 +238,11 @@ posso inviare messaggio per il singolo servizio anche
 
 tabella on location
 chi si occupa solo di onlocation vede solo quello
+
+
+
+
+quests:
+- fare leggere modifiche allo sheet per numeri di telefono clienti ed utenti
+- gestione campi mancanti in sheet ma che in prenotazione sono richiesti
+- tutto cio che non è prenotazione non è considerato (righe di data e ferie ecc)

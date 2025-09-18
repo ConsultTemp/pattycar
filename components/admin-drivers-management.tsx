@@ -26,6 +26,7 @@ export default function AdminDriversManagement({ dictionary, onDriversUpdated }:
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [newDriverName, setNewDriverName] = useState("")
+  const [newDriverPhone, setNewDriverPhone] = useState("")
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const { toast } = useToast()
 
@@ -68,7 +69,8 @@ export default function AdminDriversManagement({ dictionary, onDriversUpdated }:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: newDriverName.trim()
+          name: newDriverName.trim(),
+          phone: newDriverPhone.trim() || null
         })
       })
 
@@ -77,6 +79,7 @@ export default function AdminDriversManagement({ dictionary, onDriversUpdated }:
       if (result.success) {
         setDrivers([...drivers, result.data])
         setNewDriverName("")
+        setNewDriverPhone("")
         setShowCreateDialog(false)
         
         // Call parent callback to refresh drivers in dashboard
@@ -182,6 +185,18 @@ export default function AdminDriversManagement({ dictionary, onDriversUpdated }:
                     disabled={creating}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="driver-phone">
+                    {dictionary.admin?.drivers?.driverPhone || "Phone Number"}
+                  </Label>
+                  <Input
+                    id="driver-phone"
+                    value={newDriverPhone}
+                    onChange={(e) => setNewDriverPhone(e.target.value)}
+                    placeholder={dictionary.admin?.drivers?.driverPhonePlaceholder || "Enter phone number (e.g. +39 123 456 7890)"}
+                    disabled={creating}
+                  />
+                </div>
                 <div className="flex justify-end space-x-2">
                   <Button
                     variant="outline"
@@ -231,6 +246,7 @@ export default function AdminDriversManagement({ dictionary, onDriversUpdated }:
                 <TableHeader>
                   <TableRow>
                     <TableHead>{dictionary.admin?.drivers?.name || "Name"}</TableHead>
+                    <TableHead>{dictionary.admin?.drivers?.phone || "Phone"}</TableHead>
                     <TableHead>{dictionary.admin?.drivers?.createdAt || "Created"}</TableHead>
                     <TableHead>{dictionary.admin?.drivers?.actions || "Actions"}</TableHead>
                   </TableRow>
@@ -243,6 +259,11 @@ export default function AdminDriversManagement({ dictionary, onDriversUpdated }:
                           <User className="mr-2 h-4 w-4" />
                           <span className="font-medium">{driver.name}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-gray-600">
+                          {driver.phone || "Non specificato"}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-gray-500">

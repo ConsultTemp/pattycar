@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { Resend } from "resend"
 import { insertBooking } from "@/lib/database"
+import { addBookingToGoogleSheets, GoogleSheetsBookingData } from "@/lib/google-sheets"
 
 // Inizializza Stripe con la chiave segreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -309,7 +310,198 @@ export async function POST(req: NextRequest) {
         const insertResult = await insertBooking(bookingData)
         
         if (insertResult.success) {
-          } else {
+          // Also send to Google Sheets
+          try {
+            // Calculate taxable amount and VAT from total
+            const totalAmount = insertResult.data!.amount_total / 100 // Convert from cents to euros
+            const vatRateNum = parseFloat(vatRate) || 22 // Default 22% VAT
+            const taxableAmount = totalAmount / (1 + vatRateNum / 100)
+            const vatAmount = totalAmount - taxableAmount
+
+            // Format date for Google Sheets (DD/MM/YYYY format)
+            const formattedDateForSheets = (() => {
+              try {
+                if (insertResult.data!.service_date) {
+                  const dateObj = new Date(insertResult.data!.service_date)
+                  if (!isNaN(dateObj.getTime())) {
+                    const day = String(dateObj.getDate()).padStart(2, '0')
+                    const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+                    const year = dateObj.getFullYear()
+                    return `${day}/${month}/${year}`
+                  }
+                }
+                return insertResult.data!.service_date || 'Non specificata'
+              } catch (e) {
+                return insertResult.data!.service_date || 'Non specificata'
+              }
+            })()
+
+            // Format time for Google Sheets (HH:MM format)
+            const formattedTimeForSheets = (() => {
+              const timeStr = insertResult.data!.service_time || 'Non specificato'
+              if (timeStr === 'Non specificato' || !timeStr) return 'Non specificato'
+              
+              // If it's already in HH:MM format, return as is
+              if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+                return timeStr
+              }
+              
+              return timeStr
+            })()
+
+            // Create detailed passenger info including vehicle configuration
+            const passengersInfoForSheets = (() => {
+              if (hasIndividualVehicles) {
+                const vehicleDetails = parsedIndividualVehicles.map((vehicle, index) => 
+                  `V${index + 1}: ${vehicle.passengers}pax/${vehicle.luggage}bag (${vehicle.type})`
+                ).join(', ')
+                return `${passengers} pax totali - ${vehicleDetails}`
+              } else if (isMultipleVehicles) {
+                return `${passengers} pax - ${vehicleCount} veicoli (${vehicleType})`
+              } else {
+                return `${passengers} pax`
+              }
+            })()
+
+            // Create comprehensive notes including all booking details
+            const comprehensiveNotes = (() => {
+              const noteParts = []
+              
+              // Original notes
+              if (insertResult.data!.notes && insertResult.data!.notes !== 'Nessuna nota') {
+                noteParts.push(`Note: ${insertResult.data!.notes}`)
+              }
+              
+              // Service type and special features
+              if (serviceBadge) {
+                noteParts.push(`Servizio: ${serviceBadge}`)
+              }
+              
+              // Flight/train info
+              if (flight) {
+                noteParts.push(`Volo/Treno: ${flight}`)
+              }
+              if (departureCity) {
+                noteParts.push(`Provenienza: ${departureCity}`)
+              }
+              
+              // Meet & Greet
+              if (meetAndGreet === "true") {
+                noteParts.push('Meet & Greet incluso')
+                if (parsedMeetGreetConfig) {
+                  if (parsedMeetGreetConfig.selectedService) {
+                    noteParts.push(`M&G: ${parsedMeetGreetConfig.selectedService}`)
+                  }
+                  if (parsedMeetGreetConfig.specialServices) {
+                    const specialServices = Object.keys(parsedMeetGreetConfig.specialServices)
+                      .filter(key => parsedMeetGreetConfig.specialServices[key])
+                      .join(', ')
+                    if (specialServices) {
+                      noteParts.push(`Servizi speciali: ${specialServices}`)
+                    }
+                  }
+                }
+              }
+              
+              // Distance and duration for transfers
+              if (distance && !isDisposizione) {
+                noteParts.push(`Distanza: ${distance}`)
+              }
+              if (duration && !isDisposizione) {
+                noteParts.push(`Durata: ${duration}`)
+              }
+              
+              // Service duration for disposizione
+              if (serviceDuration && isDisposizione) {
+                noteParts.push(`Durata servizio: ${serviceDuration} ore`)
+              }
+              
+              // End time for disposizione
+              if (isDisposizione && formattedEndTime) {
+                noteParts.push(`Fine servizio: ${formattedEndTime}`)
+              }
+              
+              // Transfer cost and route
+              if (transferCost && transferRoute) {
+                noteParts.push(`Transfer incluso: €${transferCost} (${transferRoute})`)
+              }
+              
+              // Event route
+              if (eventRoute) {
+                noteParts.push(`Percorso evento: ${eventRoute}`)
+              }
+              
+              // Night surcharge
+              if (nightSurcharge && parseFloat(nightSurcharge) > 0) {
+                noteParts.push(`Supplemento notturno: €${nightSurcharge}`)
+              }
+              
+              // Billing info
+              if (billingInfo) {
+                noteParts.push(`Fatturazione: ${billingInfo.replace(/\n/g, ' | ')}`)
+              }
+              
+              // Phone number
+              const phoneForNotes = `${insertResult.data!.customer_phone_prefix || ''} ${insertResult.data!.customer_phone || ''}`.trim()
+              if (phoneForNotes && phoneForNotes !== 'null null') {
+                noteParts.push(`Tel: ${phoneForNotes}`)
+              }
+              
+              // Payment info
+              noteParts.push(`Pagato online: €${totalAmount.toFixed(2)}`)
+              if (priceBreakdown) {
+                noteParts.push(`Dettaglio: ${priceBreakdown}`)
+              }
+              
+              return noteParts.join(' | ')
+            })()
+
+            const googleSheetsData: GoogleSheetsBookingData = {
+              // Main data matching CSV structure
+              service_date: formattedDateForSheets,
+              company: 'Patty Car', // Default company name
+              service_time: formattedTimeForSheets,
+              customer_name: insertResult.data!.customer_name,
+              passengers_info: passengersInfoForSheets,
+              pickup_address: insertResult.data!.pickup_address,
+              destination_address: insertResult.data!.destination_address,
+              vehicle_type: hasIndividualVehicles ? `${parsedIndividualVehicles.length} veicoli misti` : insertResult.data!.vehicle_type,
+              taxable_amount: Math.round(taxableAmount * 100) / 100, // Round to 2 decimals
+              vat_amount: Math.round(vatAmount * 100) / 100,
+              total_invoice: totalAmount,
+              driver_name: '', // Empty - to be filled manually
+              driver_billing: '', // Empty - to be filled manually
+              driver_commission: '', // Empty - to be filled manually
+              direct_collection: totalAmount, // Full amount as direct collection
+              payment_method: 'online', // Payment was made online
+              notes: comprehensiveNotes,
+              
+              // Additional fields for internal use
+              id: insertResult.data!.id,
+              customer_email: insertResult.data!.customer_email,
+              customer_phone: `${insertResult.data!.customer_phone_prefix || ''} ${insertResult.data!.customer_phone || ''}`.trim(),
+              amount_total: insertResult.data!.amount_total,
+              payment_status: insertResult.data!.payment_status
+            }
+
+            console.log('📊 Sending booking to Google Sheets:', {
+              date: googleSheetsData.service_date,
+              time: googleSheetsData.service_time,
+              customer: googleSheetsData.customer_name,
+              service: serviceLabel,
+              amount: totalAmount
+            })
+
+            const googleSheetsResult = await addBookingToGoogleSheets(googleSheetsData)
+            if (googleSheetsResult.success) {
+              console.log('✅ Successfully added booking to Google Sheets')
+            } else {
+              console.error('❌ Failed to add booking to Google Sheets:', googleSheetsResult.error)
+            }
+          } catch (sheetsError) {
+            console.error('❌ Error sending booking to Google Sheets:', sheetsError)
+          }
+        } else {
           // Continue with email sending even if database insert fails
         }
         

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, billing_info } = body
+    const { name, phone, billing_info } = body
 
     if (!name || name.trim() === '') {
       return NextResponse.json(
@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       .from('customers')
       .insert([{ 
         name: name.trim(),
+        phone: phone?.trim() || null,
         billing_info: billing_info ? billing_info.trim() : null
       }])
       .select()
