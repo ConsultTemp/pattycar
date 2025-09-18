@@ -341,7 +341,7 @@ export async function POST(req: NextRequest) {
         if (insertResult.success) {
           console.log('✅ Booking saved to database with ID:', insertResult.data?.id)
           // Also send to Google Sheets - TEMPORARILY DISABLED
-          /*
+          
           try {
             console.log('📊 Starting Google Sheets integration...')
             
@@ -558,7 +558,7 @@ export async function POST(req: NextRequest) {
             // Don't fail the webhook - Google Sheets is not critical
             console.log('⚠️ Continuing webhook processing despite Google Sheets error')
           }
-          */
+          
         } else {
           console.log('❌ Database insert failed:', insertResult.error)
           // Continue with email sending even if database insert fails

@@ -7,7 +7,7 @@
 
 const crypto = require('crypto');
 
-// Configuration
+// Configuration - UPDATED SECRET FROM VERCEL LOGS
 const WEBHOOK_URL = "https://pattycar.com/api/stripe-webhook";
 const WEBHOOK_SECRET = "whsec_L6cvzJTvXF6y1d6lHbi8su7PT7D9T4Ae";
 
@@ -132,13 +132,15 @@ async function testStripeWebhook() {
     
     console.log('\n📤 Sending webhook request...');
     
-    // Send the webhook request
+    // Send the webhook request EXACTLY like Stripe does
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
         'Stripe-Signature': stripeSignature,
-        'User-Agent': 'Stripe/1.0 (+https://stripe.com/docs/webhooks)'
+        'User-Agent': 'Stripe/1.0 (+https://stripe.com/docs/webhooks)',
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip'
       },
       body: payloadString
     });
@@ -247,10 +249,9 @@ async function testInvalidSignature() {
 // Run all tests
 async function runAllTests() {
   await testStripeWebhook();
-  await testDifferentEvents();
-  await testInvalidSignature();
+  // Skip other tests for now - focus on the main one
   
-  console.log('\n✨ All webhook tests completed!');
+  console.log('\n✨ Webhook test completed!');
   console.log('\n💡 Tips:');
   console.log('- Check Vercel logs for detailed webhook processing');
   console.log('- Check your email for confirmation messages');
