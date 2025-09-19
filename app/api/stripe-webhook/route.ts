@@ -1023,7 +1023,6 @@ export async function POST(req: NextRequest) {
                     Next Steps
                   </h3>
                   <ul style="color: #475569; line-height: 1.8; margin: 0; padding-left: 20px;">
-                    <li style="margin-bottom: 8px;">We will contact you within <strong>24 hours</strong> to confirm all details</li>
                     <li style="margin-bottom: 8px;">You will receive a <strong>reminder SMS</strong> the day before the service</li>
                     <li>Our driver will contact you <strong>30 minutes before</strong> the agreed time</li>
                   </ul>
