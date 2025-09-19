@@ -23,6 +23,22 @@ function convertTo12Hour(time24: string): string {
   }
 }
 
+// Funzione per pulire il nome del veicolo rimuovendo "olympic-" e capitalizzando
+function cleanVehicleName(vehicleName: string): string {
+  if (!vehicleName) return vehicleName
+  
+  // Rimuovi "olympic-" se presente
+  let cleanName = vehicleName.replace(/^olympic-/i, '')
+  
+  // Converti i trattini rimanenti in spazi
+  cleanName = cleanName.replace(/-/g, ' ')
+  
+  // Capitalizza la prima lettera
+  cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1)
+  
+  return cleanName
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -102,7 +118,7 @@ export async function POST(req: NextRequest) {
 • Pickup: ${bookingData.pickup}
 • Destination: ${bookingData.destination}
 • Passengers: ${bookingData.passengers}
-• Vehicle: ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`
+• Vehicle: ${cleanVehicleName(bookingData.vehicleType)}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`
     } else {
       serviceDescription = `Private Transfer Service`
       detailedDescription = `Private transfer with professional driver
@@ -112,7 +128,7 @@ export async function POST(req: NextRequest) {
 • Pickup: ${bookingData.pickup}
 • Destination: ${bookingData.destination}
 • Passengers: ${bookingData.passengers}
-• Vehicle: ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`
+• Vehicle: ${cleanVehicleName(bookingData.vehicleType)}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`
     }
 
     // Add extra services if present
@@ -137,7 +153,7 @@ export async function POST(req: NextRequest) {
       endTime: bookingData.endTime || "",
       endMinutes: bookingData.endMinutes || "",
       passengers: bookingData.passengers || "",
-      vehicleType: bookingData.vehicleType || "",
+      vehicleType: cleanVehicleName(bookingData.vehicleType) || "",
       vehicleCount: bookingData.vehicleCount || "",
       luggage: bookingData.luggage || "",
       flight: bookingData.flight || "",
@@ -145,6 +161,7 @@ export async function POST(req: NextRequest) {
       billingInfo: bookingData.billingInfo || "",
       notes: bookingData.notes || "",
       meetAndGreet: bookingData.meetAndGreet ? "true" : "false",
+      meetGreetConfig: bookingData.meetGreetConfig ? JSON.stringify(bookingData.meetGreetConfig) : "",
       sameVehicleType: bookingData.sameVehicleType ? "true" : "false",
       customerName: customerName,
       customerEmail: customerEmail,
@@ -154,7 +171,12 @@ export async function POST(req: NextRequest) {
 
     // Add individual vehicles as JSON string if present
     if (bookingData.individualVehicles && Array.isArray(bookingData.individualVehicles)) {
-      metadata.individualVehicles = JSON.stringify(bookingData.individualVehicles)
+      // Pulisci i nomi dei veicoli individuali prima di serializzarli
+      const cleanedIndividualVehicles = bookingData.individualVehicles.map((vehicle: any) => ({
+        ...vehicle,
+        type: cleanVehicleName(vehicle.type)
+      }))
+      metadata.individualVehicles = JSON.stringify(cleanedIndividualVehicles)
     }
 
     // Crea la sessione di checkout con descrizione dettagliata
@@ -200,7 +222,7 @@ export async function POST(req: NextRequest) {
             },
             {
               name: "Details",
-              value: `${bookingData.passengers} passengers, ${bookingData.vehicleType}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`,
+              value: `${bookingData.passengers} passengers, ${cleanVehicleName(bookingData.vehicleType)}${bookingData.vehicleCount > 1 ? ` (${bookingData.vehicleCount} vehicles)` : ""}`,
             },
           ],
           footer: `Thank you for choosing our ${isDisposizione ? "private driver" : "transfer"} service!`,
@@ -209,7 +231,7 @@ export async function POST(req: NextRequest) {
             pickup: bookingData.pickup || "",
             destination: bookingData.destination || "",
             passengers: bookingData.passengers || "",
-            vehicleType: bookingData.vehicleType || "",
+            vehicleType: cleanVehicleName(bookingData.vehicleType) || "",
             date: bookingData.date || "",
             time: startTime,
             ...(endTime && { endTime }),

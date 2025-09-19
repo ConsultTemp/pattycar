@@ -746,10 +746,25 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                     <TableCell className="whitespace-nowrap">
                       <div className="space-y-1">
                         {booking.meet_and_greet && (
-                          <Badge variant="outline" className="text-xs">
-                            <CheckCircle className="mr-1 h-3 w-3" />
-                            Meet & Greet
-                          </Badge>
+                          <div>
+                            <Badge variant="outline" className="text-xs">
+                              <CheckCircle className="mr-1 h-3 w-3" />
+                              Meet & Greet
+                            </Badge>
+                            {/* Show detailed M&G info if available */}
+                            {((booking as any).meet_greet_passengers > 0 || (booking as any).meet_greet_children > 0 || (booking as any).meet_greet_infants > 0) && (
+                              <div className="text-xs text-green-600 mt-1">
+                                {((booking as any).meet_greet_passengers || 0) + ((booking as any).meet_greet_children || 0) + ((booking as any).meet_greet_infants || 0)} pax
+                                {(booking as any).meet_greet_extra_luggage > 0 && ` | +${(booking as any).meet_greet_extra_luggage} luggage`}
+                                {(booking as any).meet_greet_extra_hours > 0 && ` | +${(booking as any).meet_greet_extra_hours}h`}
+                              </div>
+                            )}
+                            {(booking as any).meet_greet_special_services && Object.keys((booking as any).meet_greet_special_services).some((key: string) => (booking as any).meet_greet_special_services[key]) && (
+                              <div className="text-xs text-purple-600 mt-1">
+                                Special services
+                              </div>
+                            )}
+                          </div>
                         )}
                         {booking.notes && (
                           <div className="flex items-center text-xs text-gray-500">

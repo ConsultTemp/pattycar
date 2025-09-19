@@ -80,6 +80,55 @@ function cleanVehicleName(vehicleName: string): string {
   return cleanName
 }
 
+// Funzione per creare descrizione dettagliata Meet & Greet
+function createMeetGreetDescription(config: any): string {
+  if (!config) return ""
+  
+  const parts = []
+  
+  // Servizio
+  if (config.selectedService) {
+    parts.push(`Service: ${config.selectedService}`)
+  }
+  if (config.serviceId) {
+    parts.push(`Location: ${config.serviceId}`)
+  }
+  
+  // Passeggeri
+  const totalPax = (config.passengers || 0) + (config.children || 0) + (config.infants || 0)
+  if (totalPax > 0) {
+    const paxDetails = []
+    if (config.passengers > 0) paxDetails.push(`${config.passengers} adults`)
+    if (config.children > 0) paxDetails.push(`${config.children} children`)
+    if (config.infants > 0) paxDetails.push(`${config.infants} infants`)
+    parts.push(`Passengers: ${paxDetails.join(', ')} (Total: ${totalPax})`)
+  }
+  
+  // Extra services
+  if (config.extraLuggage > 0) {
+    parts.push(`Extra luggage: ${config.extraLuggage}`)
+  }
+  if (config.extraHours > 0) {
+    parts.push(`Extra hours: ${config.extraHours}`)
+  }
+  
+  // Special services
+  if (config.specialServices) {
+    const specials = []
+    if (config.specialServices.fastTrack) specials.push("Fast Track")
+    if (config.specialServices.vipLounge) specials.push("VIP Lounge")
+    if (config.specialServices.veniceCombo) specials.push("Venice Combo (Fast Track + VIP)")
+    if (config.specialServices.greeterOnly) specials.push("Greeter Only")
+    if (config.specialServices.tarmac) specials.push("TARMAC")
+    
+    if (specials.length > 0) {
+      parts.push(`Special services: ${specials.join(', ')}`)
+    }
+  }
+  
+  return parts.join(' | ')
+}
+
 export async function POST(req: NextRequest) {
   console.log('🔵 Stripe webhook received')
   try {
@@ -320,6 +369,16 @@ export async function POST(req: NextRequest) {
           // Options
           meet_and_greet: meetAndGreet === "true",
           meet_greet_config: parsedMeetGreetConfig || null,
+          
+          // Meet & Greet detailed fields
+          meet_greet_service_id: parsedMeetGreetConfig?.serviceId || null,
+          meet_greet_selected_service: parsedMeetGreetConfig?.selectedService || null,
+          meet_greet_passengers: parsedMeetGreetConfig?.passengers || 0,
+          meet_greet_children: parsedMeetGreetConfig?.children || 0,
+          meet_greet_infants: parsedMeetGreetConfig?.infants || 0,
+          meet_greet_extra_luggage: parsedMeetGreetConfig?.extraLuggage || 0,
+          meet_greet_extra_hours: parsedMeetGreetConfig?.extraHours || 0,
+          meet_greet_special_services: parsedMeetGreetConfig?.specialServices || null,
           flight_info: flight || null,
           departure_city: departureCity || null,
           notes: notes !== "Nessuna nota" ? notes : null,
@@ -440,22 +499,26 @@ export async function POST(req: NextRequest) {
                 noteParts.push(`Provenienza: ${departureCity}`)
               }
               
-              // Meet & Greet
+              // Meet & Greet - DETAILED VERSION
               if (meetAndGreet === "true") {
-                noteParts.push('Meet & Greet incluso')
                 if (parsedMeetGreetConfig) {
-                  if (parsedMeetGreetConfig.selectedService) {
-                    noteParts.push(`M&G: ${parsedMeetGreetConfig.selectedService}`)
+                  const meetGreetDescription = createMeetGreetDescription(parsedMeetGreetConfig)
+                  if (meetGreetDescription) {
+                    noteParts.push(`Meet & Greet: ${meetGreetDescription}`)
+                  } else {
+                    noteParts.push('Meet & Greet incluso')
                   }
-                  if (parsedMeetGreetConfig.specialServices) {
-                    const specialServices = Object.keys(parsedMeetGreetConfig.specialServices)
-                      .filter(key => parsedMeetGreetConfig.specialServices[key])
-                      .join(', ')
-                    if (specialServices) {
-                      noteParts.push(`Servizi speciali: ${specialServices}`)
-                    }
-                  }
+                } else {
+                  noteParts.push('Meet & Greet incluso')
                 }
+              }
+              
+              // Multiple vehicles details - ENHANCED VERSION
+              if (hasIndividualVehicles && parsedIndividualVehicles.length > 1) {
+                const vehicleDetails = parsedIndividualVehicles.map((vehicle, index) => 
+                  `V${index + 1}: ${vehicle.type} (${vehicle.passengers}pax, ${vehicle.luggage}bag)`
+                ).join(' | ')
+                noteParts.push(`Veicoli multipli: ${vehicleDetails}`)
               }
               
               // Distance and duration for transfers
@@ -892,23 +955,35 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #dcfce7; border: 1px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
-                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;"></span>
+                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🤝</span>
                         <div>
                           <strong style="color: #166534;">Meet & Greet service included</strong>
                           ${parsedMeetGreetConfig ? `
-                          <div style="margin-top: 8px; font-size: 13px; color: #166534;">
-                            ${parsedMeetGreetConfig.selectedService ? `<p>Service: ${parsedMeetGreetConfig.selectedService}</p>` : ""}
-                            ${parsedMeetGreetConfig.passengers > 0 ? `<p>Passengers: ${parsedMeetGreetConfig.passengers}</p>` : ""}
-                            ${parsedMeetGreetConfig.children > 0 ? `<p>Children: ${parsedMeetGreetConfig.children}</p>` : ""}
-                            ${parsedMeetGreetConfig.infants > 0 ? `<p>Infants: ${parsedMeetGreetConfig.infants}</p>` : ""}
-                                                          ${parsedMeetGreetConfig.extraLuggage > 0 ? `<p>Extra luggage: ${parsedMeetGreetConfig.extraLuggage}</p>` : ""}
-                                                          ${parsedMeetGreetConfig.extraHours > 0 ? `<p>Extra hours: ${parsedMeetGreetConfig.extraHours}</p>` : ""}
-                            ${parsedMeetGreetConfig.specialServices ? `
-                              ${parsedMeetGreetConfig.specialServices.tarmac ? `<p>TARMAC service included</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.fastTrack ? `<p>Fast Track included</p>` : ""}
-                              ${parsedMeetGreetConfig.specialServices.vipLounge ? `<p>VIP Lounge included</p>` : ""}
-                                                              ${parsedMeetGreetConfig.specialServices.veniceCombo ? `<p>Venice Combo (Fast Track + VIP) included</p>` : ""}
-                                                              ${parsedMeetGreetConfig.specialServices.greeterOnly ? `<p>Greeter only (without Porter)</p>` : ""}
+                          <div style="margin-top: 12px; font-size: 13px; color: #166534; line-height: 1.6;">
+                            ${parsedMeetGreetConfig.serviceId ? `<p style="margin: 4px 0;"><strong>Location:</strong> ${parsedMeetGreetConfig.serviceId}</p>` : ""}
+                            ${parsedMeetGreetConfig.selectedService ? `<p style="margin: 4px 0;"><strong>Service type:</strong> ${parsedMeetGreetConfig.selectedService}</p>` : ""}
+                            
+                            ${(parsedMeetGreetConfig.passengers > 0 || parsedMeetGreetConfig.children > 0 || parsedMeetGreetConfig.infants > 0) ? `
+                            <p style="margin: 8px 0 4px 0;"><strong>Passengers breakdown:</strong></p>
+                            <ul style="margin: 0; padding-left: 20px;">
+                              ${parsedMeetGreetConfig.passengers > 0 ? `<li>Adults: ${parsedMeetGreetConfig.passengers}</li>` : ""}
+                              ${parsedMeetGreetConfig.children > 0 ? `<li>Children: ${parsedMeetGreetConfig.children}</li>` : ""}
+                              ${parsedMeetGreetConfig.infants > 0 ? `<li>Infants: ${parsedMeetGreetConfig.infants}</li>` : ""}
+                            </ul>
+                            ` : ""}
+                            
+                            ${parsedMeetGreetConfig.extraLuggage > 0 ? `<p style="margin: 4px 0;"><strong>Extra luggage:</strong> ${parsedMeetGreetConfig.extraLuggage} pieces</p>` : ""}
+                            ${parsedMeetGreetConfig.extraHours > 0 ? `<p style="margin: 4px 0;"><strong>Extra hours:</strong> ${parsedMeetGreetConfig.extraHours} hours</p>` : ""}
+                            
+                            ${parsedMeetGreetConfig.specialServices && (parsedMeetGreetConfig.specialServices.tarmac || parsedMeetGreetConfig.specialServices.fastTrack || parsedMeetGreetConfig.specialServices.vipLounge || parsedMeetGreetConfig.specialServices.veniceCombo || parsedMeetGreetConfig.specialServices.greeterOnly) ? `
+                            <p style="margin: 8px 0 4px 0;"><strong>Special services:</strong></p>
+                            <ul style="margin: 0; padding-left: 20px;">
+                              ${parsedMeetGreetConfig.specialServices.tarmac ? `<li>TARMAC service</li>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.fastTrack ? `<li>Fast Track</li>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.vipLounge ? `<li>VIP Lounge</li>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.veniceCombo ? `<li>Venice Combo (Fast Track + VIP Lounge)</li>` : ""}
+                              ${parsedMeetGreetConfig.specialServices.greeterOnly ? `<li>Greeter only (no Porter service)</li>` : ""}
+                            </ul>
                             ` : ""}
                           </div>
                           ` : `
@@ -1313,17 +1388,35 @@ export async function POST(req: NextRequest) {
                         ? `
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🤝 Meet & Greet:</strong> <span style="color: #16a34a; font-weight: 600;">SÌ</span>
-                      ${parsedMeetGreetConfig ? ` <span style="font-size: 11px;">(Configurazione avanzata)</span>` : ""}
+                      ${parsedMeetGreetConfig ? ` <span style="font-size: 11px;">(Configurazione dettagliata)</span>` : ""}
                     </p>
                     ${parsedMeetGreetConfig ? `
-                    <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px; padding: 10px; margin: 8px 0; font-size: 12px;">
-                      ${parsedMeetGreetConfig.selectedService ? `<div><strong>Servizio:</strong> ${parsedMeetGreetConfig.selectedService}</div>` : ""}
-                      ${parsedMeetGreetConfig.passengers > 0 ? `<div><strong>Passeggeri:</strong> ${parsedMeetGreetConfig.passengers}</div>` : ""}
-                      ${parsedMeetGreetConfig.children > 0 ? `<div><strong>Bambini:</strong> ${parsedMeetGreetConfig.children}</div>` : ""}
-                      ${parsedMeetGreetConfig.infants > 0 ? `<div><strong>Neonati:</strong> ${parsedMeetGreetConfig.infants}</div>` : ""}
-                      ${parsedMeetGreetConfig.extraLuggage > 0 ? `<div><strong>Bagagli extra:</strong> ${parsedMeetGreetConfig.extraLuggage}</div>` : ""}
-                      ${parsedMeetGreetConfig.extraHours > 0 ? `<div><strong>Ore extra:</strong> ${parsedMeetGreetConfig.extraHours}</div>` : ""}
-                      ${parsedMeetGreetConfig.specialServices ? Object.keys(parsedMeetGreetConfig.specialServices).filter(key => parsedMeetGreetConfig.specialServices[key]).map(key => `<div><strong>${key}:</strong> Incluso</div>`).join('') : ""}
+                    <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px; padding: 12px; margin: 8px 0; font-size: 12px; line-height: 1.4;">
+                      ${parsedMeetGreetConfig.serviceId ? `<div style="margin-bottom: 6px;"><strong>🏢 Location ID:</strong> ${parsedMeetGreetConfig.serviceId}</div>` : ""}
+                      ${parsedMeetGreetConfig.selectedService ? `<div style="margin-bottom: 6px;"><strong>📋 Tipo servizio:</strong> ${parsedMeetGreetConfig.selectedService}</div>` : ""}
+                      
+                      ${(parsedMeetGreetConfig.passengers > 0 || parsedMeetGreetConfig.children > 0 || parsedMeetGreetConfig.infants > 0) ? `
+                      <div style="margin-bottom: 6px;"><strong>👥 Passeggeri dettaglio:</strong></div>
+                      <div style="margin-left: 12px; margin-bottom: 6px;">
+                        ${parsedMeetGreetConfig.passengers > 0 ? `• Adulti: ${parsedMeetGreetConfig.passengers}<br>` : ""}
+                        ${parsedMeetGreetConfig.children > 0 ? `• Bambini: ${parsedMeetGreetConfig.children}<br>` : ""}
+                        ${parsedMeetGreetConfig.infants > 0 ? `• Neonati: ${parsedMeetGreetConfig.infants}<br>` : ""}
+                      </div>
+                      ` : ""}
+                      
+                      ${parsedMeetGreetConfig.extraLuggage > 0 ? `<div style="margin-bottom: 6px;"><strong>🧳 Bagagli extra:</strong> ${parsedMeetGreetConfig.extraLuggage} pezzi</div>` : ""}
+                      ${parsedMeetGreetConfig.extraHours > 0 ? `<div style="margin-bottom: 6px;"><strong>⏱️ Ore extra:</strong> ${parsedMeetGreetConfig.extraHours} ore</div>` : ""}
+                      
+                      ${parsedMeetGreetConfig.specialServices && (parsedMeetGreetConfig.specialServices.tarmac || parsedMeetGreetConfig.specialServices.fastTrack || parsedMeetGreetConfig.specialServices.vipLounge || parsedMeetGreetConfig.specialServices.veniceCombo || parsedMeetGreetConfig.specialServices.greeterOnly) ? `
+                      <div style="margin-bottom: 6px;"><strong>⭐ Servizi speciali:</strong></div>
+                      <div style="margin-left: 12px;">
+                        ${parsedMeetGreetConfig.specialServices.tarmac ? `• TARMAC service<br>` : ""}
+                        ${parsedMeetGreetConfig.specialServices.fastTrack ? `• Fast Track<br>` : ""}
+                        ${parsedMeetGreetConfig.specialServices.vipLounge ? `• VIP Lounge<br>` : ""}
+                        ${parsedMeetGreetConfig.specialServices.veniceCombo ? `• Venice Combo (Fast Track + VIP)<br>` : ""}
+                        ${parsedMeetGreetConfig.specialServices.greeterOnly ? `• Greeter only (senza Porter)<br>` : ""}
+                      </div>
+                      ` : ""}
                     </div>
                     ` : ""}
                     `

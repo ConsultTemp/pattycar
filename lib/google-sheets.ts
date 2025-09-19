@@ -139,6 +139,13 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
         case 'note':
           columnMapping[index] = bookingData.notes || ''
           break
+        case 'telefono':
+        case 'phone':
+        case 'tel':
+          // Format phone as text to avoid formula parse errors with + prefix
+          const phone = bookingData.customer_phone || ''
+          columnMapping[index] = phone ? `'${phone}` : ''
+          break
         default:
           // For all other columns, leave empty
           columnMapping[index] = ''

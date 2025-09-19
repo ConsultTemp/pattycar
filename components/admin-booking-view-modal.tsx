@@ -467,12 +467,12 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                 <div>
                   <span className="text-sm text-gray-500">Meet & Greet Enabled:</span>
                   {booking.meet_and_greet ? (
-                    <Badge variant="default" className="ml-2">
+                    <Badge  className="ml-2 b-gray-100 text-white">
                       <CheckCircle className="mr-1 h-3 w-3" />
                       Yes
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="ml-2">
+                    <Badge  className="ml-2 b-gray-100 text-white">
                       <X className="mr-1 h-3 w-3" />
                       No
                     </Badge>
@@ -480,95 +480,95 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                 </div>
               </div>
 
-              {meetGreetConfig && meetGreetConfig.enabled && (
-                <div className="bg-yellow-50 p-4 rounded-lg space-y-3">
-                  <h4 className="font-medium text-yellow-900 mb-3">Configurazione Dettagliata</h4>
+              {booking.meet_and_greet && (
+                <div className="bg-green-50 p-4 rounded-lg space-y-3">
+                  <h4 className="font-medium text-green-900 mb-3">Meet & Greet Configuration</h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {meetGreetConfig.serviceId && (
+                    {(booking as any).meet_greet_service_id && (
                       <div>
                         <span className="text-sm text-gray-600">Service ID:</span>
-                        <p className="font-medium">{meetGreetConfig.serviceId}</p>
+                        <p className="font-medium">{(booking as any).meet_greet_service_id}</p>
                       </div>
                     )}
-                    {meetGreetConfig.selectedService && (
+                    {(booking as any).meet_greet_selected_service && (
                       <div>
                         <span className="text-sm text-gray-600">Selected Service:</span>
-                        <p className="font-medium">{meetGreetConfig.selectedService}</p>
+                        <p className="font-medium">{(booking as any).meet_greet_selected_service}</p>
                       </div>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <span className="text-sm text-gray-600">Passengers:</span>
+                      <span className="text-sm text-gray-600">Adults:</span>
                       <p className="flex items-center">
                         <Users className="mr-1 h-3 w-3" />
-                        {meetGreetConfig.passengers || 0}
+                        {(booking as any).meet_greet_passengers || 0}
                       </p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-600">Children:</span>
                       <p className="flex items-center">
                         <Baby className="mr-1 h-3 w-3" />
-                        {meetGreetConfig.children || 0}
+                        {(booking as any).meet_greet_children || 0}
                       </p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-600">Infants:</span>
                       <p className="flex items-center">
                         <UserPlus className="mr-1 h-3 w-3" />
-                        {meetGreetConfig.infants || 0}
+                        {(booking as any).meet_greet_infants || 0}
                       </p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-600">Extra Luggage:</span>
                       <p className="flex items-center">
                         <Briefcase className="mr-1 h-3 w-3" />
-                        {meetGreetConfig.extraLuggage || 0}
+                        {(booking as any).meet_greet_extra_luggage || 0}
                       </p>
                     </div>
                   </div>
 
-                  {meetGreetConfig.extraHours && meetGreetConfig.extraHours > 0 && (
+                  {(booking as any).meet_greet_extra_hours && (booking as any).meet_greet_extra_hours > 0 && (
                     <div>
                       <span className="text-sm text-gray-600">Extra Hours:</span>
                       <p className="flex items-center">
                         <Clock className="mr-1 h-3 w-3" />
-                        {meetGreetConfig.extraHours}h
+                        {(booking as any).meet_greet_extra_hours}h
                       </p>
                     </div>
                   )}
 
-                  {meetGreetConfig.specialServices && Object.keys(meetGreetConfig.specialServices).length > 0 && (
+                  {(booking as any).meet_greet_special_services && (
                     <div>
                       <span className="text-sm text-gray-600 block mb-2">Special Services:</span>
                       <div className="flex flex-wrap gap-2">
-                        {meetGreetConfig.specialServices.tarmac && (
+                        {(booking as any).meet_greet_special_services.tarmac && (
                           <Badge variant="outline" className="bg-blue-50">
                             <Plane className="mr-1 h-3 w-3" />
                             Tarmac Access
                           </Badge>
                         )}
-                        {meetGreetConfig.specialServices.fastTrack && (
+                        {(booking as any).meet_greet_special_services.fastTrack && (
                           <Badge variant="outline" className="bg-green-50">
                             <Zap className="mr-1 h-3 w-3" />
                             Fast Track
                           </Badge>
                         )}
-                        {meetGreetConfig.specialServices.vipLounge && (
+                        {(booking as any).meet_greet_special_services.vipLounge && (
                           <Badge variant="outline" className="bg-purple-50">
                             <Star className="mr-1 h-3 w-3" />
                             VIP Lounge
                           </Badge>
                         )}
-                        {meetGreetConfig.specialServices.greeterOnly && (
+                        {(booking as any).meet_greet_special_services.greeterOnly && (
                           <Badge variant="outline" className="bg-gray-50">
                             <User className="mr-1 h-3 w-3" />
                             Greeter Only
                           </Badge>
                         )}
-                        {meetGreetConfig.specialServices.veniceCombo && (
+                        {(booking as any).meet_greet_special_services.veniceCombo && (
                           <Badge variant="outline" className="bg-orange-50">
                             <Shield className="mr-1 h-3 w-3" />
                             Venice Combo
@@ -577,6 +577,17 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                       </div>
                     </div>
                   )}
+
+                  {/* Summary */}
+                  <div className="bg-white p-3 rounded border">
+                    <span className="text-sm text-gray-600 block mb-1">Summary:</span>
+                    <p className="text-sm">
+                      Total passengers: {((booking as any).meet_greet_passengers || 0) + ((booking as any).meet_greet_children || 0) + ((booking as any).meet_greet_infants || 0)} 
+                      ({(booking as any).meet_greet_passengers || 0} adults, {(booking as any).meet_greet_children || 0} children, {(booking as any).meet_greet_infants || 0} infants)
+                      {(booking as any).meet_greet_extra_luggage > 0 && ` • Extra luggage: ${(booking as any).meet_greet_extra_luggage}`}
+                      {(booking as any).meet_greet_extra_hours > 0 && ` • Extra hours: ${(booking as any).meet_greet_extra_hours}h`}
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>
