@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       if ((type === 'customers' || type === 'all') && booking.customer_phone) {
         const customerPhone = formatPhoneNumber(
           booking.customer_phone,
-          booking.customer_phone_prefix
+          booking.customer_phone_prefix || undefined
         )
 
         if (customerPhone) {
@@ -121,6 +121,7 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
 
 
 

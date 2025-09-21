@@ -500,7 +500,7 @@ export async function POST(req: NextRequest) {
               }
               
               // Meet & Greet - DETAILED VERSION
-              if (meetAndGreet === "true") {
+              if (meetAndGreet === "true" && (parsedMeetGreetConfig || meetAndGreet === "true")) {
                 if (parsedMeetGreetConfig) {
                   const meetGreetDescription = createMeetGreetDescription(parsedMeetGreetConfig)
                   if (meetGreetDescription) {
@@ -559,11 +559,7 @@ export async function POST(req: NextRequest) {
                 noteParts.push(`Fatturazione: ${billingInfo.replace(/\n/g, ' | ')}`)
               }
               
-              // Phone number
-              const phoneForNotes = `${insertResult.data!.customer_phone_prefix || ''} ${insertResult.data!.customer_phone || ''}`.trim()
-              if (phoneForNotes && phoneForNotes !== 'null null') {
-                noteParts.push(`Tel: ${phoneForNotes}`)
-              }
+              // Phone number - now handled in dedicated column, not in notes
               
               // Payment info
               noteParts.push(`Pagato online: €${totalAmount.toFixed(2)}`)
@@ -951,7 +947,7 @@ export async function POST(req: NextRequest) {
                     }
                     
                     ${
-                      meetAndGreet === "true" || parsedMeetGreetConfig
+                      meetAndGreet === "true"
                         ? `
                     <div style="background: #dcfce7; border: 1px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
@@ -1078,7 +1074,7 @@ export async function POST(req: NextRequest) {
                      style="display: inline-block; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
                             color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; 
                             font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);">
-                    📄 View Invoice
+                    📄 View payment receipt
                   </a>
                 </div>
                 `
@@ -1109,7 +1105,9 @@ export async function POST(req: NextRequest) {
                     📌 Cancellation Policy
                   </h3>
                   <p style="color: #92400e; margin: 0; line-height: 1.6;">
-                    Cancellations on or before 31 October 2025 shall be free of charge. Cancellations between 1 November 2025 and 5 January 2026: bookings may be adjusted, including changes in dates, times, and flights, a 50% cancellation fee shall apply for fully cancelled bookings. Cancellations after 5 January 2026: adjustments to bookings shall be subject to availability, a 100% cancellation fee shall apply for fully cancelled bookings.
+                    ❄️ After confirmation, if cancellation is requested up to 31st October 2025 ➡️ 100% REFUNDABLE.<br>
+                    ❄️ After confirmation, if cancellation is requested between 1st November 2025 to 5th January 2026 ➡️ 50% REFUNDABLE.<br>
+                    ❄️ After confirmation, if cancellation is requested from 6th January 2026 ➡️ NOT REFUNDABLE.
                   </p>
                 </div>
                 
@@ -1139,7 +1137,7 @@ export async function POST(req: NextRequest) {
               <div style="background: #f8fafc; padding: 25px 30px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e2e8f0;">
                 <p style="color: #6b7280; font-size: 13px; margin: 0; line-height: 1.5;">
                   This is an automatic confirmation email. <br>
-                  For assistance or changes, please contact our customer service.
+                  Should you require any assistance please do not hesitate to contact us at gamestime@partycar.com
                 </p>
               </div>
             </div>
@@ -1384,7 +1382,7 @@ export async function POST(req: NextRequest) {
                         : ""
                     }
                     ${
-                      meetAndGreet === "true" || parsedMeetGreetConfig
+                      meetAndGreet === "true"
                         ? `
                     <p style="margin: 0; color: #1e40af;">
                       <strong>🤝 Meet & Greet:</strong> <span style="color: #16a34a; font-weight: 600;">SÌ</span>
@@ -1500,13 +1498,13 @@ export async function POST(req: NextRequest) {
                       invoiceUrl
                         ? `
                     <p style="margin: 0; color: #16a34a;">
-                      <strong>Fattura:</strong> 
-                      <a href="${invoiceUrl}" style="color: #15803d; text-decoration: underline;">Visualizza Fattura</a>
+                      <strong>Ricevuta di pagamento:</strong> 
+                      <a href="${invoiceUrl}" style="color: #15803d; text-decoration: underline;">Visualizza ricevuta di pagamento</a>
                     </p>
                     `
                         : `
                     <p style="margin: 0; color: #f59e0b;">
-                      <strong>Fattura:</strong> <span style="color: #d97706;">⚠️ Non ancora disponibile</span>
+                      <strong>Ricevuta di pagamento:</strong> <span style="color: #d97706;">⚠️ Non ancora disponibile</span>
                     </p>
                     `
                     }

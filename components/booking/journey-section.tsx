@@ -22,6 +22,7 @@ import { isOlympicPeriod } from "@/lib/olympic-pricing"
 interface JourneySectionProps {
   journey: Journey
   errors: ValidationError[]
+  optionsErrors?: ValidationError[]
   hasAttemptedSubmit: boolean
   onChange: (journey: Partial<Journey>) => void
   serviceType: ServiceType
@@ -31,7 +32,7 @@ interface JourneySectionProps {
   isDestinationDisabled?: () => boolean
 }
 
-export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled }: JourneySectionProps) {
+export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [is24HourFormat, setIs24HourFormat] = useState(false)
 
@@ -260,8 +261,25 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
     }
   }
 
+  const getOptionsFieldError = (field: string) => {
+    const error = optionsErrors.find((error) => error.field.includes(field))
+    if (!error) return undefined
+    
+    // Return translated messages instead of raw Zod messages
+    switch (field) {
+      case "flight":
+        return dictionary.flightRequired
+      default:
+        return error.message
+    }
+  }
+
   const hasFieldError = (field: string) => {
     return hasAttemptedSubmit && !!getFieldError(field)
+  }
+
+  const hasOptionsFieldError = (field: string) => {
+    return hasAttemptedSubmit && !!getOptionsFieldError(field)
   }
 
   const isEndTimeValid = () => {
@@ -783,14 +801,23 @@ export function JourneySection({ journey, errors, hasAttemptedSubmit, onChange, 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Flight/Train Number */}
           <div className="space-y-2">
-            <Label htmlFor="flight">{dictionary.flightLabel}</Label>
+            <Label htmlFor="flight" className={hasOptionsFieldError("flight") ? "text-red-500" : ""}>{dictionary.flightLabel}</Label>
             <Input
               type="text"
               id="flight"
               value={options.flight || ""}
               onChange={(e) => onOptionsChange({ flight: e.target.value })}
               placeholder={dictionary.flightPlaceholder}
+              className={hasOptionsFieldError("flight") ? "border-red-500" : ""}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              {dictionary.flightNote}
+            </p>
+            {hasOptionsFieldError("flight") && (
+              <p className="text-red-500 text-sm mt-1" role="alert">
+                {getOptionsFieldError("flight")}
+              </p>
+            )}
           </div>
 
           {/* Departure City */}

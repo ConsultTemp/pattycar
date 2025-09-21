@@ -857,7 +857,7 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                             onClick={() => window.open(booking.invoice_url!, '_blank')}
                           >
                             <ExternalLink className="mr-1 h-3 w-3" />
-                            Fattura
+                            Ricevuta di pagamento
                           </Button>
                         )}
                       </div>

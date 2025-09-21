@@ -526,6 +526,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           <JourneySection
             journey={state.journey}
             errors={getFieldErrors("journey")}
+            optionsErrors={getFieldErrors("options")}
             hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
             onChange={handleJourneyChange}
             serviceType={state.serviceType}

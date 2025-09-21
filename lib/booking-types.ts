@@ -287,7 +287,7 @@ export const optionsSchema = z.object({
   meetAndGreet: z.boolean().default(false),
   meetGreetConfig: meetGreetConfigSchema,
   differentVehicles: z.boolean().default(false),
-  flight: z.string().optional(),
+  flight: z.string().min(1, "Numero volo/treno richiesto"),
   departureCity: z.string().optional(),
   billingInfo: z.string().min(1, "Informazioni di fatturazione richieste"),
   notes: z.string().optional(),

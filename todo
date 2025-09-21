@@ -246,3 +246,15 @@ quests:
 - fare leggere modifiche allo sheet per numeri di telefono clienti ed utenti
 - gestione campi mancanti in sheet ma che in prenotazione sono richiesti
 - tutto cio che non è prenotazione non è considerato (righe di data e ferie ecc)
+
+
+
+
+
+
+
+ricevuta di pagamento invece che fattura
+se non è aereoporto metti 00000000
+se piu messaggi singolo autista manda un singolo messaggio
+mail cliente-> customer support -> se hai bisogno contattaci, non contattaci per changes
+colora note se ci sono meet e greet e 

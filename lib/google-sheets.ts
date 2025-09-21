@@ -68,7 +68,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
     const headersResponse = await sheets.spreadsheets.values.get({
       auth,
       spreadsheetId,
-      range: 'Sheet1!1:1', // Get the first row (headers)
+      range: 'Prenotazioni!1:1', // Get the first row (headers)
     })
 
     const headers = headersResponse.data.values?.[0] || []
@@ -165,7 +165,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
     const dataResponse = await sheets.spreadsheets.values.get({
       auth,
       spreadsheetId,
-      range: 'Sheet1!A:ZZ', // Get all data to find the real last row
+      range: 'Prenotazioni!A:ZZ', // Get all data to find the real last row
     })
 
     const existingData = dataResponse.data.values || []
@@ -188,7 +188,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
     const targetRowCheck = await sheets.spreadsheets.values.get({
       auth,
       spreadsheetId,
-      range: `Sheet1!A${nextRow}:ZZ${nextRow}`,
+      range: `Prenotazioni!A${nextRow}:ZZ${nextRow}`,
     })
     
     const targetRowData = targetRowCheck.data.values?.[0] || []
@@ -202,7 +202,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
         const checkResponse = await sheets.spreadsheets.values.get({
           auth,
           spreadsheetId,
-          range: `Sheet1!A${emptyRow}:ZZ${emptyRow}`,
+          range: `Prenotazioni!A${emptyRow}:ZZ${emptyRow}`,
         })
         const checkData = checkResponse.data.values?.[0] || []
         if (!checkData.some(cell => cell && cell.toString().trim() !== '')) {
@@ -218,7 +218,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
     const response = await sheets.spreadsheets.values.update({
       auth,
       spreadsheetId,
-      range: `Sheet1!A${nextRow}:ZZ${nextRow}`, // Specific row range
+      range: `Prenotazioni!A${nextRow}:ZZ${nextRow}`, // Specific row range
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [row]
@@ -270,7 +270,8 @@ export async function setupGoogleSheetsHeaders(): Promise<{ success: boolean; er
       'note', // U
       'MEZZO', // V
       'KM INIZIALI', // W
-      'GASOLIO INIZIALE', // X
+      'telefono', // X - phone column (matches CSV structure)
+      'GASOLIO INIZIALE', // Y
       'KM FINALI', // Y
       'GASOLIO FINALE', // Z
       'LITRI GASOLIO', // AA
@@ -298,7 +299,7 @@ export async function setupGoogleSheetsHeaders(): Promise<{ success: boolean; er
     const response = await sheets.spreadsheets.values.update({
       auth,
       spreadsheetId,
-      range: 'Sheet1!A1:AS1',
+      range: 'Prenotazioni!A1:AS1',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [headers]

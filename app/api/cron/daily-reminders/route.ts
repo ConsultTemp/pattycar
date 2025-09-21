@@ -1,4 +1,4 @@
-/* import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { runDailyReminders } from '@/lib/reminder-system'
 
 export async function GET(request: NextRequest) {
@@ -44,12 +44,7 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
 // Also support POST for manual triggers
 export async function POST(request: NextRequest) {
   return GET(request)
 }
-
-
-
- */
