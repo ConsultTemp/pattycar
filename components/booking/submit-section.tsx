@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CreditCard, Loader2, AlertTriangle } from "lucide-react"
 import type { PricingResult } from "@/lib/booking-types"
-import { validateTripDistance } from "@/lib/utils"
 
 // Helper function per formattare il prezzo con sempre 2 decimali
 const formatPrice = (num: number): string => {
@@ -22,15 +21,6 @@ interface SubmitSectionProps {
   onSubmit: () => void
   dictionary: any
   validationErrors?: Array<{field: string, message: string}>
-  // New props for distance validation
-  tripDistance?: {
-    km: number
-    text: string
-    duration: string
-  }
-  pickupCoordinates?: { lat: number; lng: number }
-  destinationCoordinates?: { lat: number; lng: number }
-  serviceType?: string
 }
 
 export const SubmitSection = memo<SubmitSectionProps>(({ 
@@ -42,23 +32,14 @@ export const SubmitSection = memo<SubmitSectionProps>(({
   onCancellationChange,
   onSubmit, 
   dictionary,
-  validationErrors = [],
-  tripDistance,
-  pickupCoordinates,
-  destinationCoordinates,
-  serviceType
+  validationErrors = []
 }) => {
   const cancellationError = validationErrors.find(error => error.field === "cancellationAccepted")
   
-  // Validate distance for transfer and inter-cluster services
-  const shouldValidateDistance = (serviceType === "transfer" || serviceType === "inter-cluster") && tripDistance
+  // Distance validation is now handled by the main validation system
   
-  const distanceValidation = shouldValidateDistance 
-    ? validateTripDistance(tripDistance!.km, pickupCoordinates, destinationCoordinates)
-    : { isValid: true }
-  
-  // Button should be disabled if form is not valid, distance is invalid, or is submitting
-  const isButtonDisabled = isSubmitting || !isValid || !distanceValidation.isValid
+  // Button is only disabled when submitting - validation errors are shown but don't disable the button
+  const isButtonDisabled = isSubmitting
 
   return (
     <div className="space-y-6">
@@ -83,29 +64,14 @@ export const SubmitSection = memo<SubmitSectionProps>(({
             </p>
             {cancellationError && (
               <p className="text-red-600 text-sm mt-2" role="alert">
-                {cancellationError.message}
+                {dictionary.validationErrors?.[cancellationError.message] || cancellationError.message}
               </p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Distance Validation Error */}
-      {shouldValidateDistance && !distanceValidation.isValid && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h4 className="font-medium text-red-900 mb-1">
-                {dictionary.distanceValidationTitle}
-              </h4>
-              <p className="text-sm text-red-700">
-                {dictionary.distanceValidationMessage}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Distance Validation Error - Now handled by main validation system */}
 
       {/* Route Disclaimer */}
       <div className="text-center">

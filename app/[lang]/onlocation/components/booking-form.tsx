@@ -124,7 +124,13 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   const [state, dispatch] = useReducer(bookingReducer, initialBookingState)
   const [cancellationAccepted, setCancellationAccepted] = useState(false)
 
-  const { validateAll, isValid, getFieldErrors } = useFormValidation(state)
+  const { validateAll, isValid, getFieldErrors } = useFormValidation(state, {
+    cancellationAccepted,
+    tripDistance: state.journey.distance,
+    pickupCoordinates: state.journey.pickup?.coordinates,
+    destinationCoordinates: state.journey.destination?.coordinates,
+    serviceType: state.serviceType
+  })
   const { pricing, isCalculating } = usePriceCalculation(state, dispatch)
   const { handleError, getErrorMessage } = useErrorHandler()
 
@@ -252,16 +258,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     // Clear previous errors
     dispatch({ type: "CLEAR_ERRORS" })
 
-    // Validate form
+    // Validate form (now includes cancellation policy and distance validation)
     const errors = validateAll()
-
-    // Check cancellation policy acceptance
-    if (!cancellationAccepted) {
-      errors.push({
-        field: "cancellationAccepted",
-        message: dictionary.submit.cancellationRequired || "You must accept the cancellation policy"
-      })
-    }
 
     // Debug log for validation
     console.log("Form validation:", {
@@ -417,7 +415,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           errors={getFieldErrors("customer")}
           hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
           onChange={handleCustomerChange}
-          dictionary={dictionary.customer}
+          dictionary={{...dictionary.customer, validationErrors: dictionary.submit?.validationErrors}}
         />
 
         {/* Date Selection - Critical first step */}
@@ -426,7 +424,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           errors={getFieldErrors("journey")}
           hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
           onChange={(date) => handleJourneyChange({ date })}
-          dictionary={dictionary.date}
+          dictionary={{...dictionary.date, validationErrors: dictionary.submit?.validationErrors}}
         />
 
         {/* Service Type Selection - Only enabled when date is selected */}
@@ -532,7 +530,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             serviceType={state.serviceType}
             options={state.options}
             onOptionsChange={handleOptionsChange}
-            dictionary={dictionary.journey}
+            dictionary={{...dictionary.journey, validationErrors: dictionary.submit?.validationErrors}}
             isDestinationDisabled={isDestinationDisabledForCeremony}
           />
         </div>
@@ -630,7 +628,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 onMultipleConfigChange={handleMultipleConfigChange}
                 onAddVehicle={handleAddVehicle}
                 onRemoveVehicle={handleRemoveVehicle}
-                dictionary={dictionary.vehicles}
+                dictionary={{...dictionary.vehicles, validationErrors: dictionary.submit?.validationErrors}}
               />
             )
           })()}
@@ -653,14 +651,14 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             errors={getFieldErrors("options")}
             hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
             onChange={handleOptionsChange}
-            dictionary={dictionary.options}
+            dictionary={{...dictionary.options, validationErrors: dictionary.submit?.validationErrors}}
           />
         </div>
 
         {/* Submit Section - Only enabled when date is selected */}
         <div className={!state.journey.date ? "opacity-50 pointer-events-none" : ""}>
           <SubmitSection
-            isValid={isValid && !!state.journey.date && cancellationAccepted}
+            isValid={isValid}
             isSubmitting={state.ui.isSubmitting}
             pricing={pricing}
             submitError={
@@ -673,10 +671,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             onSubmit={handleSubmit}
             dictionary={dictionary.submit}
             validationErrors={state.ui.errors}
-            tripDistance={state.journey.distance}
-            pickupCoordinates={state.journey.pickup?.coordinates}
-            destinationCoordinates={state.journey.destination?.coordinates}
-            serviceType={state.serviceType}
           />
         </div>
       </div>

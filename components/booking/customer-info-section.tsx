@@ -297,7 +297,12 @@ export const CustomerInfoSection = memo<CustomerInfoSectionProps>(({ customer, e
     const error = errors.find((error) => error.field === `customer.${field}`)
     if (!error) return undefined
     
-    // Return translated messages instead of raw Zod messages
+    // Return translated messages - first check if it's a validation key, otherwise use dictionary mapping
+    if (dictionary.validationErrors && dictionary.validationErrors[error.message]) {
+      return dictionary.validationErrors[error.message]
+    }
+    
+    // Fallback to existing dictionary keys for backward compatibility
     switch (field) {
       case "name":
         return dictionary.nameRequired

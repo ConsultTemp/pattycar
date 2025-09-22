@@ -10,8 +10,21 @@ import {
   optionsSchema,
 } from "@/lib/booking-types"
 import { isOlympicPeriod } from "@/lib/olympic-pricing"
+import { validateTripDistance } from "@/lib/utils"
 
-export function useFormValidation(state: BookingState) {
+interface AdditionalValidationParams {
+  cancellationAccepted?: boolean
+  tripDistance?: {
+    km: number
+    text: string
+    duration: string
+  }
+  pickupCoordinates?: { lat: number; lng: number }
+  destinationCoordinates?: { lat: number; lng: number }
+  serviceType?: string
+}
+
+export function useFormValidation(state: BookingState, additionalParams: AdditionalValidationParams = {}) {
   const validateCustomer = useCallback(() => {
     const errors: ValidationError[] = []
     const result = customerSchema.safeParse(state.customer)
@@ -51,7 +64,7 @@ export function useFormValidation(state: BookingState) {
         state.journey.pickup.address === state.journey.destination.address) {
       errors.push({
         field: "journey.destination",
-        message: "Il punto di partenza e di arrivo non possono essere uguali",
+        message: "sameAddresses",
       })
     }
 
@@ -62,7 +75,7 @@ export function useFormValidation(state: BookingState) {
       if (timeNum >= 1 && timeNum <= 12 && !state.journey.timeAmPm) {
         errors.push({
           field: "journey.timeAmPm",
-          message: "Seleziona AM/PM",
+          message: "selectAmPm",
         })
       }
     }
@@ -74,7 +87,7 @@ export function useFormValidation(state: BookingState) {
         if (endTimeNum >= 1 && endTimeNum <= 12 && !state.journey.endTimeAmPm) {
           errors.push({
             field: "journey.endTimeAmPm",
-            message: "Seleziona AM/PM per ora di fine",
+            message: "selectEndAmPm",
           })
         }
       }
@@ -89,7 +102,7 @@ export function useFormValidation(state: BookingState) {
     if (state.vehicles.count === 0) {
       errors.push({
         field: "vehicles.count",
-        message: "Numero di veicoli richiesto",
+        message: "vehicleCountRequired",
       })
       return errors
     }
@@ -123,7 +136,7 @@ export function useFormValidation(state: BookingState) {
       if (state.vehicles.multipleConfigs.length !== state.vehicles.count) {
         errors.push({
           field: "vehicles.configs",
-          message: "Configurazione di tutti i veicoli richiesta",
+          message: "allVehicleConfigRequired",
         })
       }
     }
@@ -147,9 +160,41 @@ export function useFormValidation(state: BookingState) {
     return errors
   }, [state.options])
 
+  const validateAdditional = useCallback(() => {
+    const errors: ValidationError[] = []
+    
+    // Validate cancellation policy acceptance
+    if (!additionalParams.cancellationAccepted) {
+      errors.push({
+        field: "cancellationAccepted",
+        message: "cancellationPolicyRequired"
+      })
+    }
+    
+    // Validate distance for transfer and inter-cluster services
+    const shouldValidateDistance = (additionalParams.serviceType === "transfer" || additionalParams.serviceType === "inter-cluster") && additionalParams.tripDistance
+    
+    if (shouldValidateDistance && additionalParams.tripDistance && additionalParams.pickupCoordinates && additionalParams.destinationCoordinates) {
+      const distanceValidation = validateTripDistance(
+        additionalParams.tripDistance.km,
+        additionalParams.pickupCoordinates,
+        additionalParams.destinationCoordinates
+      )
+      
+      if (!distanceValidation.isValid) {
+        errors.push({
+          field: "journey.distance",
+          message: "invalidTripDistance"
+        })
+      }
+    }
+    
+    return errors
+  }, [additionalParams])
+
   const validateAll = useCallback(() => {
-    return [...validateCustomer(), ...validateJourney(), ...validateVehicles(), ...validateOptions()]
-  }, [validateCustomer, validateJourney, validateVehicles, validateOptions])
+    return [...validateCustomer(), ...validateJourney(), ...validateVehicles(), ...validateOptions(), ...validateAdditional()]
+  }, [validateCustomer, validateJourney, validateVehicles, validateOptions, validateAdditional])
 
   const isValid = useMemo(() => {
     return validateAll().length === 0

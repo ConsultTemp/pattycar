@@ -19,7 +19,12 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
     const error = errors.find((error) => error.field === `options.${field}`)
     if (!error) return undefined
     
-    // Return translated messages instead of raw Zod messages
+    // Return translated messages - first check if it's a validation key
+    if (dictionary.validationErrors && dictionary.validationErrors[error.message]) {
+      return dictionary.validationErrors[error.message]
+    }
+    
+    // Fallback to existing dictionary keys for backward compatibility
     switch (field) {
       case "billingInfo":
         return dictionary.billingRequired

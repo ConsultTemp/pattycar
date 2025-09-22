@@ -242,7 +242,12 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
     const error = errors.find((error) => error.field.includes(field))
     if (!error) return undefined
     
-    // Return translated messages instead of raw Zod messages
+    // Return translated messages - first check if it's a validation key
+    if (dictionary.validationErrors && dictionary.validationErrors[error.message]) {
+      return dictionary.validationErrors[error.message]
+    }
+    
+    // Fallback to existing dictionary keys for backward compatibility
     switch (field) {
       case "pickup":
         return dictionary.pickupRequired
@@ -265,7 +270,12 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
     const error = optionsErrors.find((error) => error.field.includes(field))
     if (!error) return undefined
     
-    // Return translated messages instead of raw Zod messages
+    // Return translated messages - first check if it's a validation key
+    if (dictionary.validationErrors && dictionary.validationErrors[error.message]) {
+      return dictionary.validationErrors[error.message]
+    }
+    
+    // Fallback to existing dictionary keys for backward compatibility
     switch (field) {
       case "flight":
         return dictionary.flightRequired

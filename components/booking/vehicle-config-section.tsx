@@ -142,7 +142,12 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
       const error = errors.find((error) => error.field === `vehicles.${field}`)
       if (!error) return undefined
       
-      // Return translated messages instead of raw Zod messages
+      // Return translated messages - first check if it's a validation key
+      if (dictionary.validationErrors && dictionary.validationErrors[error.message]) {
+        return dictionary.validationErrors[error.message]
+      }
+      
+      // Fallback to existing dictionary keys for backward compatibility
       if (field === "count") {
         return dictionary.countRequired
       } else if (field.includes("type")) {

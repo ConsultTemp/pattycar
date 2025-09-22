@@ -40,7 +40,12 @@ export function DateSection({ date, errors, hasAttemptedSubmit, onChange, dictio
     const error = errors.find((error) => error.field.includes(field))
     if (!error) return undefined
     
-    // Return translated messages instead of raw Zod messages
+    // Return translated messages - first check if it's a validation key
+    if (dictionary.validationErrors && dictionary.validationErrors[error.message]) {
+      return dictionary.validationErrors[error.message]
+    }
+    
+    // Fallback to existing dictionary keys for backward compatibility
     switch (field) {
       case "date":
         return dictionary.dateRequired
