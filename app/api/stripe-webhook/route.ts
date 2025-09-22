@@ -428,9 +428,10 @@ export async function POST(req: NextRequest) {
             const googleSheetsOperation = (async () => {
             // Calculate taxable amount and VAT from total
             const totalAmount = insertResult.data!.amount_total / 100 // Convert from cents to euros
-            const vatRateNum = parseFloat(vatRate) || 10 // Default 22% VAT
-            const taxableAmount = totalAmount / (1 + vatRateNum / 100)
-            const vatAmount = totalAmount - taxableAmount
+            const vatRateNum = parseFloat(vatRate) || 10 // Default 10% VAT
+            // CALCOLO CORRETTO: 10% IVA, 90% imponibile
+            const vatAmount = totalAmount * (vatRateNum / 100) // 939.84 * 0.10 = 93.98
+            const taxableAmount = totalAmount - vatAmount // 939.84 - 93.98 = 845.86
 
             // Format date for Google Sheets (DD/MM/YYYY format)
             const formattedDateForSheets = (() => {

@@ -133,7 +133,25 @@ export async function POST(req: NextRequest) {
 
     // Add extra services if present
     const extras = []
-    if (bookingData.meetAndGreet) extras.push("• Meet & Greet service")
+    if (bookingData.meetAndGreet) {
+      let meetGreetInfo = "• Meet & Greet service"
+      
+      // Add Meet & Greet details if available
+      if (bookingData.meetGreetConfig) {
+        const config = bookingData.meetGreetConfig
+        const totalPax = (config.passengers || 0) + (config.children || 0) + (config.infants || 0)
+        if (totalPax > 0) {
+          const paxDetails = []
+          if (config.passengers > 0) paxDetails.push(`${config.passengers} adults`)
+          if (config.children > 0) paxDetails.push(`${config.children} children`)
+          if (config.infants > 0) paxDetails.push(`${config.infants} infants`)
+          meetGreetInfo += ` (${paxDetails.join(', ')})`
+        }
+        if (config.extraLuggage > 0) meetGreetInfo += ` +${config.extraLuggage} extra luggage`
+        if (config.extraHours > 0) meetGreetInfo += ` +${config.extraHours}h extra`
+      }
+      extras.push(meetGreetInfo)
+    }
     if (bookingData.flight) extras.push(`• Flight/Train: ${bookingData.flight}`)
     if (bookingData.departureCity) extras.push(`• Departure city: ${bookingData.departureCity}`)
     if (bookingData.luggage && bookingData.luggage > 0) extras.push(`• Luggage: ${bookingData.luggage} pieces`)

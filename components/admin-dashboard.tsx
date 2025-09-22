@@ -15,8 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox"
 import { adminLogout } from "@/lib/supabase-auth"
 import { AdminBookingViewModal } from "@/components/admin-booking-view-modal"
-import AdminDriversManagement from "@/components/admin-drivers-management"
-import AdminCustomersManagement from "@/components/admin-customers-management"
+import { AdminBookingModal } from "@/components/admin-booking-modal"
+import { AdminDeleteBookingModal } from "@/components/admin-delete-booking-modal"
 import { format } from "date-fns"
 import { it } from "date-fns/locale"
 import { 
@@ -39,10 +39,8 @@ import {
   CheckCircle,
   Info,
   CalendarIcon,
-  MessageSquare,
-  UserCheck,
-  UsersIcon
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 type BookingRow = Database['public']['Tables']['bookings']['Row']
 
@@ -50,8 +48,6 @@ interface FilterState {
   search: string
   dateFrom: Date | undefined
   dateTo: Date | undefined
-  driverId: string
-  customerId: string
 }
 
 interface AdminDashboardProps {
@@ -65,57 +61,17 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     dateFrom: undefined,
-    dateTo: undefined,
-    driverId: "",
-    customerId: ""
+    dateTo: undefined
   })
   
   const [sortBy, setSortBy] = useState<keyof BookingRow>("created_at")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [refreshKey, setRefreshKey] = useState(0)
-  const [drivers, setDrivers] = useState<any[]>([])
-  const [customers, setCustomers] = useState<any[]>([])
   
-  // Selection state for bulk SMS
-  const [selectedBookings, setSelectedBookings] = useState<Set<string>>(new Set())
-  const [isSelectAll, setIsSelectAll] = useState(false)
-  const [isSendingSMS, setIsSendingSMS] = useState(false)
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 15
 
-  // Load drivers on component mount
-  useEffect(() => {
-    const fetchDrivers = async () => {
-      try {
-        const response = await fetch('/api/admin/drivers')
-        const result = await response.json()
-
-        if (result.success) {
-          setDrivers(result.data)
-        }
-      } catch (error) {
-        console.error('Error fetching drivers:', error)
-      }
-    }
-
-    fetchDrivers()
-  }, []) // Remove refreshKey dependency
-
-  // Load customers on component mount
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const response = await fetch('/api/admin/customers')
-        const result = await response.json()
-
-        if (result.success) {
-          setCustomers(result.data)
-        }
-      } catch (error) {
-        console.error('Error fetching customers:', error)
-      }
-    }
-
-    fetchCustomers()
-  }, []) // Remove refreshKey dependency
 
   const refreshBookings = () => {
     setRefreshKey(prev => prev + 1)
@@ -123,176 +79,16 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
     window.location.reload()
   }
 
-  // Function to refresh drivers list (called from AdminDriversManagement)
-  const refreshDrivers = async () => {
-    try {
-      const response = await fetch('/api/admin/drivers')
-      const result = await response.json()
-
-      if (result.success) {
-        setDrivers(result.data)
-      }
-    } catch (error) {
-      console.error('Error fetching drivers:', error)
-    }
-  }
-
-  // Function to refresh customers list (called from AdminCustomersManagement)
-  const refreshCustomers = async () => {
-    try {
-      const response = await fetch('/api/admin/customers')
-      const result = await response.json()
-
-      if (result.success) {
-        setCustomers(result.data)
-      }
-    } catch (error) {
-      console.error('Error fetching customers:', error)
-    }
-  }
 
   // Function to reset all filters
   const resetFilters = () => {
     setFilters({
       search: "",
       dateFrom: undefined,
-      dateTo: undefined,
-      driverId: "",
-      customerId: ""
+      dateTo: undefined
     })
   }
 
-  // Selection functions
-  const handleSelectBooking = (bookingId: string, checked: boolean) => {
-    const newSelected = new Set(selectedBookings)
-    if (checked) {
-      newSelected.add(bookingId)
-    } else {
-      newSelected.delete(bookingId)
-    }
-    setSelectedBookings(newSelected)
-    setIsSelectAll(newSelected.size === filteredBookings.length && filteredBookings.length > 0)
-  }
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const allIds = new Set(filteredBookings.map(booking => booking.id))
-      setSelectedBookings(allIds)
-      setIsSelectAll(true)
-    } else {
-      setSelectedBookings(new Set())
-      setIsSelectAll(false)
-    }
-  }
-
-  // SMS sending functions
-  const sendSMSToDrivers = async () => {
-    setIsSendingSMS(true)
-    try {
-      const selectedBookingData = filteredBookings.filter(booking => selectedBookings.has(booking.id))
-      const response = await fetch('/api/admin/send-sms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'drivers',
-          bookings: selectedBookingData
-        })
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        alert(`SMS inviati con successo a ${result.sentCount} driver!`)
-      } else {
-        alert(`Errore nell'invio SMS: ${result.error}`)
-      }
-    } catch (error) {
-      alert('Errore nell\'invio SMS')
-    } finally {
-      setIsSendingSMS(false)
-    }
-  }
-
-  const sendSMSToCustomers = async () => {
-    setIsSendingSMS(true)
-    try {
-      const selectedBookingData = filteredBookings.filter(booking => selectedBookings.has(booking.id))
-      const response = await fetch('/api/admin/send-sms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'customers',
-          bookings: selectedBookingData
-        })
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        alert(`SMS inviati con successo a ${result.sentCount} clienti!`)
-      } else {
-        alert(`Errore nell'invio SMS: ${result.error}`)
-      }
-    } catch (error) {
-      alert('Errore nell\'invio SMS')
-    } finally {
-      setIsSendingSMS(false)
-    }
-  }
-
-  const sendSMSToAll = async () => {
-    setIsSendingSMS(true)
-    try {
-      const selectedBookingData = filteredBookings.filter(booking => selectedBookings.has(booking.id))
-      const response = await fetch('/api/admin/send-sms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'all',
-          bookings: selectedBookingData
-        })
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        alert(`SMS inviati con successo a ${result.sentCount} contatti!`)
-      } else {
-        alert(`Errore nell'invio SMS: ${result.error}`)
-      }
-    } catch (error) {
-      alert('Errore nell\'invio SMS')
-    } finally {
-      setIsSendingSMS(false)
-    }
-  }
-
-  const testReminders = async () => {
-    setIsSendingSMS(true)
-    try {
-      const response = await fetch('/api/admin/test-reminders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        const { results } = result
-        alert(`Test reminder completato!\n\nDomani: ${results.tomorrow.sentCount} inviati, ${results.tomorrow.failedCount} falliti\n7 giorni: ${results.sevenDays.sentCount} inviati, ${results.sevenDays.failedCount} falliti\n\nTotale: ${results.totalSent} SMS inviati`)
-      } else {
-        alert(`Errore nel test reminder: ${result.error}`)
-      }
-    } catch (error) {
-      alert('Errore nel test reminder')
-    } finally {
-      setIsSendingSMS(false)
-    }
-  }
 
   // Filter and sort bookings
   const filteredBookings = useMemo(() => {
@@ -320,23 +116,6 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
       filtered = filtered.filter(booking => booking.service_date <= toDate)
     }
 
-    // Apply driver filter
-    if (filters.driverId && filters.driverId !== "all") {
-      if (filters.driverId === "none") {
-        filtered = filtered.filter(booking => !(booking as any).driver_id)
-      } else {
-        filtered = filtered.filter(booking => (booking as any).driver_id === filters.driverId)
-      }
-    }
-
-    // Apply customer filter
-    if (filters.customerId && filters.customerId !== "all") {
-      if (filters.customerId === "none") {
-        filtered = filtered.filter(booking => !(booking as any).customer_id)
-      } else {
-        filtered = filtered.filter(booking => (booking as any).customer_id === filters.customerId)
-      }
-    }
 
     // Sort bookings
     filtered.sort((a, b) => {
@@ -352,6 +131,33 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
 
     return filtered
   }, [bookings, filters, sortBy, sortOrder])
+
+  // Pagination functions
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedBookings = filteredBookings.slice(startIndex, endIndex)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filters])
 
   const handleLogout = async () => {
     await adminLogout()
@@ -412,6 +218,7 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
           </Card>
         </div>
         <div className="flex items-center space-x-2">
+          <AdminBookingModal onBookingCreated={refreshBookings} dictionary={dictionary} />
           <Button variant="outline" onClick={handleLogout} className="flex-shrink-0">
             <LogOut className="mr-2 h-4 w-4" />
             {dictionary.admin?.header?.logout || "Logout"}
@@ -433,7 +240,7 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Input
                 placeholder={dictionary.admin?.dashboard?.searchPlaceholder || "Search bookings..."}
@@ -485,40 +292,6 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                 </PopoverContent>
               </Popover>
             </div>
-            <div>
-              <Combobox
-                options={[
-                  { value: "all", label: dictionary.admin?.dashboard?.allDrivers || "All Drivers" },
-                  { value: "none", label: dictionary.admin?.dashboard?.noDriver || "No Driver" },
-                  ...drivers.map(driver => ({ 
-                    value: driver.id, 
-                    label: driver.name 
-                  }))
-                ]}
-                value={filters.driverId || "all"}
-                onChange={(value) => setFilters(prev => ({ ...prev, driverId: value === "all" ? "" : value }))}
-                placeholder={dictionary.admin?.drivers?.assignedDriver || "Driver"}
-                searchPlaceholder={dictionary.admin?.dashboard?.searchDrivers || "Search drivers..."}
-                emptyMessage={dictionary.admin?.dashboard?.noDriversFound || "No drivers found"}
-              />
-            </div>
-            <div>
-              <Combobox
-                options={[
-                  { value: "all", label: dictionary.admin?.dashboard?.allCustomers || "All Customers" },
-                  { value: "none", label: dictionary.admin?.dashboard?.noCustomer || "No Customer" },
-                  ...customers.map(customer => ({ 
-                    value: customer.id, 
-                    label: customer.name 
-                  }))
-                ]}
-                value={filters.customerId || "all"}
-                onChange={(value) => setFilters(prev => ({ ...prev, customerId: value === "all" ? "" : value }))}
-                placeholder={dictionary.admin?.customers?.assignedCustomer || "Customer"}
-                searchPlaceholder={dictionary.admin?.dashboard?.searchCustomers || "Search customers..."}
-                emptyMessage={dictionary.admin?.dashboard?.noCustomersFound || "No customers found"}
-              />
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -534,72 +307,12 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
             {dictionary.admin?.dashboard?.bookingsDescription || "All paid bookings from customers"}
           </CardDescription>
           
-          {/* SMS Action Buttons */}
-          {selectedBookings.size > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4 p-4 bg-blue-50 rounded-lg border">
-              <div className="flex items-center gap-2 text-sm text-blue-700 font-medium">
-                <MessageSquare className="h-4 w-4" />
-                {selectedBookings.size} prenotazioni selezionate
-              </div>
-              <div className="flex flex-wrap gap-2 ml-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={sendSMSToDrivers}
-                  disabled={isSendingSMS}
-                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  Contatta Driver
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={sendSMSToCustomers}
-                  disabled={isSendingSMS}
-                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  Contatta Cliente
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={sendSMSToAll}
-                  disabled={isSendingSMS}
-                  className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
-                >
-                  <UsersIcon className="mr-2 h-4 w-4" />
-                  Contatta Tutti
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={testReminders}
-                  disabled={isSendingSMS}
-                  className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
-                >
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Test Reminder
-                </Button>
-              </div>
-            </div>
-          )}
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={isSelectAll}
-                        onCheckedChange={handleSelectAll}
-                      />
-                      <span className="text-xs">Tutti</span>
-                    </div>
-                  </TableHead>
                   <TableHead className="cursor-pointer whitespace-nowrap" onClick={() => {
                     if (sortBy === "created_at") {
                       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
@@ -620,8 +333,6 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                   <TableHead className="whitespace-nowrap">{dictionary.admin?.dashboard?.serviceInfo || "Service Info"}</TableHead>
                   <TableHead className="whitespace-nowrap">{dictionary.admin?.dashboard?.options || "Options"}</TableHead>
                   <TableHead className="whitespace-nowrap">{dictionary.admin?.dashboard?.amount || "Amount"}</TableHead>
-                  <TableHead className="whitespace-nowrap">{dictionary.admin?.drivers?.assignedDriver || "Driver"}</TableHead>
-                  <TableHead className="whitespace-nowrap">{dictionary.admin?.customers?.assignedCustomer || "Assigned Customer"}</TableHead>
                   <TableHead className="whitespace-nowrap">{dictionary.admin?.dashboard?.createdBy || "Created By"}</TableHead>
                   <TableHead className="whitespace-nowrap">{dictionary.admin?.dashboard?.modifiedBy || "Modified By"}</TableHead>
                   <TableHead className="whitespace-nowrap">{dictionary.admin?.dashboard?.status || "Status"}</TableHead>
@@ -629,14 +340,8 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredBookings.map((booking) => (
+                {paginatedBookings.map((booking) => (
                   <TableRow key={booking.id}>
-                    <TableCell className="w-12">
-                      <Checkbox
-                        checked={selectedBookings.has(booking.id)}
-                        onCheckedChange={(checked) => handleSelectBooking(booking.id, checked as boolean)}
-                      />
-                    </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="space-y-1">
                         <div className="font-medium">{booking.service_date}</div>
@@ -791,34 +496,6 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="space-y-1">
-                        {(booking as any).driver_id ? (
-                          <Badge variant="secondary" className="text-xs">
-                            <User className="mr-1 h-3 w-3" />
-                            {(booking as any).driver?.name || "Driver"}
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-gray-400">
-                            Nessun driver
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="space-y-1">
-                        {(booking as any).customer_id ? (
-                          <Badge variant="secondary" className="text-xs">
-                            <User className="mr-1 h-3 w-3" />
-                            {(booking as any).customer?.name || "Customer"}
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-gray-400">
-                            Nessun customer
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="space-y-1">
                         {(booking as any).created_by_email ? (
                           <div className="text-xs text-gray-600 truncate max-w-32">
                             {(booking as any).created_by_email}
@@ -850,6 +527,17 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                           booking={booking}
                           dictionary={dictionary}
                         />
+                        <AdminDeleteBookingModal
+                          booking={{
+                            id: booking.id,
+                            customer_name: booking.customer_name,
+                            service_date: booking.service_date,
+                            service_time: booking.service_time,
+                            pickup_address: booking.pickup_address,
+                            destination_address: booking.destination_address
+                          }}
+                          onBookingDeleted={refreshBookings}
+                        />
                         {booking.invoice_url && (
                           <Button 
                             variant="outline" 
@@ -873,14 +561,69 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
               {dictionary.admin?.dashboard?.noBookings || "No bookings found"}
             </div>
           )}
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-gray-500">
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length} bookings
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first page, last page, current page, and pages around current page
+                    const showPage = page === 1 || page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    
+                    if (!showPage && page === 2 && currentPage > 4) {
+                      return <span key={page} className="px-2 text-gray-400">...</span>
+                    }
+                    
+                    if (!showPage && page === totalPages - 1 && currentPage < totalPages - 3) {
+                      return <span key={page} className="px-2 text-gray-400">...</span>
+                    }
+                    
+                    if (!showPage) {
+                      return null
+                    }
+                    
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(page)}
+                        className={cn("min-w-[2rem]", currentPage === page ? "text-white" : "")}
+                      >
+                        {page}
+                      </Button>
+                    )
+                  })}
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Drivers Management */}
-      <AdminDriversManagement dictionary={dictionary} onDriversUpdated={refreshDrivers} />
-
-      {/* Customers Management */}
-      <AdminCustomersManagement dictionary={dictionary} onCustomersUpdated={refreshCustomers} />
     </div>
   )
 } 
