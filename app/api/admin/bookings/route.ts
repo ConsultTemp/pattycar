@@ -197,9 +197,10 @@ export async function POST(request: NextRequest) {
       const vatRateNum = parseFloat(bookingData.vat_rate) || 10 // Default 10% VAT
       
       // For admin bookings, the price entered is IVA INCLUDED
-      // CALCOLO SEMPLICE: 90% imponibile, 10% IVA
-      const taxableAmount = totalWithVat * 0.9 // 939.84 * 0.9 = 845.86
-      const vatAmount = totalWithVat * 0.1 // 939.84 * 0.1 = 93.98
+      // CALCOLO CORRETTO: Con IVA 10%, il totale è diviso per 11
+      // 10/11 è l'imponibile, 1/11 è l'IVA
+      const taxableAmount = totalWithVat * (10 / 11) // 10 undicesimi del totale
+      const vatAmount = totalWithVat * (1 / 11) // 1 undicesimo del totale
 
       // Format date for Google Sheets (DD/MM/YYYY format)
       const formattedDateForSheets = (() => {

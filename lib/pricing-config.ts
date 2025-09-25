@@ -40,20 +40,20 @@ export const PRICE_PER_KM = 5.0
 
 // Prezzo base per ora (disposizioni) - TUTTI I TIPI POSSIBILI
 export const PRICE_PER_HOUR_BY_VEHICLE = {
-  'sedan': 94,
-  'van': 108, 
-  'minibus': 135,
-  'luxury-sedan': 135,
+  'sedan': 130,
+  'van': 150, 
+  'minibus': 170,
+  'luxury-sedan': 170,
   // Altri possibili nomi che potrebbero arrivare
-  'minivan': 108,
-  'luxury': 135,
-  'berlina': 94,
-  'monovolume': 108,
+  'minivan': 150,
+  'luxury': 170,
+  'berlina': 130,
+  'monovolume': 150,
   // Olympic vehicle types - AGGIUNTI PER CERIMONIE!
-  'olympic-sedan': 94,
-  'olympic-minivan': 108, 
-  'olympic-van': 135,
-  'olympic-luxury': 135
+  'olympic-sedan': 130,
+  'olympic-minivan': 150, 
+  'olympic-van': 170,
+  'olympic-luxury': 170
 }
 
 // Funzione per ottenere il prezzo orario corretto per tipo di veicolo
@@ -66,7 +66,7 @@ export function getHourlyRate(vehicleType: string): number {
     return rate
   }
   
-  return 94
+  return 130
 }
 
 // Backward compatibility - deprecated, use getHourlyRate() instead

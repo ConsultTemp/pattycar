@@ -429,9 +429,22 @@ export async function POST(req: NextRequest) {
             // Calculate taxable amount and VAT from total
             const totalAmount = insertResult.data!.amount_total / 100 // Convert from cents to euros
             const vatRateNum = parseFloat(vatRate) || 10 // Default 10% VAT
-            // CALCOLO CORRETTO: 10% IVA, 90% imponibile
-            const vatAmount = totalAmount * (vatRateNum / 100) // 939.84 * 0.10 = 93.98
-            const taxableAmount = totalAmount - vatAmount // 939.84 - 93.98 = 845.86
+            
+            // Generate Italian timestamp for booking creation
+            const italianBookingTimestamp = new Date().toLocaleString('it-IT', {
+              timeZone: 'Europe/Rome',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false
+            })
+            // CALCOLO CORRETTO: Con IVA 10%, il totale è diviso per 11
+            // 10/11 è l'imponibile, 1/11 è l'IVA
+            const taxableAmount = totalAmount * (10 / 11) // 10 undicesimi del totale
+            const vatAmount = totalAmount * (1 / 11) // 1 undicesimo del totale
 
             // Format date for Google Sheets (DD/MM/YYYY format)
             const formattedDateForSheets = (() => {
@@ -478,7 +491,7 @@ export async function POST(req: NextRequest) {
               }
             })()
 
-            // Create comprehensive notes including all booking details
+            // Create comprehensive notes including all booking details (EXCLUDING billing info)
             const comprehensiveNotes = (() => {
               const noteParts = []
               
@@ -555,13 +568,6 @@ export async function POST(req: NextRequest) {
                 noteParts.push(`Supplemento notturno: €${nightSurcharge}`)
               }
               
-              // Billing info
-              if (billingInfo) {
-                noteParts.push(`Fatturazione: ${billingInfo.replace(/\n/g, ' | ')}`)
-              }
-              
-              // Phone number - now handled in dedicated column, not in notes
-              
               // Payment info
               noteParts.push(`Pagato online: €${totalAmount.toFixed(2)}`)
               if (priceBreakdown) {
@@ -574,7 +580,7 @@ export async function POST(req: NextRequest) {
             const googleSheetsData: GoogleSheetsBookingData = {
               // Main data matching CSV structure
               service_date: formattedDateForSheets,
-              company: 'Patty Car', // Default company name
+              company: 'ADD ON', // Default company name
               service_time: formattedTimeForSheets,
               customer_name: insertResult.data!.customer_name,
               passengers_info: passengersInfoForSheets,
@@ -593,8 +599,10 @@ export async function POST(req: NextRequest) {
               
               // Additional fields for internal use
               id: insertResult.data!.id,
-              customer_email: insertResult.data!.customer_email,
-              customer_phone: `${insertResult.data!.customer_phone_prefix || ''} ${insertResult.data!.customer_phone || ''}`.trim(),
+              customer_email: insertResult.data!.customer_email, // Column X
+              customer_phone: `${insertResult.data!.customer_phone_prefix || ''} ${insertResult.data!.customer_phone || ''}`.trim(), // Column W
+              billing_info: billingInfo || '', // Column Y - billing information only
+              booking_timestamp: italianBookingTimestamp, // Column T - Italian timestamp
               amount_total: insertResult.data!.amount_total,
               payment_status: insertResult.data!.payment_status
             }
@@ -604,7 +612,9 @@ export async function POST(req: NextRequest) {
               time: googleSheetsData.service_time,
               customer: googleSheetsData.customer_name,
               service: serviceLabel,
-              amount: totalAmount
+              amount: totalAmount,
+              billing_info: googleSheetsData.billing_info,
+              booking_timestamp: googleSheetsData.booking_timestamp
             })
 
             // Import Google Sheets function dynamically to reduce initial load

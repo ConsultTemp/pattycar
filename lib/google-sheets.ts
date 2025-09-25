@@ -42,12 +42,14 @@ export interface GoogleSheetsBookingData {
   direct_collection?: number  // importo incasso diretto (colonna O)
   payment_method?: string     // cash/kk (colonna P)
   // colonna Q vuota
-  notes?: string              // note (colonna R)
-  
+  notes?: string              // note (colonna U)
+
   // Additional fields for internal tracking
   id?: string
-  customer_email?: string
-  customer_phone?: string
+  customer_email?: string     // email cliente (colonna X)
+  customer_phone?: string     // telefono (colonna W)
+  billing_info?: string       // dati fatturazione (colonna Y)
+  booking_timestamp?: string  // data prenotazione (colonna T)
   amount_total?: number
   payment_status?: string
 }
@@ -76,12 +78,15 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
 
     // Create a mapping object for the data based on column names
     const columnMapping: { [key: string]: any } = {}
-    
+
     console.log('🗂️ Mapping booking data to columns...')
+    console.log('📋 Billing info to map:', bookingData.billing_info)
+    console.log('📋 Booking timestamp to map:', bookingData.booking_timestamp)
+    console.log('📋 ALL HEADERS FOUND:', headers)
     // Map the booking data to the correct column names
     headers.forEach((header: string, index: number) => {
       const headerName = header ? header.toLowerCase().trim() : ''
-      
+
       switch (headerName) {
         case 'data':
           columnMapping[index] = bookingData.service_date
@@ -136,6 +141,11 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
         case 'cash/kk':
           columnMapping[index] = bookingData.payment_method || ''
           break
+        case 'data prenotazione':
+        case 'timestamp':
+        case 'booking timestamp':
+          columnMapping[index] = bookingData.booking_timestamp || ''
+          break
         case 'note':
           columnMapping[index] = bookingData.notes || ''
           break
@@ -145,6 +155,19 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
           // Format phone as text to avoid formula parse errors with + prefix
           const phone = bookingData.customer_phone || ''
           columnMapping[index] = phone ? `'${phone}` : ''
+          break
+        case 'email':
+        case 'mail':
+        case 'e-mail':
+          columnMapping[index] = bookingData.customer_email || ''
+          break
+        case 'fatturazione':
+        case 'fattura':
+        case "FATTURA":
+        case 'dati fatturazione':
+        case 'billing':
+          console.log(`🎯 Found billing column "${header}" at index ${index}, mapping:`, bookingData.billing_info || '')
+          columnMapping[index] = bookingData.billing_info || ''
           break
         default:
           // For all other columns, leave empty
@@ -169,7 +192,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
     })
 
     const existingData = dataResponse.data.values || []
-    
+
     // Find the last row that has any content
     let lastRowWithData = 0
     for (let i = existingData.length - 1; i >= 0; i--) {
@@ -180,7 +203,7 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
         break
       }
     }
-    
+
     let nextRow = lastRowWithData + 1
     console.log(`📍 Last row with data: ${lastRowWithData}, checking row: ${nextRow}`)
 
@@ -190,10 +213,10 @@ export async function addBookingToGoogleSheets(bookingData: GoogleSheetsBookingD
       spreadsheetId,
       range: `Prenotazioni!A${nextRow}:ZZ${nextRow}`,
     })
-    
+
     const targetRowData = targetRowCheck.data.values?.[0] || []
     const hasExistingData = targetRowData.some(cell => cell && cell.toString().trim() !== '')
-    
+
     if (hasExistingData) {
       console.log(`⚠️ Row ${nextRow} has existing data, finding next truly empty row...`)
       // Find the next truly empty row
@@ -266,12 +289,12 @@ export async function setupGoogleSheetsHeaders(): Promise<{ success: boolean; er
       'commissioni autista', // Q
       'importo incasso diretto', // R
       'cash/kk', // S
-      '', // T - empty
+      'data prenotazione', // T - booking timestamp
       'note', // U
       'MEZZO', // V
-      'KM INIZIALI', // W
-      'telefono', // X - phone column (matches CSV structure)
-      'GASOLIO INIZIALE', // Y
+      'telefono', // W - phone column 
+      'email', // X - email column
+      'FATTURA', // Y - billing info column
       'KM FINALI', // Y
       'GASOLIO FINALE', // Z
       'LITRI GASOLIO', // AA

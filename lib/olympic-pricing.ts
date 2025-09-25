@@ -241,10 +241,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -259,10 +259,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1630
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -277,10 +277,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1430
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -295,10 +295,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1130
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   
@@ -315,10 +315,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 285
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -333,10 +333,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -351,10 +351,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1290
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -369,10 +369,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 920
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   
@@ -389,10 +389,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 515
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -407,10 +407,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -425,10 +425,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1290
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -443,10 +443,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 920
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   
@@ -463,10 +463,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 270
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -481,10 +481,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -499,10 +499,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1290
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -517,10 +517,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 920
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   
@@ -537,10 +537,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 768
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -556,10 +556,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 990
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -575,10 +575,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1764
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -594,10 +594,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 936
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -613,10 +613,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 660
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -634,10 +634,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 744
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -653,10 +653,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 996
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -672,10 +672,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1764
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -691,10 +691,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 852
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -710,10 +710,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 660
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -731,10 +731,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 780
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -750,10 +750,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1032
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -769,10 +769,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1764
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -788,10 +788,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 888
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -807,10 +807,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 708
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -826,10 +826,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1550    // 950 * 1.63 = 1549 → 1550
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -846,10 +846,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       //toremove
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -866,10 +866,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       //toremove
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -887,10 +887,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       //toremove
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   },
@@ -909,10 +909,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       //toremove
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isEastCluster: true
   }
@@ -933,10 +933,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1500    // 920 * 1.63 = 1500 → 1500
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -952,10 +952,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1740    // 1070 * 1.63 = 1744 → 1740
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -971,10 +971,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 2250    // 1380 * 1.63 = 2249 → 2250
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -990,10 +990,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1010    // 620 * 1.63 = 1011 → 1010
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1011,10 +1011,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 2610    // 1600 * 1.63 = 2608 → 2610
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1030,10 +1030,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 2180    // 1340 * 1.63 = 2184 → 2180
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1049,10 +1049,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 750     // 460 * 1.63 = 750 → 750
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1070,10 +1070,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1420    // 870 * 1.63 = 1418 → 1420
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1089,10 +1089,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 2250    // 1380 * 1.63 = 2249 → 2250
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1108,10 +1108,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 2100    // 1290 * 1.63 = 2103 → 2100
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1127,10 +1127,10 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1660    // 1020 * 1.63 = 1663 → 1660
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     },
     isInterCluster: true
   },
@@ -1801,10 +1801,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1819,10 +1819,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1630
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1837,10 +1837,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1430
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1855,10 +1855,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1130
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
 
@@ -1875,10 +1875,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 285
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1893,10 +1893,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1911,10 +1911,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1290
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1929,10 +1929,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 920
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
 
@@ -1949,10 +1949,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 515
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1967,10 +1967,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -1985,10 +1985,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1290
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -2003,10 +2003,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 920
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
 
@@ -2023,10 +2023,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 270
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -2041,10 +2041,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1470
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -2059,10 +2059,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 1290
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   },
   {
@@ -2077,10 +2077,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
       'olympic-luxury': 920
     },
     extraHourRates: {
-      'olympic-sedan': 94,
-      'olympic-minivan': 108,
-      'olympic-van': 135,
-      'olympic-luxury': 135
+      'olympic-sedan': 130,
+      'olympic-minivan': 150,
+      'olympic-van': 170,
+      'olympic-luxury': 170
     }
   }
 ] 
