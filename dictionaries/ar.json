@@ -232,6 +232,7 @@
         "timeFormat24h": "24 ساعة (أوروبي)",
         "startTimeLabel": "وقت المغادرة / وقت الهبوط أو الوصول *",
         "startServiceLabel": "بداية الخدمة *",
+        "pickupDepartureTimeLabel": "وقت المغادرة من نقطة الالتقاط الخاصة بك *",
         "startTimeRequired": "الوقت مطلوب",
         "endTimeLabel": "نهاية الخدمة *",
         "endTimeRequired": "وقت النهاية مطلوب",
@@ -246,6 +247,7 @@
         "flightPlaceholder": "مثال AZ123",
         "flightNote": "إذا كنت لا تصل بالقطار/الطائرة، أدخل \"0000\"",
         "flightRequired": "رقم الطيران/القطار مطلوب",
+        "pickupDepartureTimeRequired": "وقت المغادرة من نقطة الالتقاط مطلوب",
         "departureCityLabel": "مدينة المغادرة",
         "departureCityPlaceholder": "مثال ميلان (للتوصيلات، آخر توقف)",
         "selectDuration": "اختر المدة",
@@ -505,6 +507,8 @@
           "dateRequired": "التاريخ مطلوب",
           "startTimeRequired": "وقت البداية مطلوب",
           "minutesRequired": "الدقائق مطلوبة",
+          "departureTimeRequired": "وقت مغادرة الطائرة/القطار مطلوب",
+          "pickupDepartureTimeRequired": "وقت المغادرة من نقطة الالتقاط مطلوب",
           "pickupAddressRequired": "عنوان الالتقاط مطلوب",
           "selectPickupFromList": "اختر عنوان الالتقاط من القائمة",
           "destinationAddressRequired": "عنوان الوجهة مطلوب",
@@ -519,7 +523,11 @@
           "minimumVehiclesRequired": "مركبة واحدة على الأقل مطلوبة",
           "vehicleConfigRequired": "تكوين المركبة مطلوب",
           "flightTrainRequired": "رقم الطيران/القطار مطلوب",
-          "billingInfoRequired": "معلومات الفوترة مطلوبة",
+          "departureTimeRequiredWhenBothPresent": "عندما تكون الوجهة مطار/محطة، كلا حقلي الوقت مطلوبان",
+          "billingInfoRequired": "عنوان الفوترة مطلوب للأفراد",
+          "companyNameRequired": "اسم الشركة مطلوب",
+          "companyAddressRequired": "عنوان الشركة مطلوب",
+          "vatNumberRequired": "رقم ضريبة القيمة المضافة مطلوب",
           "privacyPolicyRequired": "قبول سياسة الخصوصية مطلوب",
           "cancellationPolicyRequired": "قبول سياسة الإلغاء مطلوب"
         }
@@ -1092,7 +1100,8 @@
       "vehicleInfo": "معلومات المركبة",
       "additionalInfo": "معلومات إضافية",
       "auditInfo": "معلومات التدقيق",
-      "pricingDetails": "تفاصيل التسعير"
+      "pricingDetails": "تفاصيل التسعير",
+      "options": "الخيارات"
     },
     "drivers": {
       "title": "إدارة السائقين",

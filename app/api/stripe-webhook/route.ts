@@ -137,6 +137,8 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get("stripe-signature")
     console.log('🔐 Signature present:', !!signature)
     console.log('🔑 Secret exists:', !!process.env.STRIPE_WEBHOOK_SECRET)
+    console.log('📦 Body length:', body.length)
+    console.log('📦 Body preview:', body.substring(0, 100) + '...')
 
     if (!signature) {
       console.log('❌ Missing signature')
@@ -181,6 +183,10 @@ export async function POST(req: NextRequest) {
       const metadata = session.metadata || {}
       console.log('📋 Metadata keys:', Object.keys(metadata))
       console.log('📋 Metadata count:', Object.keys(metadata).length)
+      console.log('🔍 DEBUG billingType from metadata:', metadata.billingType)
+      console.log('🔍 DEBUG companyName from metadata:', metadata.companyName)
+      console.log('🔍 DEBUG companyAddress from metadata:', metadata.companyAddress)
+      console.log('🔍 DEBUG vatNumber from metadata:', metadata.vatNumber)
       
       const {
         serviceType = "transfer",
@@ -194,6 +200,9 @@ export async function POST(req: NextRequest) {
         time = "Non specificato",
         minutes = "00",
         timeAmPm = "AM",
+        departureTime = "",
+        departureMinutes = "00",
+        departureTimeAmPm = "AM",
         endTime = "",
         endMinutes = "00",
         endTimeAmPm = "AM",
@@ -205,7 +214,12 @@ export async function POST(req: NextRequest) {
         departureCity = "",
         meetAndGreet = "false",
         meetGreetConfig = "",
+        // New billing fields
+        billingType = "private",
         billingInfo = "",
+        companyName = "",
+        companyAddress = "",
+        vatNumber = "",
         distance = "",
         duration = "",
         priceBreakdown = "",
@@ -222,6 +236,27 @@ export async function POST(req: NextRequest) {
         nightSurcharge = "",
         vatRate = "10",
       } = metadata
+
+      console.log('🔍 DEBUG FINAL VALUES:')
+      console.log('  - billingType:', billingType)
+      console.log('  - companyName:', companyName)
+      console.log('  - companyAddress:', companyAddress)
+      console.log('  - vatNumber:', vatNumber)
+      console.log('  - billingInfo:', billingInfo)
+      console.log('🔍 DEBUG DEPARTURE TIME VALUES:')
+      console.log('  - departureTime:', departureTime)
+      console.log('  - departureMinutes:', departureMinutes)
+      console.log('  - departureTimeAmPm:', departureTimeAmPm)
+
+      // DETECT BILLING TYPE FROM BILLING INFO CONTENT
+      const actualBillingType = (() => {
+        if (billingInfo && billingInfo.includes('Società:') && billingInfo.includes('P.IVA:')) {
+          return "company"
+        }
+        return "private"
+      })()
+      
+      console.log('🔍 DETECTED BILLING TYPE:', actualBillingType)
 
       // Parsa i veicoli individuali se presenti
       let parsedIndividualVehicles: Array<{ id: string; type: string; passengers: number; luggage: number }> = []
@@ -285,6 +320,17 @@ export async function POST(req: NextRequest) {
       const formattedDate = formatDate(date)
       const formattedTime = formatTime(time)
       const formattedEndTime = endTime ? formatTime(endTime) : ""
+      
+      // Format departure time if present (for airport/station destinations)
+      const formattedDepartureTime = (() => {
+        console.log('🔍 FORMATTING DEPARTURE TIME:', { departureTime, departureMinutes, departureTimeAmPm })
+        
+        if (!departureTime || departureTime === "") return ""
+        
+        // The departureTime from form is already in 24h format (HH:MM)
+        // Just format it nicely
+        return formatTime(departureTime)
+      })()
       
       // Determina il tipo di servizio e le etichette appropriate
       const isDisposizione = serviceType === "disposizione" || serviceType === "ceremony-disposition"
@@ -358,6 +404,11 @@ export async function POST(req: NextRequest) {
           service_end_time: endTime || null,
           service_duration: serviceDuration || null,
           
+          // Departure time (flight/train) - only when destination is airport/station
+          departure_time: departureTime || null,
+          departure_minutes: departureMinutes || null,
+          departure_time_ampm: departureTimeAmPm || null,
+          
           // Vehicle configuration
           vehicle_type: vehicleType,
           vehicle_count: parseInt(vehicleCount) || 1,
@@ -382,7 +433,19 @@ export async function POST(req: NextRequest) {
           flight_info: flight || null,
           departure_city: departureCity || null,
           notes: notes !== "Nessuna nota" ? notes : null,
-          billing_info: billingInfo || null,
+          
+          // Unified billing info - combine all billing data into single existing field
+          billing_info: (() => {
+            if (billingType === "company") {
+              const parts = []
+              if (companyName) parts.push(`Società: ${companyName}`)
+              if (companyAddress) parts.push(`Indirizzo: ${companyAddress}`)
+              if (vatNumber) parts.push(`P.IVA: ${vatNumber}`)
+              return parts.join('\n')
+            } else {
+              return billingInfo || null
+            }
+          })(),
           
           // Pricing
           distance: distance || null,
@@ -491,13 +554,20 @@ export async function POST(req: NextRequest) {
               }
             })()
 
-            // Create comprehensive notes including all booking details (EXCLUDING billing info)
+            // Create comprehensive notes including all booking details
             const comprehensiveNotes = (() => {
               const noteParts = []
               
               // Original notes
               if (insertResult.data!.notes && insertResult.data!.notes !== 'Nessuna nota') {
                 noteParts.push(`Note: ${insertResult.data!.notes}`)
+              }
+              
+              // Billing information (brief summary only, full details in billing_info field)
+              if (actualBillingType === "company") {
+                noteParts.push(`Fatturazione aziendale`)
+              } else {
+                noteParts.push(`Fatturazione privata`)
               }
               
               // Service type and special features
@@ -511,6 +581,11 @@ export async function POST(req: NextRequest) {
               }
               if (departureCity) {
                 noteParts.push(`Provenienza: ${departureCity}`)
+              }
+              
+              // Departure time (flight/train departure time) - FROM DATABASE OR METADATA
+              if (formattedDepartureTime) {
+                noteParts.push(`Flight/Train departure: ${formattedDepartureTime}`)
               }
               
               // Meet & Greet - DETAILED VERSION
@@ -601,7 +676,18 @@ export async function POST(req: NextRequest) {
               id: insertResult.data!.id,
               customer_email: insertResult.data!.customer_email, // Column X
               customer_phone: `${insertResult.data!.customer_phone_prefix || ''} ${insertResult.data!.customer_phone || ''}`.trim(), // Column W
-              billing_info: billingInfo || '', // Column Y - billing information only
+              // Unified billing information - Column Y (same as database)
+              billing_info: (() => {
+                if (billingType === "company") {
+                  const parts = []
+                  if (companyName) parts.push(`Società: ${companyName}`)
+                  if (companyAddress) parts.push(`Indirizzo: ${companyAddress.replace(/\n/g, ', ')}`)
+                  if (vatNumber) parts.push(`P.IVA: ${vatNumber}`)
+                  return parts.join(' | ')
+                } else {
+                  return billingInfo || ''
+                }
+              })(),
               booking_timestamp: italianBookingTimestamp, // Column T - Italian timestamp
               amount_total: insertResult.data!.amount_total,
               payment_status: insertResult.data!.payment_status
@@ -769,6 +855,10 @@ export async function POST(req: NextRequest) {
                       <div>
                         <strong style="color: #374151;">${isDisposizione ? "Service start time:" : "Departure time:"}</strong>
                         <span style="color: #6b7280; margin-left: 8px;">${formattedTime}</span>
+                        ${formattedDepartureTime ? `
+                        <br><strong style="color: #374151; font-size: 14px;">Flight/Train departure time:</strong>
+                        <span style="color: #6b7280; margin-left: 8px; font-size: 14px;">${formattedDepartureTime}</span>
+                        ` : ""}
                       </div>
                     </div>
                     
@@ -1041,10 +1131,14 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #f3f4f6; border: 1px solid #9ca3af; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: flex-start;">
-                        <span style="color: #6b7280; font-size: 18px; margin-right: 12px;">🧾</span>
+                        <span style="color: #6b7280; font-size: 18px; margin-right: 12px;">${actualBillingType === "company" ? "🏢" : "🧾"}</span>
                         <div>
-                          <strong style="color: #374151;">Billing information:</strong>
+                          <strong style="color: #374151;">${actualBillingType === "company" ? "Company billing information:" : "Billing information:"}</strong>
                           <p style="color: #374151; margin: 5px 0 0 0; line-height: 1.5; white-space: pre-line;">${billingInfo}</p>
+                          <div style="background: #e5e7eb; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 12px; color: #6b7280;">
+                            <strong>Invoice will be issued to:</strong><br>
+                            ${billingInfo ? billingInfo.replace(/\n/g, '<br>') : ""}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1273,6 +1367,11 @@ export async function POST(req: NextRequest) {
                     <p style="margin: 0; color: #1e40af;">
                       <strong>${isDisposizione ? "Inizio:" : "Orario:"}</strong> <span style="color: #3730a3; font-weight: 600;">${formattedTime}</span>
                     </p>
+                    ${formattedDepartureTime ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>✈️ Orario partenza aereo/treno:</strong> <span style="color: #3730a3; font-weight: 600;">${formattedDepartureTime}</span>
+                    </p>
+                    ` : ""}
                     ${
                       isDisposizione && formattedEndTime
                         ? `
@@ -1466,13 +1565,30 @@ export async function POST(req: NextRequest) {
                 ${
                   billingInfo
                     ? `
-                <!-- Billing Info -->
+                <!-- Billing Information -->
                 <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 10px; padding: 25px; margin: 25px 0;">
                   <h2 style="color: #92400e; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; border-bottom: 2px solid #fbbf24; padding-bottom: 8px;">
-                    🧾 Dati di Fatturazione
+                    ${actualBillingType === "company" ? "🏢 Dati di Fatturazione AZIENDA" : "🧾 Dati di Fatturazione PRIVATO"}
                   </h2>
-                  <div style="color: #92400e; white-space: pre-line; line-height: 1.6;">
-                    ${billingInfo}
+                  
+                  <!-- Billing Details -->
+                  <div style="background: #fff8dc; border: 1px solid #d97706; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
+                    <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">
+                      ${actualBillingType === "company" ? "📋 DETTAGLI AZIENDA" : "👤 DETTAGLI PRIVATO"}
+                    </h3>
+                    <div style="background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                      <strong style="color: #92400e;">${actualBillingType === "company" ? "Dati Azienda:" : "Indirizzo di Fatturazione:"}</strong><br>
+                      <span style="color: #a16207; white-space: pre-line; line-height: 1.6;">${billingInfo}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Invoice Preview -->
+                  <div style="background: #f3f4f6; border: 2px dashed #9ca3af; border-radius: 8px; padding: 15px;">
+                    <h4 style="color: #374151; margin: 0 0 10px 0; font-size: 14px; font-weight: 600;">📄 ANTEPRIMA FATTURA:</h4>
+                    <div style="color: #6b7280; font-size: 13px; line-height: 1.5;">
+                      <strong>Intestazione fattura:</strong><br>
+                      ${billingInfo ? billingInfo.replace(/\n/g, '<br>') : ""}
+                    </div>
                   </div>
                 </div>
                 `

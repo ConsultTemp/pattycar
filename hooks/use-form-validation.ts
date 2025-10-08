@@ -68,6 +68,80 @@ export function useFormValidation(state: BookingState, additionalParams: Additio
       })
     }
 
+    // Check if destination is airport/station for departure time validation
+    const isDestinationAirportOrStation = (() => {
+      if (!state.journey.destination) return false
+      
+      // Check if it's from listino and has locationId that indicates airport/station
+      if (!state.journey.destination.isCustom && state.journey.destination.locationId) {
+        const locationId = state.journey.destination.locationId
+        return locationId.includes('aeroporto') || 
+               locationId.includes('airport') || 
+               locationId.includes('stazione') || 
+               locationId.includes('centrale') ||
+               locationId.includes('linate') ||
+               locationId.includes('malpensa') ||
+               locationId.includes('marco-polo') ||
+               locationId.includes('orio')
+      }
+      
+      // For custom Google Places, check the types from Google Places API
+      if (state.journey.destination.isCustom && state.journey.destination) {
+        // Use Google's official place types
+        if (!state.journey.destination.types || state.journey.destination.types.length === 0) {
+          return false
+        }
+        
+        // Check for airport types
+        if (state.journey.destination.types.includes('airport')) {
+          return true
+        }
+        
+        // Check for station types
+        if (state.journey.destination.types.includes('transit_station') ||
+            state.journey.destination.types.includes('train_station') ||
+            state.journey.destination.types.includes('subway_station') ||
+            state.journey.destination.types.includes('light_rail_station')) {
+          return true
+        }
+      }
+      
+      return false
+    })()
+
+    // Validation for departure time fields when destination is airport/station
+    if (isDestinationAirportOrStation) {
+      const hasDepartureTime = !!(state.journey.departureTime && state.journey.departureTime.trim() !== "")
+      const hasPickupTime = !!(state.journey.time && state.journey.time.trim() !== "")
+      
+      // Both departure time (flight/train) and pickup departure time are required
+      // Only show error on the field that is actually missing
+      if (!hasDepartureTime) {
+        errors.push({
+          field: "journey.departureTime",
+          message: "departureTimeRequired",
+        })
+      }
+      
+      if (!hasPickupTime) {
+        errors.push({
+          field: "journey.time",
+          message: "pickupDepartureTimeRequired",
+        })
+      }
+      
+      // Check AM/PM for departure time if needed
+      if (hasDepartureTime && state.journey.departureMinutes) {
+        const departureTimeNum = parseInt(state.journey.departureTime)
+        if (departureTimeNum >= 1 && departureTimeNum <= 12 && !state.journey.departureTimeAmPm) {
+          errors.push({
+            field: "journey.departureTimeAmPm",
+            message: "selectAmPm",
+          })
+        }
+      }
+    }
+
     // Additional validation for time format (AM/PM when not 24h)
     if (state.journey.time && state.journey.minutes) {
       // Check if we need AM/PM (assuming we need it if time is 1-12)

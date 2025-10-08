@@ -291,3 +291,13 @@ Inserisci tutti dati dati di fattirazione in colonna z
 Aggiungi tutte le mail per accesso gestionale
 
 Tariffa oraria per ore dispo: sedan 130, minivan 150, van e luxury sedan 170
+
+
+
+report settimanale stripe
+
+nuovo campo tipo privacy per sottoscrivere modalita erogazione servizio con link rimando documento con testo anche in mail cliente. 
+
+
+se punto arrivo e aereoporto o stazione, mostro un nuovo input : orario di partenza dal tuo pickup point. mostra entrambi orari in caso questo.
+nome campo: orario di partenza dall'albergo. supplemento notturno guarda nuov campo

@@ -32,6 +32,9 @@ export interface Journey {
   time?: string
   minutes?: string
   timeAmPm?: string
+  departureTime?: string // Used for flight/train departure time when destination is airport/station
+  departureMinutes?: string
+  departureTimeAmPm?: string
   endTime?: string
   endMinutes?: string
   endTimeAmPm?: string
@@ -74,7 +77,11 @@ export interface BookingOptions {
   differentVehicles: boolean
   flight?: string
   departureCity?: string
-  billingInfo?: string
+  billingType?: "private" | "company" // UI only - for conditional form display
+  billingInfo?: string // Unified field - contains all billing data
+  companyName?: string // UI only - gets merged into billingInfo
+  companyAddress?: string // UI only - gets merged into billingInfo
+  vatNumber?: string // UI only - gets merged into billingInfo
   notes?: string
   privacyAccepted: boolean
 }
@@ -289,11 +296,50 @@ export const optionsSchema = z.object({
   differentVehicles: z.boolean().default(false),
   flight: z.string().min(1, "Numero volo/treno richiesto"),
   departureCity: z.string().optional(),
-  billingInfo: z.string().min(1, "Informazioni di fatturazione richieste"),
+  billingType: z.enum(["private", "company"]).optional().default("private"),
+  billingInfo: z.string().optional(),
+  companyName: z.string().optional(),
+  companyAddress: z.string().optional(),
+  vatNumber: z.string().optional(),
   notes: z.string().optional(),
   privacyAccepted: z.boolean().refine((val) => val === true, {
     message: "Accettazione privacy policy richiesta",
   }),
+}).superRefine((data, ctx) => {
+  // Conditional validation based on billingType
+  if (data.billingType === "company") {
+    // When company billing, all three fields are required
+    if (!data.companyName || data.companyName.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "companyNameRequired",
+        path: ["companyName"],
+      })
+    }
+    if (!data.companyAddress || data.companyAddress.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "companyAddressRequired",
+        path: ["companyAddress"],
+      })
+    }
+    if (!data.vatNumber || data.vatNumber.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "vatNumberRequired",
+        path: ["vatNumber"],
+      })
+    }
+  } else if (data.billingType === "private") {
+    // When private billing, only billingInfo is required
+    if (!data.billingInfo || data.billingInfo.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "billingInfoRequired",
+        path: ["billingInfo"],
+      })
+    }
+  }
 })
 
 // Error types

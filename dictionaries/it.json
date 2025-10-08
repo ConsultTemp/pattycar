@@ -233,6 +233,7 @@
         "timeFormat24h": "24h (Italiano)",
         "startTimeLabel": "Ora di Partenza / Ora di Atterraggio o Arrivo *",
         "startServiceLabel": "Inizio Servizio *",
+        "pickupDepartureTimeLabel": "Orario di partenza dal tuo pickup point *",
         "startTimeRequired": "Orario richiesto",
         "endTimeLabel": "Fine Servizio *",
         "endTimeRequired": "Orario di fine richiesto",
@@ -247,6 +248,7 @@
         "flightPlaceholder": "Es. AZ123",
         "flightNote": "Se non arrivi con un treno/aereo inserisci \"0000\"",
         "flightRequired": "Numero volo/treno richiesto",
+        "pickupDepartureTimeRequired": "Orario di partenza dal pickup point richiesto",
         "departureCityLabel": "Città di partenza",
         "departureCityPlaceholder": "Es. Milano (per coincidenze, ultima tappa)",
         "selectDuration": "Seleziona durata",
@@ -507,6 +509,8 @@
           "dateRequired": "Data richiesta",
           "startTimeRequired": "Ora di inizio richiesta",
           "minutesRequired": "Minuti richiesti",
+          "departureTimeRequired": "Orario di partenza aereo/treno richiesto",
+          "pickupDepartureTimeRequired": "Orario di partenza dal pickup point richiesto",
           "pickupAddressRequired": "Indirizzo di partenza richiesto",
           "selectPickupFromList": "Seleziona un indirizzo di partenza dall'elenco",
           "destinationAddressRequired": "Indirizzo di destinazione richiesto",
@@ -521,7 +525,11 @@
           "minimumVehiclesRequired": "Almeno 1 veicolo richiesto",
           "vehicleConfigRequired": "Configurazione veicoli richiesta",
           "flightTrainRequired": "Numero volo/treno richiesto",
-          "billingInfoRequired": "Informazioni di fatturazione richieste",
+          "departureTimeRequiredWhenBothPresent": "Quando destinazione è aeroporto/stazione, entrambi gli orari sono obbligatori",
+          "billingInfoRequired": "Indirizzo di fatturazione richiesto per privati",
+          "companyNameRequired": "Nome società richiesto",
+          "companyAddressRequired": "Indirizzo società richiesto",
+          "vatNumberRequired": "Partita IVA richiesta",
           "privacyPolicyRequired": "Accettazione privacy policy richiesta",
           "cancellationPolicyRequired": "Accettazione della politica di cancellazione richiesta"
         }
@@ -1084,12 +1092,13 @@
       "bookingDetails": "Dettagli Prenotazione",
       "bookingInfo": "Informazioni Prenotazione",
       "customerInfo": "Informazioni Cliente",
-      "serviceInfo": "Informazioni Servizio",
+      "serviceInfo": "Info Servizio",
       "journeyInfo": "Informazioni Viaggio",
       "vehicleInfo": "Informazioni Veicolo",
       "additionalInfo": "Informazioni Aggiuntive",
       "auditInfo": "Informazioni Audit",
-      "pricingDetails": "Dettagli Prezzo"
+      "pricingDetails": "Dettagli Prezzo",
+      "options": "Opzioni"
     },
     "drivers": {
       "title": "Gestione Autisti",

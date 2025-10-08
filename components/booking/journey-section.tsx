@@ -41,16 +41,10 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
   const isDispositionService = serviceType === "disposizione" || serviceType === "ceremony-disposition"
   const useOlympicDurationLogic = isOlympicPeriod_local && isDispositionService
 
-  // Set default minutes to "00" if not already set
-  useEffect(() => {
-    if (!journey.minutes) {
-      onChange({ minutes: "00" })
-    }
-    if ((serviceType === "disposizione" || serviceType === "ceremony-disposition") && !journey.endMinutes) {
-      onChange({ endMinutes: "00" })
-    }
-  }, [journey.minutes, journey.endMinutes, serviceType, onChange])
+  
 
+  // Set default minutes to "00" if not already set
+  
   // Auto-calculate end time when start time or duration changes (Olympic logic)
   useEffect(() => {
     if (useOlympicDurationLogic && journey.time && journey.minutes && journey.serviceDuration) {
@@ -256,6 +250,8 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
       case "time":
       case "startTime":
         return dictionary.startTimeRequired
+      case "departureTime":
+        return dictionary.validationErrors?.departureTimeRequired || "Orario di partenza aereo/treno richiesto"
       case "endTime":
         return dictionary.endTimeRequired
       case "duration":
@@ -333,6 +329,72 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
         return <Route className="h-5 w-5" />
     }
   }
+
+  // Function to detect the type of a Google Place (airport, station, or generic)
+  const detectGooglePlaceType = (place: any): 'city' | 'airport' | 'station' => {
+    // Use Google's official place types - this is much more accurate than keyword matching
+    if (!place.types || place.types.length === 0) {
+      return 'city' // Default if no types available
+    }
+    
+    // Check for airport types
+    if (place.types.includes('airport')) {
+      return 'airport'
+    }
+    
+    // Check for station types
+    if (place.types.includes('transit_station') ||
+        place.types.includes('train_station') ||
+        place.types.includes('subway_station') ||
+        place.types.includes('light_rail_station')) {
+      return 'station'
+    }
+    
+    // Default to city/generic for everything else
+    return 'city'
+  }
+
+  // Check if destination is airport or train station
+  const isDestinationAirportOrStation = () => {
+    if (!journey.destination) return false
+    
+    // Check if it's from listino and has locationId that indicates airport/station
+    if (!journey.destination.isCustom && journey.destination.locationId) {
+      const locationId = journey.destination.locationId
+      return locationId.includes('aeroporto') || 
+             locationId.includes('airport') || 
+             locationId.includes('stazione') || 
+             locationId.includes('centrale') ||
+             locationId.includes('linate') ||
+             locationId.includes('malpensa') ||
+             locationId.includes('marco-polo') ||
+             locationId.includes('orio')
+    }
+    
+    // For custom Google Places, use the detectGooglePlaceType function
+    if (journey.destination.isCustom && journey.destination) {
+      const placeType = detectGooglePlaceType(journey.destination)
+      return placeType === 'airport' || placeType === 'station'
+    }
+    
+    return false
+  }
+
+  useEffect(() => {
+    if (!journey.minutes) {
+      onChange({ minutes: "00" })
+    }
+    if (!journey.departureMinutes && isDestinationAirportOrStation()) {
+      onChange({ departureMinutes: "00" })
+    }
+    if (!journey.departureTimeAmPm && isDestinationAirportOrStation()) {
+      onChange({ departureTimeAmPm: "AM" })
+    }
+    if ((serviceType === "disposizione" || serviceType === "ceremony-disposition") && !journey.endMinutes) {
+      onChange({ endMinutes: "00" })
+    }
+  }, [journey.minutes, journey.departureMinutes, journey.departureTimeAmPm, journey.endMinutes, serviceType, isDestinationAirportOrStation, onChange])
+
 
   return (
     <Card>
@@ -520,7 +582,7 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
           </div> */}
 
           {/* Time Section */}
-          <div className={`grid gap-6 ${(serviceType === "disposizione" || serviceType === "ceremony-disposition") ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+          <div className={`grid gap-6 ${(serviceType === "disposizione" || serviceType === "ceremony-disposition") ? "grid-cols-1 md:grid-cols-2" : isDestinationAirportOrStation() ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
             {/* Start Time */}
             <div className="space-y-2">
               <Label htmlFor="time" className={hasFieldError("time") || (hasAttemptedSubmit && !journey.time) ? "text-red-500" : ""}>{(serviceType === "transfer" || serviceType === "inter-cluster") ? dictionary.startTimeLabel : dictionary.startServiceLabel}</Label>
@@ -531,14 +593,18 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                   type="number"
                   min={is24HourFormat ? "0" : "1"}
                   max={is24HourFormat ? "23" : "12"}
-                  value={journey.time}
+                  value={isDestinationAirportOrStation() ? (journey.departureTime || "") : (journey.time || "")}
                   onChange={(e) => {
                     const value = e.target.value
                     const min = is24HourFormat ? 0 : 1
                     const max = is24HourFormat ? 23 : 12
                     // Permetti campo vuoto o valori validi
                     if (value === "" || (parseInt(value) >= min && parseInt(value) <= max)) {
-                      onChange({ time: value })
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureTime: value })
+                      } else {
+                        onChange({ time: value })
+                      }
                     }
                   }}
                   onBlur={(e) => {
@@ -551,12 +617,24 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                     
                     // Correggi se fuori range
                     if (numValue < min) {
-                      onChange({ time: min.toString() })
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureTime: min.toString() })
+                      } else {
+                        onChange({ time: min.toString() })
+                      }
                     } else if (numValue > max) {
-                      onChange({ time: max.toString() })
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureTime: max.toString() })
+                      } else {
+                        onChange({ time: max.toString() })
+                      }
                     } else if (is24HourFormat && numValue >= 0 && numValue <= 23) {
                       // In formato 24h, formatta sempre con 2 cifre (00, 01, 02, ..., 23)
-                      onChange({ time: numValue.toString().padStart(2, '0') })
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureTime: numValue.toString().padStart(2, '0') })
+                      } else {
+                        onChange({ time: numValue.toString().padStart(2, '0') })
+                      }
                     }
                   }}
                   placeholder={is24HourFormat ? "00" : "12"}
@@ -567,28 +645,59 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                   type="number"
                   min="0"
                   max="59"
-                  value={journey.minutes === "00" ? "" : (journey.minutes || "")}
+                  value={isDestinationAirportOrStation() ? 
+                    (journey.departureMinutes === "00" ? "" : (journey.departureMinutes || "")) : 
+                    (journey.minutes === "00" ? "" : (journey.minutes || ""))
+                  }
                   onChange={(e) => {
                     const value = e.target.value
                     // Permetti campo vuoto o valori validi (0-59)
                     if (value === "") {
-                      onChange({ minutes: "00" })
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureMinutes: "00" })
+                      } else {
+                        onChange({ minutes: "00" })
+                      }
                     } else if (parseInt(value) >= 0 && parseInt(value) <= 59) {
-                      onChange({ minutes: value })
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureMinutes: value })
+                      } else {
+                        onChange({ minutes: value })
+                      }
                     }
                   }}
                   onBlur={(e) => {
                     const value = e.target.value
                     if (value === "") {
-                      onChange({ minutes: "00" })
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureMinutes: "00" })
+                      } else {
+                        onChange({ minutes: "00" })
+                      }
                     } else {
                       const numValue = parseInt(value)
                       // Se il valore è fuori range, correggi
-                      if (numValue < 0) onChange({ minutes: "00" })
-                      if (numValue > 59) onChange({ minutes: "59" })
+                      if (numValue < 0) {
+                        if (isDestinationAirportOrStation()) {
+                          onChange({ departureMinutes: "00" })
+                        } else {
+                          onChange({ minutes: "00" })
+                        }
+                      }
+                      if (numValue > 59) {
+                        if (isDestinationAirportOrStation()) {
+                          onChange({ departureMinutes: "59" })
+                        } else {
+                          onChange({ minutes: "59" })
+                        }
+                      }
                       // Aggiungi zero davanti se necessario
                       if (numValue >= 0 && numValue <= 59) {
-                        onChange({ minutes: numValue.toString().padStart(2, '0') })
+                        if (isDestinationAirportOrStation()) {
+                          onChange({ departureMinutes: numValue.toString().padStart(2, '0') })
+                        } else {
+                          onChange({ minutes: numValue.toString().padStart(2, '0') })
+                        }
                       }
                     }
                   }}
@@ -597,8 +706,14 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                 />
                 {!is24HourFormat && (
                   <Select
-                    value={journey.timeAmPm || "AM"}
-                    onValueChange={(value) => onChange({ timeAmPm: value })}
+                    value={isDestinationAirportOrStation() ? (journey.departureTimeAmPm || "AM") : (journey.timeAmPm || "AM")}
+                    onValueChange={(value) => {
+                      if (isDestinationAirportOrStation()) {
+                        onChange({ departureTimeAmPm: value })
+                      } else {
+                        onChange({ timeAmPm: value })
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-20 flex-shrink-0">
                       <SelectValue />
@@ -610,12 +725,117 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                   </Select>
                 )}
               </div>
-              {hasAttemptedSubmit && !journey.time && (
+              {/* Show error for normal case (not airport/station) */}
+              {hasAttemptedSubmit && !isDestinationAirportOrStation() && !journey.time && (
                 <p className="text-red-500 text-sm mt-1" role="alert">
                   {dictionary.startTimeRequired}
                 </p>
               )}
+              {/* Show error for airport/station case - ONLY for departure time field */}
+              {hasAttemptedSubmit && isDestinationAirportOrStation() && !journey.departureTime && (
+                <p className="text-red-500 text-sm mt-1" role="alert">
+                  {getFieldError("departureTime")}
+                </p>
+              )}
             </div>
+
+            {/* Pickup Departure Time - Only for airports/stations destinations */}
+            {isDestinationAirportOrStation() && (
+              <div className="space-y-2">
+                <Label htmlFor="pickupDepartureTime" className={hasFieldError("time") || (hasAttemptedSubmit && !journey.time) ? "text-red-500" : "text-gray-700"}>{dictionary.pickupDepartureTimeLabel}</Label>
+                <div className="flex items-center space-x-3">
+                  <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <Input
+                    id="pickupDepartureTime"
+                    type="number"
+                    min={is24HourFormat ? "0" : "1"}
+                    max={is24HourFormat ? "23" : "12"}
+                    value={journey.time || ""}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      const min = is24HourFormat ? 0 : 1
+                      const max = is24HourFormat ? 23 : 12
+                      // Permetti campo vuoto o valori validi
+                      if (value === "" || (parseInt(value) >= min && parseInt(value) <= max)) {
+                        onChange({ time: value })
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value
+                      if (value === "") return
+                      
+                      const numValue = parseInt(value)
+                      const min = is24HourFormat ? 0 : 1
+                      const max = is24HourFormat ? 23 : 12
+                      
+                      // Correggi se fuori range
+                      if (numValue < min) {
+                        onChange({ time: min.toString() })
+                      } else if (numValue > max) {
+                        onChange({ time: max.toString() })
+                      } else if (is24HourFormat && numValue >= 0 && numValue <= 23) {
+                        // In formato 24h, formatta sempre con 2 cifre (00, 01, 02, ..., 23)
+                        onChange({ time: numValue.toString().padStart(2, '0') })
+                      }
+                    }}
+                    placeholder={is24HourFormat ? "00" : "12"}
+                    className={`w-20 text-center ${hasFieldError("time") || (hasAttemptedSubmit && !journey.time) ? "border-red-500" : ""}`}
+                  />
+                  <span className="flex-shrink-0">:</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={journey.minutes === "00" ? "" : (journey.minutes || "")}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      // Permetti campo vuoto o valori validi (0-59)
+                      if (value === "") {
+                        onChange({ minutes: "00" })
+                      } else if (parseInt(value) >= 0 && parseInt(value) <= 59) {
+                        onChange({ minutes: value })
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value
+                      if (value === "") {
+                        onChange({ minutes: "00" })
+                      } else {
+                        const numValue = parseInt(value)
+                        // Se il valore è fuori range, correggi
+                        if (numValue < 0) onChange({ minutes: "00" })
+                        if (numValue > 59) onChange({ minutes: "59" })
+                        // Aggiungi zero davanti se necessario
+                        if (numValue >= 0 && numValue <= 59) {
+                          onChange({ minutes: numValue.toString().padStart(2, '0') })
+                        }
+                      }
+                    }}
+                    placeholder="00"
+                    className={`w-20 text-center ${hasFieldError("time") || (hasAttemptedSubmit && !journey.time) ? "border-red-500" : ""}`}
+                  />
+                  {!is24HourFormat && (
+                    <Select
+                      value={journey.timeAmPm || "AM"}
+                      onValueChange={(value) => onChange({ timeAmPm: value })}
+                    >
+                      <SelectTrigger className="w-20 flex-shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AM">AM</SelectItem>
+                        <SelectItem value="PM">PM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                {hasAttemptedSubmit && !journey.time && (
+                  <p className="text-red-500 text-sm mt-1" role="alert">
+                    {dictionary.validationErrors?.pickupDepartureTimeRequired || dictionary.pickupDepartureTimeRequired}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* End Time - Only for Disposition */}
             {(serviceType === "disposizione" || serviceType === "ceremony-disposition") && (

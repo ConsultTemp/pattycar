@@ -62,6 +62,9 @@ export type Database = {
           service_label: string | null
           service_time: string
           service_type: string
+          departure_time: string | null
+          departure_minutes: string | null
+          departure_time_ampm: string | null
           stripe_session_id: string
           transfer_cost: string | null
           transfer_route: string | null

@@ -160,6 +160,11 @@ export async function POST(req: NextRequest) {
       detailedDescription += `\n\nAdditional services:\n${extras.join("\n")}`
     }
 
+    console.log('🔍 DEBUG DEPARTURE TIME IN CHECKOUT:')
+    console.log('  - departureTime:', bookingData.departureTime)
+    console.log('  - departureMinutes:', bookingData.departureMinutes)
+    console.log('  - departureTimeAmPm:', bookingData.departureTimeAmPm)
+
     // Prepare metadata - ONLY STRING VALUES
     const metadata: Record<string, string> = {
       serviceType: serviceType,
@@ -168,6 +173,9 @@ export async function POST(req: NextRequest) {
       date: bookingData.date || "",
       time: bookingData.time || "",
       minutes: bookingData.minutes || "",
+      departureTime: bookingData.departureTime || "",
+      departureMinutes: bookingData.departureMinutes || "",
+      departureTimeAmPm: bookingData.departureTimeAmPm || "",
       endTime: bookingData.endTime || "",
       endMinutes: bookingData.endMinutes || "",
       passengers: bookingData.passengers || "",

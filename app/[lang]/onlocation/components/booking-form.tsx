@@ -292,6 +292,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     try {
 
       // Prepare booking details for API compatibility
+      console.log('🔍 DEBUG FORM SUBMISSION:')
+      console.log('  - destination:', state.journey.destination)
+      console.log('  - departureTime:', state.journey.departureTime)
+      console.log('  - departureMinutes:', state.journey.departureMinutes)
+      console.log('  - departureTimeAmPm:', state.journey.departureTimeAmPm)
+
       const bookingData = {
         serviceType: state.serviceType,
         pickup: state.journey.pickup.address,
@@ -300,6 +306,13 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         time: state.journey.time && state.journey.minutes && state.journey.timeAmPm
           ? formatTime24Hour(state.journey.time, state.journey.minutes, state.journey.timeAmPm)
           : "",
+        departureTime: state.journey.departureTime && state.journey.departureMinutes
+          ? (state.journey.departureTimeAmPm 
+              ? formatTime24Hour(state.journey.departureTime, state.journey.departureMinutes, state.journey.departureTimeAmPm)
+              : `${state.journey.departureTime}:${state.journey.departureMinutes}`)
+          : "",
+        departureMinutes: state.journey.departureMinutes || "",
+        departureTimeAmPm: state.journey.departureTimeAmPm || "",
         endTime:
           state.serviceType === "disposizione" && state.journey.endTime && state.journey.endMinutes && state.journey.endTimeAmPm
             ? formatTime24Hour(state.journey.endTime, state.journey.endMinutes, state.journey.endTimeAmPm)
@@ -316,7 +329,11 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             ? state.vehicles.singleConfig.luggage.toString()
             : state.vehicles.multipleConfigs.reduce((sum, config) => sum + config.luggage, 0).toString(),
         flight: state.options.flight || "",
+        billingType: state.options.billingType || "private",
         billingInfo: state.options.billingInfo || "",
+        companyName: state.options.companyName || "",
+        companyAddress: state.options.companyAddress || "",
+        vatNumber: state.options.vatNumber || "",
         notes: state.options.notes || "",
         meetAndGreet: state.options.meetAndGreet, // Legacy field
         meetGreetConfig: state.options.meetGreetConfig, // New enhanced config
