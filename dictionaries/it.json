@@ -481,10 +481,13 @@
         "billingHelperText": "Questi dati verranno utilizzati per emettere la fattura",
         "billingRequired": "Informazioni di fatturazione richieste",
         "privacyRequired": "Accettazione privacy policy richiesta",
+        "guidelinesRequired": "Accettazione linee guida richiesta",
         "notesLabel": "Note aggiuntive",
         "notesPlaceholder": "Eventuali richieste particolari o informazioni aggiuntive",
         "privacyLabel": "Accetto il trattamento dei dati secondo la",
-        "privacyPolicy": "Privacy Policy"
+        "privacyPolicy": "Privacy Policy",
+        "guidelinesLabel": "Ho preso visione delle",
+        "guidelinesLink": "Linee Guida del Servizio"
       },
       "submit": {
         "contactInfo": "Per informazioni contattare pattycar@pattycar.com",
@@ -531,7 +534,8 @@
           "companyAddressRequired": "Indirizzo società richiesto",
           "vatNumberRequired": "Partita IVA richiesta",
           "privacyPolicyRequired": "Accettazione privacy policy richiesta",
-          "cancellationPolicyRequired": "Accettazione della politica di cancellazione richiesta"
+          "cancellationPolicyRequired": "Accettazione della politica di cancellazione richiesta",
+          "guidelinesRequired": "Accettazione linee guida richiesta"
         }
       },
       "success": {
@@ -559,6 +563,11 @@
         "key": "cancellation",
         "href": "/cancellation",
         "label": "Politica di cancellazione"
+      },
+      {
+        "key": "guidelines",
+        "href": "/guidelines",
+        "label": "Linee Guida"
       }
     ]
   },
@@ -964,6 +973,60 @@
         ]
       }
     ]
+  },
+  "guidelines": {
+    "title": "Linee Guida del Servizio",
+    "subtitle": "Regole e condizioni operative per i servizi di trasferimento",
+    "arrivals": {
+      "title": "ARRIVI - LINEE GUIDA",
+      "airport": {
+        "title": "Per gli ARRIVI IN AEROPORTO",
+        "waitingTime": "45 minuti di attesa sono inclusi per eventuali ritardi del volo e/o ritiro bagagli. I 45 minuti iniziano dall'orario di atterraggio prenotato stimato.",
+        "ratesTitle": "Dopo i 45 minuti inclusi, verranno applicate le seguenti tariffe:",
+        "rates": [
+          "Sedan: 94 € + 10% IVA per ora o frazione",
+          "Minivan: 108 € + 10% IVA per ora o frazione",
+          "Minibus o Sedan di Lusso: 135 € + 10% IVA per ora o frazione"
+        ],
+        "maxDelay": "Se il ritardo supera le 3 ore, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito.",
+        "payment": "Gli addebiti extra saranno pagati tramite link virtuale sicuro prima della fine del servizio."
+      },
+      "trainStation": {
+        "title": "Per gli ARRIVI IN STAZIONE FERROVIARIA",
+        "waitingTime": "20 minuti di attesa sono inclusi per eventuali ritardi. I 20 minuti iniziano dall'orario di arrivo prenotato stimato.",
+        "ratesTitle": "Dopo i 20 minuti inclusi, verranno applicate le seguenti tariffe:",
+        "rates": [
+          "Sedan: 94 € + 10% IVA per ora o frazione",
+          "Minivan: 108 € + 10% IVA per ora o frazione",
+          "Minibus o Sedan di Lusso: 135 € + 10% IVA per ora o frazione"
+        ],
+        "maxDelay": "Se il ritardo supera le 2 ore, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito.",
+        "payment": "Gli addebiti extra saranno pagati tramite link virtuale sicuro prima della fine del servizio."
+      }
+    },
+    "departures": {
+      "title": "PARTENZE - LINEE GUIDA",
+      "waitingTime": "Per le PARTENZE DA AEROPORTO E STAZIONE FERROVIARIA, 20 minuti di attesa sono inclusi.",
+      "ratesTitle": "Dopo i 20 minuti inclusi, verranno applicate le seguenti tariffe:",
+      "rates": [
+        "Sedan: 94 € + 10% IVA per ora o frazione",
+        "Minivan: 108 € + 10% IVA per ora o frazione",
+        "Minibus o Sedan di Lusso: 135 € + 10% IVA per ora o frazione"
+      ],
+      "maxWaiting": "È garantito un tempo di attesa massimo di 1 ora. Dopo tale periodo, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito. Se l'attesa non viene notificata, il trasferimento non sarà garantito."
+    },
+    "modifications": {
+      "title": "MODIFICHE ALLA PRENOTAZIONE",
+      "content": "Per qualsiasi modifica alla prenotazione, l'ospite deve contattarci all'indirizzo email: gamestime@pattycar.com",
+      "noShow": "In caso di NO-SHOW, il servizio verrà addebitato per intero.",
+      "airportChange": "In caso di atterraggio in un aeroporto diverso da quello prenotato, il preventivo verrà ricalcolato."
+    },
+    "cancellationPolicy": {
+      "title": "POLITICA DI CANCELLAZIONE",
+      "fullRefund": "Rimborso del 100%: Se, dopo la conferma e il pagamento, il servizio viene cancellato entro il 31 ottobre 2025",
+      "halfRefund": "Rimborso del 50%: Se, dopo la conferma e il pagamento, il servizio viene cancellato tra il 1° novembre 2025 e il 5 gennaio 2026",
+      "noRefund": "Non rimborsabile: Se, dopo la conferma e il pagamento, il servizio viene cancellato dal 6 gennaio 2026 in poi"
+    }
   },
   "common": {
     "startTypingToSearch": "Inizia a digitare per cercare una posizione...",

@@ -38,6 +38,8 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
         return dictionary.vatNumberRequired
       case "privacyAccepted":
         return dictionary.privacyRequired
+      case "guidelinesAccepted":
+        return dictionary.guidelinesRequired
       default:
         return error.message
     }
@@ -264,6 +266,27 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
         {hasFieldError("privacyAccepted") && (
           <p className="text-red-500 text-sm ml-6" role="alert">
             {getFieldError("privacyAccepted")}
+          </p>
+        )}
+
+        <div className="flex items-start space-x-2">
+          <Checkbox
+            id="guidelinesAccepted"
+            checked={options.guidelinesAccepted}
+            onCheckedChange={(checked) => onChange({ guidelinesAccepted: checked as boolean })}
+            className={hasFieldError("guidelinesAccepted") ? "border-red-500" : ""}
+          />
+          <label htmlFor="guidelinesAccepted" className={`text-sm ${hasFieldError("guidelinesAccepted") ? "text-red-500" : "text-gray-600"}`}>
+            {dictionary.guidelinesLabel}{" "}
+            <Link className="text-yellow-500 underline" href="/guidelines">
+              {dictionary.guidelinesLink}
+            </Link>{" "}
+            *
+          </label>
+        </div>
+        {hasFieldError("guidelinesAccepted") && (
+          <p className="text-red-500 text-sm ml-6" role="alert">
+            {getFieldError("guidelinesAccepted")}
           </p>
         )}
       </div>

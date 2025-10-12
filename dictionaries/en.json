@@ -483,10 +483,13 @@
         "billingHelperText": "This information will be used to issue the invoice",
         "billingRequired": "Billing information required",
         "privacyRequired": "Privacy policy acceptance required",
+        "guidelinesRequired": "Service guidelines acceptance required",
         "notesLabel": "Additional Notes",
         "notesPlaceholder": "Any special requests or additional information",
         "privacyLabel": "I accept the data processing according to the",
-        "privacyPolicy": "Privacy Policy"
+        "privacyPolicy": "Privacy Policy",
+        "guidelinesLabel": "I have read and understood the",
+        "guidelinesLink": "Service Guidelines"
       },
       "submit": {
         "contactInfo": "For information contact pattycar@pattycar.com",
@@ -533,7 +536,8 @@
           "companyAddressRequired": "Company address required",
           "vatNumberRequired": "VAT number required",
           "privacyPolicyRequired": "Privacy policy acceptance required",
-          "cancellationPolicyRequired": "Cancellation policy acceptance required"
+          "cancellationPolicyRequired": "Cancellation policy acceptance required",
+          "guidelinesRequired": "Service guidelines acceptance required"
         }
       },
       "success": {
@@ -561,6 +565,11 @@
         "key": "cancellation",
         "href": "/cancellation",
         "label": "Cancellation policy"
+      },
+      {
+        "key": "guidelines",
+        "href": "/guidelines",
+        "label": "Guidelines"
       }
     ]
   },
@@ -966,6 +975,60 @@
         ]
       }
     ]
+  },
+  "guidelines": {
+    "title": "Service Guidelines",
+    "subtitle": "Operating rules and conditions for transfer services",
+    "arrivals": {
+      "title": "ARRIVALS - GUIDELINES",
+      "airport": {
+        "title": "For AIRPORT ARRIVALS",
+        "waitingTime": "45 minutes of waiting time are included for any possible flight delays and/or baggage claim. The 45 minutes starts from the estimated booked landing time.",
+        "ratesTitle": "After the included 45 minutes, the following rates will be applied:",
+        "rates": [
+          "Sedan: 94 € + 10% VAT per hour or fraction of it",
+          "Minivan: 108 € + 10% VAT per hour or fraction of it",
+          "Minibus or Luxury Sedan: 135 € + 10% VAT per hour or fraction of it"
+        ],
+        "maxDelay": "If the delay exceeds 3 hours, the service must be rescheduled, and a new charge will be applied.",
+        "payment": "The extra charges will be paid via secure virtual link before the end of the service."
+      },
+      "trainStation": {
+        "title": "For TRAIN STATION ARRIVALS",
+        "waitingTime": "20 minutes of waiting time are included for any delays. The 20 minutes starts from the estimated booked arriving time.",
+        "ratesTitle": "After the included 20 minutes, the following rates will be applied:",
+        "rates": [
+          "Sedan: 94 € + 10% VAT per hour or fraction of it",
+          "Minivan: 108 € + 10% VAT per hour or fraction of it",
+          "Minibus or Luxury Sedan: 135 € + 10% VAT per hour or fraction of it"
+        ],
+        "maxDelay": "If the delay exceeds 2 hours, the service must be rescheduled, and a new charge will be applied.",
+        "payment": "The extra charges will be paid via secure virtual link before the end of the service."
+      }
+    },
+    "departures": {
+      "title": "DEPARTURES - GUIDELINES",
+      "waitingTime": "For AIRPORT AND TRAIN STATION DEPARTURES, 20 minutes of waiting are included.",
+      "ratesTitle": "After the included 20 minutes, the following rates will be applied:",
+      "rates": [
+        "Sedan: 94 € + 10% VAT per hour or fraction of it",
+        "Minivan: 108 € + 10% VAT per hour or fraction of it",
+        "Minibus or Luxury Sedan: 135 € + 10% VAT per hour or fraction of it"
+      ],
+      "maxWaiting": "A maximum waiting time of 1 hour is guaranteed. After that, the service must be rescheduled, and a new charge will be applied. If the wait is not notified, the transfer will not be guaranteed."
+    },
+    "modifications": {
+      "title": "BOOKING MODIFICATIONS",
+      "content": "For any booking changes in the reservation the guest must contact us at our e-mail address: gamestime@pattycar.com",
+      "noShow": "In case of NO-SHOW, the service will be fully charged.",
+      "airportChange": "In case of landing in a different airport instead of the booked one, the quotation will be recalculated."
+    },
+    "cancellationPolicy": {
+      "title": "CANCELLATION POLICY",
+      "fullRefund": "100% refund: If, after the confirmation and the payment, the service is cancelled by October 31st, 2025",
+      "halfRefund": "50% refund: If, after the confirmation and the payment, the service is cancelled between November 1st, 2025, and January 5th, 2026",
+      "noRefund": "Non-refundable: If, after the confirmation and the payment, the service is cancelled from January 6th, 2026, onwards"
+    }
   },
   "common": {
     "startTypingToSearch": "Start typing to search for a location...",

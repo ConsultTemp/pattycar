@@ -99,6 +99,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   const [pickupLocation, setPickupLocation] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  const [guidelinesAccepted, setGuidelinesAccepted] = useState(false)
   
   // CAPTCHA states
   const [captchaText, setCaptchaText] = useState("")
@@ -196,6 +197,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     // Check if privacy is accepted
     if (!privacyAccepted) {
       alert(dictionary.privacyRequired || "You must accept the data processing terms to proceed")
+      return
+    }
+
+    // Check if guidelines are accepted
+    if (!guidelinesAccepted) {
+      alert(dictionary.guidelinesRequired || "You must accept the service guidelines to proceed")
       return
     }
 
@@ -615,11 +622,29 @@ if (!response.ok) {
               </label>
             </div>
 
+            {/* Guidelines acceptance checkbox */}
+            <div className="md:col-span-2 mb-6 flex flex-row">
+              <div className="flex items-center transition-all duration-300 p-2 w-fit">
+                <Checkbox
+                  id="guidelinesAccepted"
+                  name="guidelinesAccepted"
+                  checked={guidelinesAccepted}
+                  onCheckedChange={(checked) => setGuidelinesAccepted(checked as boolean)}
+                  required
+                  className="mr-2"
+                />
+
+              </div>
+              <label htmlFor="guidelinesAccepted" className="text-sm text-gray-600 flex flex-row items-center gap-2">
+                Ho preso visione delle <Link className="text-yellow-500" href={"/guidelines"}>Linee Guida del Servizio</Link>
+              </label>
+            </div>
+
             <div className="md:col-span-2 text-center">
               <button
                 type="submit"
-                disabled={isSubmitting || !privacyAccepted}
-                className={`bg-black text-white px-8 py-3 hover:bg-gray-800 transition-all duration-300 ${(isSubmitting || !privacyAccepted) ? "opacity-70 cursor-not-allowed" : ""
+                disabled={isSubmitting || !privacyAccepted || !guidelinesAccepted}
+                className={`bg-black text-white px-8 py-3 hover:bg-gray-800 transition-all duration-300 ${(isSubmitting || !privacyAccepted || !guidelinesAccepted) ? "opacity-70 cursor-not-allowed" : ""
                   }`}
               >
                 {isSubmitting ? <span>{dictionary.submitting || "Submitting..."}</span> : dictionary.submitButton}

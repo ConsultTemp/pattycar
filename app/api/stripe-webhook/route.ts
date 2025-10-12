@@ -1215,6 +1215,16 @@ export async function POST(req: NextRequest) {
                     ❄️ After confirmation, if cancellation is requested from 6th January 2026 ➡️ NOT REFUNDABLE.
                   </p>
                 </div>
+
+                <!-- Service Guidelines -->
+                <div style="margin: 20px 0; padding: 15px; font-size: 11px; color: #64748b; line-height: 1.6; border-top: 1px solid #e2e8f0;">
+                  <p style="margin: 0 0 10px 0; font-weight: 600; font-size: 12px; color: #475569;">⚠️ Service Guidelines:</p>
+                  <p style="margin: 5px 0;"><strong>Airport Arrivals:</strong> 45 minutes of waiting time included from estimated landing time. After this, extra charges apply: Sedan 94€ + 10% VAT/hour, Minivan 108€ + 10% VAT/hour, Minibus/Luxury Sedan 135€ + 10% VAT/hour. If delay exceeds 3 hours, service must be rescheduled.</p>
+                  <p style="margin: 5px 0;"><strong>Train Station Arrivals:</strong> 20 minutes of waiting time included from estimated arrival time. After this, extra charges apply: Sedan 94€ + 10% VAT/hour, Minivan 108€ + 10% VAT/hour, Minibus/Luxury Sedan 135€ + 10% VAT/hour. If delay exceeds 2 hours, service must be rescheduled.</p>
+                  <p style="margin: 5px 0;"><strong>Departures (Airport & Train Station):</strong> 20 minutes of waiting time included. After this, extra charges apply. Maximum 1 hour waiting guaranteed - service must be rescheduled after that.</p>
+                  <p style="margin: 5px 0;"><strong>Booking Modifications:</strong> Contact us at gamestime@pattycar.com. NO-SHOW will be fully charged. Different airport landings will be recalculated.</p>
+                  <p style="margin: 5px 0; font-size: 10px; font-style: italic;">Extra charges will be paid via secure virtual link before the end of service.</p>
+                </div>
                 
                 <!-- Customer Support -->
                 <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 25px; margin: 30px 0;">

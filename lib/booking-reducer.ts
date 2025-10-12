@@ -56,6 +56,7 @@ export const initialBookingState: BookingState = {
     },
     differentVehicles: false,
     privacyAccepted: false,
+    guidelinesAccepted: false,
   },
   ui: {
     isSubmitting: false,

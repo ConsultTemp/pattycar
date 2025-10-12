@@ -84,6 +84,7 @@ export interface BookingOptions {
   vatNumber?: string // UI only - gets merged into billingInfo
   notes?: string
   privacyAccepted: boolean
+  guidelinesAccepted: boolean
 }
 
 export interface PricingResult {
@@ -303,7 +304,10 @@ export const optionsSchema = z.object({
   vatNumber: z.string().optional(),
   notes: z.string().optional(),
   privacyAccepted: z.boolean().refine((val) => val === true, {
-    message: "Accettazione privacy policy richiesta",
+    message: "privacyPolicyRequired",
+  }),
+  guidelinesAccepted: z.boolean().refine((val) => val === true, {
+    message: "guidelinesRequired",
   }),
 }).superRefine((data, ctx) => {
   // Conditional validation based on billingType
