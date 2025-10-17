@@ -155,7 +155,13 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                       {dictionary.pricingBreakdownLabels?.ceremonyCompleteService}
                     </div>
                   </div>
-                  <div className="font-bold">€{formatPrice(pricing.vehicleBreakdowns?.reduce((sum: number, vb: any) => sum + (vb.ceremonyBasePrice || 0), 0) || pricing.breakdown.basePrice || 0)}</div>
+                  <div className="font-bold">€{formatPrice(
+                    (() => {
+                      const totalCeremonyPrice = pricing.vehicleBreakdowns?.reduce((sum: number, vb: any) => sum + (vb.ceremonyBasePrice || 0), 0) || pricing.breakdown.basePrice || 0
+                      const nightSurcharge = pricing.breakdown.nightSurcharge || 0
+                      return totalCeremonyPrice - nightSurcharge
+                    })()
+                  )}</div>
                 </div>
               )}
 
@@ -206,14 +212,20 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                       {/* Show individual vehicle breakdown if available (different vehicles) */}
                       {pricing.vehicleBreakdowns && pricing.vehicleBreakdowns.length > 0 ? (
                         <div className="mt-1">
-                          {pricing.vehicleBreakdowns.map((vb: any, index: number) => (
-                            <div key={index} className="text-xs">
-                              {dictionary.pricingBreakdownLabels?.vehicle} {vb.vehicleIndex} : €{formatPrice(vb.price || vb.basePrice || (pricing.breakdown.durationHours ? vb.durationHours * vb.hourlyRate : 0))}
-                              {pricing.breakdown.durationHours && vb.hourlyRate && (
-                                <span> ({vb.durationHours}{dictionary.pricingBreakdownLabels?.hours} × €{vb.hourlyRate}{dictionary.pricingBreakdownLabels?.hourlyRate})</span>
-                              )}
-                            </div>
-                          ))}
+                          {pricing.vehicleBreakdowns.map((vb: any, index: number) => {
+                            const vehiclePrice = vb.price || vb.basePrice || (pricing.breakdown.durationHours ? vb.durationHours * vb.hourlyRate : 0)
+                            const vehicleNightSurcharge = vb.nightSurcharge || 0
+                            const basePriceWithoutNight = vehiclePrice - vehicleNightSurcharge
+                            
+                            return (
+                              <div key={index} className="text-xs">
+                                {dictionary.pricingBreakdownLabels?.vehicle} {vb.vehicleIndex} : €{formatPrice(basePriceWithoutNight)}
+                                {pricing.breakdown.durationHours && vb.hourlyRate && (
+                                  <span> ({vb.durationHours}{dictionary.pricingBreakdownLabels?.hours} × €{vb.hourlyRate}{dictionary.pricingBreakdownLabels?.hourlyRate})</span>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
                       ) : (
                         /* Show simple multiplication only for same vehicle types */
@@ -225,9 +237,17 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                   </div>
                   <div className="font-bold">
                     €{formatPrice(
-                      pricing.vehicleBreakdowns && pricing.vehicleBreakdowns.length > 0 
-                        ? pricing.vehicleBreakdowns.reduce((sum: number, vb: any) => sum + (vb.price || vb.basePrice || (pricing.breakdown.durationHours ? vb.durationHours * vb.hourlyRate : 0)), 0)
-                        : (pricing.breakdown.pricePerVehicle && pricing.breakdown.vehicleCount ? pricing.breakdown.pricePerVehicle * pricing.breakdown.vehicleCount : pricing.breakdown.basePrice)
+                      (() => {
+                        let totalPrice = 0
+                        if (pricing.vehicleBreakdowns && pricing.vehicleBreakdowns.length > 0) {
+                          totalPrice = pricing.vehicleBreakdowns.reduce((sum: number, vb: any) => sum + (vb.price || vb.basePrice || (pricing.breakdown.durationHours ? vb.durationHours * vb.hourlyRate : 0)), 0)
+                        } else {
+                          totalPrice = pricing.breakdown.pricePerVehicle && pricing.breakdown.vehicleCount ? pricing.breakdown.pricePerVehicle * pricing.breakdown.vehicleCount : pricing.breakdown.basePrice
+                        }
+                        // Sottrai il night surcharge se presente
+                        const nightSurcharge = pricing.breakdown.nightSurcharge || 0
+                        return totalPrice - nightSurcharge
+                      })()
                     )}
                   </div>
                 </div>
@@ -257,7 +277,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <div>
                     <div className="font-medium">{dictionary.pricingBreakdownLabels?.nightSurcharge}</div>
-                    <div className="text-sm text-gray-600">{dictionary.pricingBreakdownLabels?.nightServiceHours} (+{pricing.breakdown.nightSurchargeRate || 20}%)</div>
+                    <div className="text-sm text-gray-600">{dictionary.pricingBreakdownLabels?.nightServiceHours} (+20%)</div>
                   </div>
                   <div className="font-bold">€{formatPrice(pricing.breakdown.nightSurcharge)}</div>
                 </div>

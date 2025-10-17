@@ -49,7 +49,7 @@ export const AdditionalOptionsSection = memo<AdditionalOptionsSectionProps>(({ o
     return hasAttemptedSubmit && !!errors.find((error) => error.field === `options.${field}`)
   }
 
-  const billingType = options.billingType || "private"
+  const billingType = options.billingType || "company"
 
   // Function to update billingInfo when individual fields change
   const updateBillingInfo = (updates: Partial<BookingOptions>) => {

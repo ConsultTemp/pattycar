@@ -297,7 +297,7 @@ export const optionsSchema = z.object({
   differentVehicles: z.boolean().default(false),
   flight: z.string().min(1, "Numero volo/treno richiesto"),
   departureCity: z.string().optional(),
-  billingType: z.enum(["private", "company"]).optional().default("private"),
+  billingType: z.enum(["private", "company"]).optional().default("company"),
   billingInfo: z.string().optional(),
   companyName: z.string().optional(),
   companyAddress: z.string().optional(),

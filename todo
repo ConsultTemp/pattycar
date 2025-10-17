@@ -301,3 +301,16 @@ nuovo campo tipo privacy per sottoscrivere modalita erogazione servizio con link
 
 se punto arrivo e aereoporto o stazione, mostro un nuovo input : orario di partenza dal tuo pickup point. mostra entrambi orari in caso questo.
 nome campo: orario di partenza dall'albergo. supplemento notturno guarda nuov campo
+
+
+
+
+
+
+
+
+
+
+se night surcharge mostra prima prezzo senza surcharge e poi con
+
+nel riquadro di totale pagamento inserire 21-06 per il servizio notturno

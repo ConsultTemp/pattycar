@@ -121,12 +121,23 @@ const isInternalMilanoTransfer = (
   pickupCoords?: { lat: number; lng: number },
   destinationCoords?: { lat: number; lng: number }
 ): boolean => {
-  if (!pickupCoords || !destinationCoords) return false
+  if (!pickupCoords || !destinationCoords) {
+    console.log("🏙️ isInternalMilanoTransfer: Missing coords → FALSE")
+    return false
+  }
   
   const pickupDistance = calculateDistanceKm(MILANO_CENTER_COORDINATES, pickupCoords)
   const destinationDistance = calculateDistanceKm(MILANO_CENTER_COORDINATES, destinationCoords)
   
-  return pickupDistance <= MILANO_RADIUS_KM && destinationDistance <= MILANO_RADIUS_KM
+  const result = pickupDistance <= MILANO_RADIUS_KM && destinationDistance <= MILANO_RADIUS_KM
+  
+  console.log(`🏙️ isInternalMilanoTransfer:`, {
+    pickupFromCenter: pickupDistance.toFixed(2) + 'km',
+    destinationFromCenter: destinationDistance.toFixed(2) + 'km',
+    result: result ? 'TRUE (125€)' : 'FALSE (use km pricing)'
+  })
+  
+  return result
 }
 
 // Funzione per calcolare il prezzo totale basato sulla distanza (transfer)

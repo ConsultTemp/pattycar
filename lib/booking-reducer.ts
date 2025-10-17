@@ -55,6 +55,7 @@ export const initialBookingState: BookingState = {
       extraHours: 0,
     },
     differentVehicles: false,
+    billingType: "company",
     privacyAccepted: false,
     guidelinesAccepted: false,
   },

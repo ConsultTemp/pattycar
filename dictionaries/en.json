@@ -326,7 +326,7 @@
         "completeCeremonyService": "for complete ceremony service",
         "includesRoundtripAndWaiting": "Includes roundtrip transfer and the waiting time selected during the event",
         "nightServiceSurcharge": "Night service surcharge applied",
-        "nightServiceInfo": "Service between 19:30 PM - 07:30 AM (+20%)",
+        "nightServiceInfo": "Service between 21:00 PM - 06:00 AM (+20%)",
         "meetGreetService": "Meet & Greet Service",
         "totalServicePrice": "Total service price",
         "appliedToVehicles": "Applied to {count} vehicles",

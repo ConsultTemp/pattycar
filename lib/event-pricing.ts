@@ -520,7 +520,7 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
         
         return {
           resolvedLocationId: localityResult.locationId,
-          resolvedCoordinates: mappedLocation.coordinates
+          resolvedCoordinates: coordinates || mappedLocation.coordinates // Keep original coordinates
         }
       }
     }
@@ -532,7 +532,7 @@ export function resolveLocationForPricing(locationId?: string, coordinates?: { l
       console.log(`✅ DIRECT LOOKUP SUCCESS: "${locationId}" found in registry`)
       return {
         resolvedLocationId: locationId,
-        resolvedCoordinates: location.coordinates
+        resolvedCoordinates: coordinates || location.coordinates // Keep original coordinates
       }
     }
     console.log(`❌ DIRECT LOOKUP FAILED for "${locationId}"`)

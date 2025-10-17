@@ -326,7 +326,7 @@
         "completeCeremonyService": "per servizio completo di cerimonia",
         "includesRoundtripAndWaiting": "Include trasferimento andata/ritorno e il tempo di attesa selezionato durante l'evento",
         "nightServiceSurcharge": "Supplemento servizio notturno applicato",
-        "nightServiceInfo": "Servizio tra 19:30 - 07:30 (+20%)",
+        "nightServiceInfo": "Servizio tra 21:00 - 06:00 (+20%)",
         "meetGreetService": "Servizio Meet & Greet",
         "totalServicePrice": "Prezzo totale servizio",
         "appliedToVehicles": "Applicato a {count} veicoli",

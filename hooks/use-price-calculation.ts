@@ -1098,9 +1098,54 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             )
             
             console.log("✅ RESOLVED LOCATIONS:", {
-              pickup: resolvedPickup,
-              destination: resolvedDestination
+              pickup: {
+                locationId: resolvedPickup.resolvedLocationId || 'UNDEFINED',
+                coords: resolvedPickup.resolvedCoordinates
+              },
+              destination: {
+                locationId: resolvedDestination.resolvedLocationId || 'UNDEFINED',
+                coords: resolvedDestination.resolvedCoordinates
+              }
             })
+            
+            // CRITICAL FIX: For Linate→Milano Olympic pricing
+            // If both are 'linate' but with different coordinates, remap the one far from airport as 'milano'
+            if (resolvedPickup.resolvedLocationId === 'linate' && 
+                resolvedDestination.resolvedLocationId === 'linate' &&
+                resolvedPickup.resolvedCoordinates && 
+                resolvedDestination.resolvedCoordinates) {
+              
+              const LINATE_AIRPORT_COORDS = { lat: 45.4451, lng: 9.2767 }
+              const MILANO_CENTER = { lat: 45.4642, lng: 9.1900 }
+              
+              const calculateDistance = (c1: { lat: number; lng: number }, c2: { lat: number; lng: number }) => {
+                const R = 6371
+                const dLat = (c2.lat - c1.lat) * Math.PI / 180
+                const dLng = (c2.lng - c1.lng) * Math.PI / 180
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                          Math.cos(c1.lat * Math.PI / 180) * Math.cos(c2.lat * Math.PI / 180) * 
+                          Math.sin(dLng/2) * Math.sin(dLng/2)
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+                return R * c
+              }
+              
+              const pickupFromAirport = calculateDistance(resolvedPickup.resolvedCoordinates, LINATE_AIRPORT_COORDS)
+              const destinationFromAirport = calculateDistance(resolvedDestination.resolvedCoordinates, LINATE_AIRPORT_COORDS)
+              const pickupFromMilano = calculateDistance(resolvedPickup.resolvedCoordinates, MILANO_CENTER)
+              const destinationFromMilano = calculateDistance(resolvedDestination.resolvedCoordinates, MILANO_CENTER)
+              
+              // If pickup is far from airport but close to Milano center → remap as 'milano'
+              if (pickupFromAirport > 1 && pickupFromMilano <= 10) {
+                console.log(`🔄 LINATE→MILANO FIX: Pickup ${pickupFromAirport.toFixed(2)}km from airport, ${pickupFromMilano.toFixed(2)}km from Milano → remapping pickup as 'milano'`)
+                resolvedPickup.resolvedLocationId = 'milano'
+              }
+              
+              // If destination is far from airport but close to Milano center → remap as 'milano'
+              if (destinationFromAirport > 1 && destinationFromMilano <= 10) {
+                console.log(`🔄 LINATE→MILANO FIX: Destination ${destinationFromAirport.toFixed(2)}km from airport, ${destinationFromMilano.toFixed(2)}km from Milano → remapping destination as 'milano'`)
+                resolvedDestination.resolvedLocationId = 'milano'
+              }
+            }
             
             if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
               console.log("🏔️ SEARCHING OLYMPIC ROUTE:", {

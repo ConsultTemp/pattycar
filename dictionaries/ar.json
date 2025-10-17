@@ -325,7 +325,7 @@
         "completeCeremonyService": "لخدمة الحفل الكاملة",
         "includesRoundtripAndWaiting": "يشمل النقل ذهاباً وإياباً ووقت الانتظار المحدد أثناء الحدث",
         "nightServiceSurcharge": "رسوم إضافية للخدمة الليلية مطبقة",
-        "nightServiceInfo": "الخدمة بين 19:30 مساءً - 07:30 صباحاً (+20%)",
+        "nightServiceInfo": "الخدمة بين 21:00 مساءً - 06:00 صباحاً (+20%)",
         "meetGreetService": "خدمة الاستقبال",
         "totalServicePrice": "إجمالي سعر الخدمة",
         "appliedToVehicles": "مطبق على {count} مركبات",
