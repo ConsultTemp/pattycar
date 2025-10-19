@@ -244,9 +244,13 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                         } else {
                           totalPrice = pricing.breakdown.pricePerVehicle && pricing.breakdown.vehicleCount ? pricing.breakdown.pricePerVehicle * pricing.breakdown.vehicleCount : pricing.breakdown.basePrice
                         }
-                        // Sottrai il night surcharge se presente
-                        const nightSurcharge = pricing.breakdown.nightSurcharge || 0
-                        return totalPrice - nightSurcharge
+                        // Per prezzi olimpici, NON sottrarre night surcharge (è già separato)
+                        // Per altri prezzi, sottrai perché è incluso nel basePrice
+                        if (!pricing.isOlympicPricing) {
+                          const nightSurcharge = pricing.breakdown.nightSurcharge || 0
+                          return totalPrice - nightSurcharge
+                        }
+                        return totalPrice
                       })()
                     )}
                   </div>

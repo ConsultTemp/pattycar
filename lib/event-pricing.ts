@@ -1008,13 +1008,13 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     basePrice: 250, // Greeter + Porter + 2 luggages incl. for 1 PASSENGER
     extraPassengerPrice: 70, // Each extra PASSENGER
     extraLuggagePrice: 25, // Each extra LUGGAGE
-    nightSurchargePrice: 175, // Night surcharge porter (18:30 PM / 09:00 AM) | max 5 pcs of luggages per operator
+    nightSurchargePrice: 175, // Night surcharge porter (20:00 / 08:00) | max 5 pcs of luggages per operator
     extraHourPrice: 90, // Each extra HOUR for delay or disruption (AFTER 2 HOURS INCLUDED)
     includedHours: 2,
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 5,
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    nightSurchargeHours: { start: "20:00", end: "08:00" },
     details: [
       "The greeter and porter will meet the client/s directly at the train platform in front of the right coach",
       "They will escort passenger/s to the reserved PATTY CAR vehicle, helping them with the luggages"
@@ -1022,7 +1022,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     constraints: [
       "Groups of more than 8 people will be quoted on request",
       "Maximum 5 pieces of luggage per operator for night surcharge",
-      "Night surcharge hours: 18:30 PM - 09:00 AM"
+      "Night surcharge hours: 20:00 - 08:00"
     ]
   },
 
@@ -1039,7 +1039,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 5,
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    nightSurchargeHours: { start: "20:00", end: "08:00" },
     details: [
       "The greeter and porter will meet the client/s directly at the train platform in front of the right coach",
       "They will escort passenger/s to the reserved PATTY CAR vehicle, helping them with the luggages"
@@ -1047,7 +1047,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     constraints: [
       "Groups of more than 8 people will be quoted on request",
       "Maximum 5 pieces of luggage per operator for night surcharge",
-      "Night surcharge hours: 18:30 PM - 09:00 AM"
+      "Night surcharge hours: 20:00 - 08:00"
     ]
   },
 
@@ -1064,7 +1064,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 0, // Porter ON DEMAND
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    nightSurchargeHours: { start: "20:00", end: "08:00" },
     specialServices: {
       greeterOnly: { price: 0 } // Greeter only service by default secondo listino
     },
@@ -1094,7 +1094,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 5,
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    nightSurchargeHours: { start: "20:00", end: "08:00" },
     details: [
       "Greeter and porter await for the client/s directly at the railway station entrance door, upon arrival of the PATTY CAR vehicle",
       "Greeter and porter will escort to railway platform in front of the right coach and load passengers and luggages"
@@ -1102,7 +1102,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     constraints: [
       "Groups of more than 8 people will be quoted on request",
       "Maximum 5 pieces of luggage per operator for night surcharge",
-      "Night surcharge hours: 18:30 PM - 09:00 AM"
+      "Night surcharge hours: 20:00 - 08:00"
     ]
   },
 
@@ -1119,7 +1119,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 5,
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    nightSurchargeHours: { start: "20:00", end: "08:00" },
     details: [
       "Greeter and porter await for the client/s directly at the railway station entrance door, upon arrival of the PATTY CAR vehicle",
       "Greeter and porter will escort to railway platform in front of the right coach and load passengers and luggages"
@@ -1127,7 +1127,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     constraints: [
       "Groups of more than 8 people will be quoted on request",
       "Maximum 5 pieces of luggage per operator for night surcharge",
-      "Night surcharge hours: 18:30 PM - 09:00 AM"
+      "Night surcharge hours: 20:00 - 08:00"
     ]
   },
 
@@ -1144,7 +1144,7 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 0, // Porter ON DEMAND
-    nightSurchargeHours: { start: "18:30", end: "09:00" },
+    nightSurchargeHours: { start: "20:00", end: "08:00" },
     specialServices: {
       greeterOnly: { price: 0 } // Greeter only service by default secondo listino
     },
@@ -1259,7 +1259,7 @@ export function findAvailableMeetGreetServices(
   return availableServices
 }
 
-// Function to check if a time is during night hours - UNIFIED SYSTEM
+// Function to check if a time is during night hours for standard services (21:00-06:00)
 export function isNightTime(timeStr: string): boolean {
   try {
     // Parse time from various formats (HH:MM AM/PM or HH:MM)
@@ -1282,10 +1282,43 @@ export function isNightTime(timeStr: string): boolean {
       ampm = undefined
     }
 
-    // Use unified time utils for consistent logic (19:30-07:30)
+    // Use unified time utils for standard services (21:00-06:00)
     return timeUtils.isNightTime(hour, minutes, ampm)
   } catch (error) {
     console.error('Error parsing time:', timeStr, error)
+    return false
+  }
+}
+
+// Function to check if a time is during night hours for Meet & Greet services (20:00-08:00)
+export function isMeetGreetNightTime(timeStr: string): boolean {
+  try {
+    // Parse time from various formats (HH:MM AM/PM or HH:MM)
+    let hour: string
+    let minutes: string
+    let ampm: string | undefined
+
+    if (timeStr.includes('AM') || timeStr.includes('PM')) {
+      // 12-hour format
+      const [time, ampmPart] = timeStr.split(' ')
+      const [hourStr, minuteStr] = time.split(':')
+      hour = hourStr
+      minutes = minuteStr || '00'
+      ampm = ampmPart
+    } else {
+      // 24-hour format
+      const [hourStr, minuteStr] = timeStr.split(':')
+      hour = hourStr
+      minutes = minuteStr || '00'
+      ampm = undefined
+    }
+
+    // Meet & Greet specific night hours (20:00-08:00)
+    const { totalMinutes } = timeUtils.to24h(hour, minutes, ampm)
+    // Night time for Meet & Greet: 20:00 (1200 minutes) to 08:00 (480 minutes)
+    return totalMinutes >= 1200 || totalMinutes <= 480
+  } catch (error) {
+    console.error('Error parsing Meet & Greet night time:', timeStr, error)
     return false
   }
 }

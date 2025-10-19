@@ -23,9 +23,9 @@ export const OLYMPIC_VEHICLE_TYPES: Record<string, OlympicVehicleType> = {
     displayName: 'Sedan',
     maxPassengers: 3,
     maxPassengersWithLuggage: 3,
-    maxLuggage: 2,
-    maxSmallLuggage: 1,
-    description: '3 passengers + 2 large + 1 small luggage',
+    maxLuggage: 1,
+    maxSmallLuggage: 2,
+    description: '3 passengers + 1 large + 2 small luggage',
     category: 'standard'
   },
 

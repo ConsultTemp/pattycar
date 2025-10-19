@@ -182,6 +182,16 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
     const calculateDistance = async () => {
       if (serviceType !== "transfer" && serviceType !== "inter-cluster") return
 
+      console.log('🚗 DISTANCE CALCULATION CHECK:')
+      console.log('  Pickup address:', journey.pickup?.address)
+      console.log('  Pickup locationId:', journey.pickup?.locationId)
+      console.log('  Pickup placeId:', journey.pickup?.placeId)
+      console.log('  Destination address:', journey.destination?.address)
+      console.log('  Destination locationId:', journey.destination?.locationId)
+      console.log('  Destination placeId:', journey.destination?.placeId)
+      console.log('  Addresses are different?', journey.pickup?.address !== journey.destination?.address)
+      console.log('  Current distance:', journey.distance)
+
       if (
         journey.pickup?.address &&
         journey.destination?.address &&
@@ -189,6 +199,7 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
         journey.pickup.placeId &&
         journey.destination.placeId
       ) {
+        console.log('✅ Starting distance calculation...')
         setIsCalculatingDistance(true)
 
         try {
@@ -207,6 +218,7 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
 
           if (response.ok) {
             const data = await response.json()
+            console.log('✅ DISTANCE CALCULATION SUCCESS:', data.distance)
             onChange({
               distance: {
                 km: data.distance.km,
@@ -214,6 +226,8 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                 duration: data.distance.duration,
               },
             })
+          } else {
+            console.log('❌ DISTANCE CALCULATION FAILED:', response.status)
           }
         } catch (error) {
           } finally {

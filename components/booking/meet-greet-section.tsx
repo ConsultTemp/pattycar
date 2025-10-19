@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Info, MapPin, Clock, Users, Luggage, AlertTriangle, CheckCircle2 } from "lucide-react"
-import { findMeetGreetService, findMeetGreetServiceByLocation, resolveLocationForPricing, calculateMeetGreetPrice, isNightTime, type MeetGreetServiceWithId } from "@/lib/event-pricing"
+import { findMeetGreetService, findMeetGreetServiceByLocation, resolveLocationForPricing, calculateMeetGreetPrice, isMeetGreetNightTime, type MeetGreetServiceWithId } from "@/lib/event-pricing"
 import type { MeetGreetConfig, Journey, PricingResult } from "@/lib/booking-types"
 
 interface MeetGreetSectionProps {
@@ -80,11 +80,11 @@ export function MeetGreetSection({
   // Selected service is now the automatically detected one
   const selectedService = config.enabled ? availableService : null
 
-  // Detect if journey is at night time
+  // Detect if journey is at night time for Meet & Greet (20:00-08:00)
   const isNightService = useMemo(() => {
     if (!journey.time || !journey.minutes || !journey.timeAmPm) return false
     const timeStr = `${journey.time.padStart(2, '0')}:${journey.minutes.padStart(2, '0')} ${journey.timeAmPm}`
-    return isNightTime(timeStr)
+    return isMeetGreetNightTime(timeStr)
   }, [journey.time, journey.minutes, journey.timeAmPm])
 
   // Calculate pricing for selected service

@@ -47,12 +47,12 @@ export const timeUtils = {
   },
 
   /**
-   * Check if a time is during night hours (19:30-07:30)
+   * Check if a time is during night hours (21:00-06:00)
    * Uses the exact logic from the original pricing system
    */
   isNightTime: (hour: string, minutes: string, ampm?: string): boolean => {
     const { totalMinutes } = timeUtils.to24h(hour, minutes, ampm)
-    // Night time: 19:30 (1170 minutes) to 07:30 (450 minutes)
-    return totalMinutes >= 1170 || totalMinutes <= 450 || totalMinutes == 0
+    // Night time: 21:00 (1260 minutes) to 06:00 (360 minutes)
+    return totalMinutes >= 1260 || totalMinutes <= 360 || totalMinutes == 0
   }
 } 

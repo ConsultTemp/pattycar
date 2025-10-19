@@ -39,11 +39,18 @@ import {
 // Export PricingResult for use in other components
 export type { PricingResult } from "@/lib/booking-types"
 
-// Helper function to check if time is night (19:30 - 07:30) - LEGACY PRICING LOGIC
+// Helper function to check if time is night for standard services (21:00 - 06:00)
 const isNightTime = (hour: string, minutes: string, ampm?: string): boolean => {
   const { totalMinutes } = timeUtils.to24h(hour, minutes, ampm)
-  // Night time: 19:30 (1170 minutes) to 07:30 (450 minutes)
-  return totalMinutes >= 1170 || totalMinutes <= 450
+  // Night time: 21:00 (1260 minutes) to 06:00 (360 minutes)
+  return totalMinutes >= 1260 || totalMinutes <= 360 || totalMinutes == 0
+}
+
+// Helper function to check if time is night for Meet & Greet services (20:00 - 08:00)
+const isMeetGreetNightTime = (hour: string, minutes: string, ampm?: string): boolean => {
+  const { totalMinutes } = timeUtils.to24h(hour, minutes, ampm)
+  // Night time for Meet & Greet: 20:00 (1200 minutes) to 08:00 (480 minutes)
+  return totalMinutes >= 1200 || totalMinutes <= 480
 }
 
 // Helper function to calculate distance between two coordinates in kilometers
@@ -261,7 +268,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       const durationMinutes = Math.max(0, endTimeConverted.totalMinutes - startTimeConverted.totalMinutes)
       const serviceHours = Math.ceil(durationMinutes / 60)
       
-      // Check night time
+      // Check night time for standard pricing
       const isNight = journey.time && journey.minutes && journey.timeAmPm 
         ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
         : false
@@ -388,13 +395,18 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
 
       // Calculate Meet & Greet if enabled
       if (options.meetGreetConfig.enabled && options.meetGreetConfig.serviceId) {
+        // Use Meet & Greet specific night hours (20:00 - 08:00)
+        const isMeetGreetNight = journey.time && journey.minutes && journey.timeAmPm 
+          ? isMeetGreetNightTime(journey.time, journey.minutes, journey.timeAmPm) 
+          : false
+        
         const meetGreetResult = calculateMeetGreetPriceLegacy(
           options.meetGreetConfig.serviceId,
           options.meetGreetConfig.passengers,
           options.meetGreetConfig.children,
           options.meetGreetConfig.infants,
           options.meetGreetConfig.extraLuggage,
-          isNight,
+          isMeetGreetNight,
           options.meetGreetConfig.specialServices || {},
           journey.date // Pass service date for holiday surcharge
         )
@@ -504,7 +516,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       let meetGreetBreakdown = null
       if (options.meetGreetConfig.enabled && options.meetGreetConfig.serviceId) {
         const isNight = journey.time && journey.minutes && journey.timeAmPm 
-          ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
+          ? isMeetGreetNightTime(journey.time, journey.minutes, journey.timeAmPm) 
           : false
         
         const meetGreetResult = calculateMeetGreetPriceLegacy(
@@ -595,7 +607,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       let meetGreetBreakdown = null
       if (options.meetGreetConfig.enabled && options.meetGreetConfig.serviceId) {
         const isNight = journey.time && journey.minutes && journey.timeAmPm 
-          ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
+          ? isMeetGreetNightTime(journey.time, journey.minutes, journey.timeAmPm) 
           : false
         
         const meetGreetResult = calculateMeetGreetPriceLegacy(
@@ -980,7 +992,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       let meetGreetBreakdown = null
       if (options.meetGreetConfig.enabled && options.meetGreetConfig.serviceId) {
         const isNight = journey.time && journey.minutes && journey.timeAmPm 
-          ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
+          ? isMeetGreetNightTime(journey.time, journey.minutes, journey.timeAmPm) 
           : false
         
         const meetGreetResult = calculateMeetGreetPriceLegacy(
@@ -1486,7 +1498,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           
           if (serviceId) {
             const isNight = journey.time && journey.minutes && journey.timeAmPm 
-              ? isNightTime(journey.time, journey.minutes, journey.timeAmPm) 
+              ? isMeetGreetNightTime(journey.time, journey.minutes, journey.timeAmPm) 
               : false
             
             const meetGreetResult = calculateMeetGreetPriceLegacy(

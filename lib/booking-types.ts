@@ -184,7 +184,7 @@ export const createJourneySchema = (serviceType: ServiceType, isOlympicPeriod: b
     }),
     distance: z
       .object({
-        km: z.number().min(1, "Distanza richiesta"),
+        km: z.number().min(0.1, "Distanza richiesta"),
         text: z.string(),
         duration: z.string(),
       })
@@ -243,7 +243,7 @@ export const journeySchema = z
     }),
     distance: z
       .object({
-        km: z.number().min(1, "Distanza richiesta"),
+        km: z.number().min(0.1, "Distanza richiesta"),
         text: z.string(),
         duration: z.string(),
       })

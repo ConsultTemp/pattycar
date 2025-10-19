@@ -34,6 +34,23 @@ export const SubmitSection = memo<SubmitSectionProps>(({
   dictionary,
   validationErrors = []
 }) => {
+  // DEBUG LOGS
+  console.log('=== SUBMIT SECTION DEBUG ===')
+  console.log('isValid:', isValid)
+  console.log('isSubmitting:', isSubmitting)
+  console.log('cancellationAccepted:', cancellationAccepted)
+  console.log('pricing:', pricing)
+  console.log('submitError:', submitError)
+  console.log('validationErrors:', validationErrors)
+  console.log('validationErrors length:', validationErrors.length)
+  if (validationErrors.length > 0) {
+    console.log('ERRORI DI VALIDAZIONE PRESENTI:')
+    validationErrors.forEach((error, index) => {
+      console.log(`  ${index + 1}. Field: ${error.field}, Message: ${error.message}`)
+    })
+  }
+  console.log('===========================')
+  
   const cancellationError = validationErrors.find(error => error.field === "cancellationAccepted")
   
   // Distance validation is now handled by the main validation system
@@ -84,7 +101,13 @@ export const SubmitSection = memo<SubmitSectionProps>(({
       <div className="text-center">
         <Button
           type="button"
-          onClick={onSubmit}
+          onClick={() => {
+            console.log('🔴 SUBMIT BUTTON CLICKED!')
+            console.log('isValid at click:', isValid)
+            console.log('validationErrors at click:', validationErrors)
+            console.log('cancellationAccepted at click:', cancellationAccepted)
+            onSubmit()
+          }}
           disabled={isButtonDisabled}
           className={`px-8 py-3 flex items-center justify-center mx-auto text-white ${
             isButtonDisabled ? "opacity-70 cursor-not-allowed" : ""
