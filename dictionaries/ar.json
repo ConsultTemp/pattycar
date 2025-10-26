@@ -290,7 +290,9 @@
         "exampleNumber": "مثال 2",
         "passengers": "راكب",
         "luggageLarge": "أمتعة كبيرة",
-        "luggageSmall": "أمتعة صغيرة"
+        "luggageSmall": "أمتعة صغيرة",
+        "waterTaxiLabel": "خدمة تاكسي مائي (+200 يورو)",
+        "waterTaxiDescription": "إضافة خدمة النقل بالتاكسي المائي للبندقية"
       },
       "pricing": {
         "error": "خطأ في حساب السعر",
@@ -391,7 +393,9 @@
           "vehicle": "مركبة",
           "km": "كم",
           "hours": "س",
-          "hourlyRate": "/س"
+          "hourlyRate": "/س",
+          "waterTaxiService": "خدمة تاكسي مائي",
+          "waterTaxiDescription": "خدمة النقل بالتاكسي المائي للبندقية"
         }
       },
       "meetGreet": {

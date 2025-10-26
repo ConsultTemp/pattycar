@@ -262,6 +262,10 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     async (state: BookingState, ceremony: OlympicCeremony): Promise<PricingResult | null> => {
       const { vehicles, journey, options } = state
       
+      // Water taxi cost
+      const WATER_TAXI_COST = 200
+      const waterTaxiCost = vehicles.waterTaxi ? WATER_TAXI_COST : 0
+      
       // Calculate service hours (minimum 2 hours included)
       const startTimeConverted = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
       const endTimeConverted = timeUtils.to24h(journey.endTime!, journey.endMinutes!, journey.endTimeAmPm!)
@@ -392,6 +396,16 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           })
         })
       }
+      
+      // Add water taxi cost to ceremony pricing
+      if (waterTaxiCost > 0) {
+        totalPrice += waterTaxiCost + (waterTaxiCost * 0.10) // Add water taxi + VAT
+        console.log("🚤 CEREMONY WATER TAXI ADDED:", {
+          waterTaxiCost,
+          waterTaxiWithVAT: waterTaxiCost + (waterTaxiCost * 0.10),
+          newTotalPrice: totalPrice
+        })
+      }
 
       // Calculate Meet & Greet if enabled
       if (options.meetGreetConfig.enabled && options.meetGreetConfig.serviceId) {
@@ -473,6 +487,10 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     async (state: BookingState, olympicRoute: OlympicRoute): Promise<PricingResult | null> => {
       const { vehicles, journey, options } = state
       
+      // Water taxi cost
+      const WATER_TAXI_COST = 200
+      const waterTaxiCost = vehicles.waterTaxi ? WATER_TAXI_COST : 0
+      
       let basePrice = 0
       let vehicleBreakdowns: any[] = []
       
@@ -505,11 +523,22 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         nightSurcharge = basePrice * 0.20 // 20% Olympic night surcharge
       }
 
-      const subtotal = basePrice + nightSurcharge
+      const subtotal = basePrice + nightSurcharge + waterTaxiCost
       
       // Apply Olympic VAT (10%)
       const vatAmount = subtotal * (OLYMPIC_PRICING_CONFIG.vat.rate / 100)
       let totalPrice = subtotal + vatAmount
+      
+      if (waterTaxiCost > 0) {
+        console.log("🚤 OLYMPIC WATER TAXI ADDED:", {
+          waterTaxiCost,
+          basePrice,
+          nightSurcharge,
+          subtotal,
+          vatAmount,
+          totalPrice
+        })
+      }
 
       // Calculate Meet & Greet if enabled (multiply by vehicle count)
       let meetGreetPrice = 0
@@ -562,7 +591,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           pricePerVehicle: basePrice / vehicles.count,
           subtotal,
           vatAmount,
-          vatRate: OLYMPIC_PRICING_CONFIG.vat.rate
+          vatRate: OLYMPIC_PRICING_CONFIG.vat.rate,
+          waterTaxi: waterTaxiCost > 0 ? waterTaxiCost : undefined
         },
         vehicleBreakdowns: vehicleBreakdowns.length > 0 ? vehicleBreakdowns : undefined
       }
@@ -573,6 +603,10 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
   const calculateEventPrice = useCallback(
     async (state: BookingState, eventRoute: EventRoute, activeEvent: EventPricing): Promise<PricingResult | null> => {
       const { vehicles, journey, options } = state
+      
+      // Water taxi cost
+      const WATER_TAXI_COST = 200
+      const waterTaxiCost = vehicles.waterTaxi ? WATER_TAXI_COST : 0
       
       // Get the appropriate vehicle type and calculate base price
       let basePrice = 0
@@ -596,11 +630,22 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         nightSurcharge = basePrice * (activeEvent.extras.nightSurcharge / 100)
       }
 
-      const subtotal = basePrice + nightSurcharge
+      const subtotal = basePrice + nightSurcharge + waterTaxiCost
       
       // Apply VAT
       const vatAmount = subtotal * (activeEvent.extras.vatRate / 100)
       let totalPrice = subtotal + vatAmount
+      
+      if (waterTaxiCost > 0) {
+        console.log("🚤 EVENT WATER TAXI ADDED:", {
+          waterTaxiCost,
+          basePrice,
+          nightSurcharge,
+          subtotal,
+          vatAmount,
+          totalPrice
+        })
+      }
 
       // Calculate Meet & Greet if enabled
       let meetGreetPrice = 0
@@ -652,7 +697,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           pricePerVehicle: basePrice / vehicles.count,
           subtotal,
           vatAmount,
-          vatRate: activeEvent.extras.vatRate
+          vatRate: activeEvent.extras.vatRate,
+          waterTaxi: waterTaxiCost > 0 ? waterTaxiCost : undefined
         }
       }
     },
@@ -670,10 +716,15 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         startTime: `${state.journey.time}:${state.journey.minutes} ${state.journey.timeAmPm}`,
         endTime: `${state.journey.endTime}:${state.journey.endMinutes} ${state.journey.endTimeAmPm}`,
         pickup: state.journey.pickup,
-        vehicles: state.vehicles
+        vehicles: state.vehicles,
+        waterTaxi: state.vehicles.waterTaxi
       })
 
       const { vehicles, journey, options } = state
+      
+      // Water taxi cost
+      const WATER_TAXI_COST = 200
+      const waterTaxiCost = vehicles.waterTaxi ? WATER_TAXI_COST : 0
       
       // Calculate duration in hours
       const startTimeConverted = timeUtils.to24h(journey.time!, journey.minutes!, journey.timeAmPm!)
@@ -964,6 +1015,12 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         subtotal += transferCost
       }
 
+      // Add water taxi cost
+      if (waterTaxiCost > 0) {
+        subtotal += waterTaxiCost
+        console.log("🚤 EVENT DISPOSITION WATER TAXI ADDED:", { waterTaxiCost, subtotal })
+      }
+
       // Apply night surcharge if applicable
       let nightSurcharge = 0
       if (journey.time && journey.minutes && journey.timeAmPm && 
@@ -1051,7 +1108,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
             subtotal,
             vatAmount,
             vatRate: activeEvent.extras.vatRate,
-            ...(transferCost > 0 && { transferCost, transferRoute })
+            ...(transferCost > 0 && { transferCost, transferRoute }),
+            waterTaxi: waterTaxiCost > 0 ? waterTaxiCost : undefined
           } as any,
           vehicleBreakdowns: vehicleBreakdowns.length > 0 ? vehicleBreakdowns : undefined
         }
@@ -1066,7 +1124,8 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
         serviceType: state.serviceType,
         date: state.journey.date,
         pickup: state.journey.pickup,
-        hasEndTime: !!state.journey.endTime
+        hasEndTime: !!state.journey.endTime,
+        waterTaxi: state.vehicles.waterTaxi
       })
 
       if (!isReadyForPricing(state)) {
@@ -1075,6 +1134,9 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
       }
 
       const { journey, vehicles, serviceType, options } = state
+      
+      // Water taxi cost (added before VAT calculation)
+      const WATER_TAXI_COST = 200
 
       try {
         // Check for Olympic pricing first (highest priority)
@@ -1267,6 +1329,9 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
 
         // Fall back to standard pricing
         let standardPricing: PricingResult | null = null
+        
+        // Add water taxi cost if enabled (will be added to all pricing types)
+        let waterTaxiCost = vehicles.waterTaxi ? WATER_TAXI_COST : 0
 
         if (serviceType === "transfer" || serviceType === "inter-cluster") {
           // Transfer pricing (distance-based) OR Inter-cluster (fixed pricing during Olympic period)
@@ -1460,6 +1525,27 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
           }
         }
 
+        // Add water taxi cost to standard pricing if enabled
+        if (standardPricing && waterTaxiCost > 0) {
+          const originalSubtotal = standardPricing.breakdown.subtotal
+          const newSubtotal = originalSubtotal + waterTaxiCost
+          const newVatAmount = Math.round(newSubtotal * standardPricing.breakdown.vatRate) / 100
+          const newTotalPrice = Math.round((newSubtotal + newVatAmount) * 100) / 100
+          
+          standardPricing.breakdown.subtotal = newSubtotal
+          standardPricing.breakdown.vatAmount = newVatAmount
+          standardPricing.breakdown.waterTaxi = waterTaxiCost
+          standardPricing.totalPrice = newTotalPrice
+          
+          console.log("🚤 WATER TAXI ADDED:", {
+            waterTaxiCost,
+            originalSubtotal,
+            newSubtotal,
+            newVatAmount,
+            newTotalPrice
+          })
+        }
+
         // Add Meet & Greet pricing to standard pricing if enabled
         if (standardPricing && options.meetGreetConfig.enabled) {
           // Try to detect Meet & Greet service if not already configured
@@ -1577,6 +1663,7 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
     state.journey.distance?.km,
     state.vehicles.count,
     state.vehicles.sameType,
+    state.vehicles.waterTaxi,
     JSON.stringify(state.vehicles.singleConfig),
     JSON.stringify(state.vehicles.multipleConfigs),
     state.serviceType,

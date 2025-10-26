@@ -618,6 +618,15 @@ export function AdminBookingViewModal({ booking, dictionary }: BookingViewModalP
                     <p>{booking.departure_city}</p>
                   </div>
                 )}
+                {booking.water_taxi && (
+                  <div>
+                    <span className="text-sm text-gray-500">Water Taxi Service:</span>
+                    <Badge className="ml-2 bg-blue-100 text-blue-800">
+                      <CheckCircle className="mr-1 h-3 w-3" />
+                      Water Taxi (+€200)
+                    </Badge>
+                  </div>
+                )}
                 {booking.night_surcharge && (
                   <div>
                     <span className="text-sm text-gray-500">Night Surcharge:</span>

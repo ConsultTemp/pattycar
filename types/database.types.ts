@@ -70,6 +70,7 @@ export type Database = {
           transfer_route: string | null
           updated_at: string
           vat_rate: string | null
+          water_taxi: boolean | null
           vehicle_count: number
           vehicle_type: string
         }
@@ -125,6 +126,7 @@ export type Database = {
           transfer_route?: string | null
           updated_at?: string
           vat_rate?: string | null
+          water_taxi?: boolean | null
           vehicle_count?: number
           vehicle_type: string
         }
@@ -180,6 +182,7 @@ export type Database = {
           transfer_route?: string | null
           updated_at?: string
           vat_rate?: string | null
+          water_taxi?: boolean | null
           vehicle_count?: number
           vehicle_type?: string
         }

@@ -143,7 +143,7 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
       {showBreakdown && (
         <div className="text-sm space-y-2">
           <div className="bg-white p-4 rounded-lg border space-y-3">
-            <div className="font-bold text-lg text-gray-800">💰 {dictionary.serviceDetails}</div>
+            <div className="font-bold text-lg text-gray-800"> {dictionary.serviceDetails}</div>
             <div className="space-y-2">
 
               {/* CERIMONIA: Disposizione base SEMPRE per cerimonie */}
@@ -275,6 +275,17 @@ export const PricingDisplay = memo<PricingDisplayProps>(({ pricing, isCalculatin
                     <div className="font-bold">€{formatPrice((pricing.breakdown as any).transferCost)}</div>
                   </div>
                 )}
+
+              {/* WATER TAXI SERVICE */}
+              {pricing.breakdown.waterTaxi && pricing.breakdown.waterTaxi > 0 && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <div>
+                    <div className="font-medium">{dictionary.pricingBreakdownLabels?.waterTaxiService || "Water Taxi Service"}</div>
+                    <div className="text-sm text-gray-600">{dictionary.pricingBreakdownLabels?.waterTaxiDescription || "Servizio di trasporto con water taxi per Venezia"}</div>
+                  </div>
+                  <div className="font-bold">€{formatPrice(pricing.breakdown.waterTaxi)}</div>
+                </div>
+              )}
 
               {/* SUPPLEMENTO NOTTURNO */}
               {pricing.breakdown.nightSurcharge && pricing.breakdown.nightSurcharge > 0 && (

@@ -43,6 +43,7 @@ export const initialBookingState: BookingState = {
         luggage: 0,
       },
     ],
+    waterTaxi: false,
   },
   options: {
     meetAndGreet: false,
@@ -265,6 +266,15 @@ export function bookingReducer(state: BookingState, action: BookingAction): Book
         options: {
           ...state.options,
           meetGreetConfig: { ...state.options.meetGreetConfig, ...action.payload },
+        },
+      }
+
+    case "SET_WATER_TAXI":
+      return {
+        ...state,
+        vehicles: {
+          ...state.vehicles,
+          waterTaxi: action.payload,
         },
       }
 

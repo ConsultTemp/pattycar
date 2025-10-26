@@ -194,6 +194,10 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     dispatch({ type: "REMOVE_VEHICLE_CONFIG", payload: index })
   }, [])
 
+  const handleWaterTaxiChange = useCallback((enabled: boolean) => {
+    dispatch({ type: "SET_WATER_TAXI", payload: enabled })
+  }, [])
+
   const handleOptionsChange = useCallback((options: any) => {
     dispatch({ type: "SET_OPTIONS", payload: options })
   }, [])
@@ -340,6 +344,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         phonePrefix: state.customer.phonePrefix || "",
         phoneNumber: state.customer.phone || "",
         sameVehicleType: state.vehicles.sameType,
+        waterTaxi: state.vehicles.waterTaxi,
         distance: state.journey.distance
           ? {
             km: state.journey.distance.km,
@@ -639,6 +644,12 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 isInterCluster={isInterCluster}
                 pickupLocationId={state.journey.pickup.locationId}
                 destinationLocationId={state.journey.destination.locationId}
+                pickupAddress={state.journey.pickup.address}
+                destinationAddress={state.journey.destination.address}
+                pickupCoordinates={state.journey.pickup.coordinates}
+                destinationCoordinates={state.journey.destination.coordinates}
+                waterTaxi={state.vehicles.waterTaxi}
+                onWaterTaxiChange={handleWaterTaxiChange}
                 onCountChange={handleVehicleCountChange}
                 onToggleSameType={handleToggleSameType}
                 onSingleConfigChange={handleSingleConfigChange}

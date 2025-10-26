@@ -328,3 +328,8 @@ sedan 1 bagaglio grande e 2 piccoli invece che 2 grandi e uno piccolo
 water taxi: per tutti i luoghi in venezia esclusi aereoporto e stazione è disponibile la possibilita di water taxi con supplemento di 200€
 
 sia partenza che ritorno a venezia, sotto alla scelta voicoli aggiungi un flag per water taxi a 200€
+
+
+
+
+stripe listen --forward-to localhost:3000/api/stripe-webhook

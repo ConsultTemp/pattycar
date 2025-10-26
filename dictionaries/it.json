@@ -291,7 +291,9 @@
         "exampleNumber": "Es. 2",
         "passengers": "pax",
         "luggageLarge": "bagagli grandi",
-        "luggageSmall": "bagaglio piccolo"
+        "luggageSmall": "bagaglio piccolo",
+        "waterTaxiLabel": "Servizio Water Taxi (+€200)",
+        "waterTaxiDescription": "Aggiungi servizio di trasporto con water taxi per Venezia"
       },
       "pricing": {
         "error": "Errore Calcolo Prezzo",
@@ -392,7 +394,9 @@
           "vehicle": "veicolo",
           "km": "km",
           "hours": "h",
-          "hourlyRate": "/h"
+          "hourlyRate": "/h",
+          "waterTaxiService": "Servizio Water Taxi",
+          "waterTaxiDescription": "Servizio di trasporto con water taxi per Venezia"
         }
       },
       "meetGreet": {

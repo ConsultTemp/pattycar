@@ -214,6 +214,7 @@ export async function POST(req: NextRequest) {
         departureCity = "",
         meetAndGreet = "false",
         meetGreetConfig = "",
+        waterTaxi = "false",
         // New billing fields
         billingType = "private",
         billingInfo = "",
@@ -420,6 +421,7 @@ export async function POST(req: NextRequest) {
           // Options
           meet_and_greet: meetAndGreet === "true",
           meet_greet_config: parsedMeetGreetConfig || null,
+          water_taxi: waterTaxi === "true",
           
           // Meet & Greet detailed fields
           meet_greet_service_id: parsedMeetGreetConfig?.serviceId || null,
@@ -600,6 +602,11 @@ export async function POST(req: NextRequest) {
                 } else {
                   noteParts.push('Meet & Greet incluso')
                 }
+              }
+              
+              // Water Taxi service for Venice
+              if (waterTaxi === "true") {
+                noteParts.push('Water Taxi service for Venice (+€200)')
               }
               
               // Multiple vehicles details - ENHANCED VERSION
@@ -804,7 +811,7 @@ export async function POST(req: NextRequest) {
                 <!-- Booking Summary -->
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; margin: 30px 0;">
                   <h2 style="color: #1e3c72; margin: 0 0 25px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-                    📄 Booking Summary
+                    Booking Summary
                   </h2>
                   
                   <div style="display: grid; gap: 15px;">
@@ -1036,7 +1043,7 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
-                        <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;">🌙</span>
+                        <span style="color: #f59e0b; font-size: 18px; margin-right: 12px;"></span>
                         <div>
                           <strong style="color: #92400e;">Night surcharge applied</strong>
                           <p style="color: #92400e; margin: 5px 0 0 0; font-size: 14px;">Service between 19:30 - 07:30: +€${nightSurcharge}</p>
@@ -1052,7 +1059,7 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #dcfce7; border: 1px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: center;">
-                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;">🤝</span>
+                        <span style="color: #16a34a; font-size: 18px; margin-right: 12px;"></span>
                         <div>
                           <strong style="color: #166534;">Meet & Greet service included</strong>
                           ${parsedMeetGreetConfig ? `
@@ -1086,6 +1093,22 @@ export async function POST(req: NextRequest) {
                           ` : `
                           <p style="color: #166534; margin: 5px 0 0 0; font-size: 14px;">Our driver will wait for you with a personalized sign</p>
                           `}
+                        </div>
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      waterTaxi === "true"
+                        ? `
+                    <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                      <div style="display: flex; align-items: center;">
+                        <span style="color: #2563eb; font-size: 18px; margin-right: 12px;"></span>
+                        <div>
+                          <strong style="color: #1e40af;">Water Taxi Service for Venice</strong>
+                          <p style="color: #1e40af; margin: 5px 0 0 0; font-size: 14px;">Water taxi transport service included (+€200)</p>
                         </div>
                       </div>
                     </div>
@@ -1131,7 +1154,7 @@ export async function POST(req: NextRequest) {
                         ? `
                     <div style="background: #f3f4f6; border: 1px solid #9ca3af; border-radius: 8px; padding: 15px; margin-top: 15px;">
                       <div style="display: flex; align-items: flex-start;">
-                        <span style="color: #6b7280; font-size: 18px; margin-right: 12px;">${actualBillingType === "company" ? "🏢" : "🧾"}</span>
+                        <span style="color: #6b7280; font-size: 18px; margin-right: 12px;"></span>
                         <div>
                           <strong style="color: #374151;">${actualBillingType === "company" ? "Company billing information:" : "Billing information:"}</strong>
                           <p style="color: #374151; margin: 5px 0 0 0; line-height: 1.5; white-space: pre-line;">${billingInfo}</p>
@@ -1179,13 +1202,13 @@ export async function POST(req: NextRequest) {
                      style="display: inline-block; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
                             color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; 
                             font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);">
-                    📄 View payment receipt
+                    View payment receipt
                   </a>
                 </div>
                 `
                     : `
                 <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
-                  <span style="color: #f59e0b; font-size: 20px;">📄</span>
+                  <span style="color: #f59e0b; font-size: 20px;"></span>
                   <p style="color: #92400e; margin: 10px 0 0 0; font-weight: 500;">
                     The invoice will be sent separately in the next few hours
                   </p>
@@ -1207,18 +1230,18 @@ export async function POST(req: NextRequest) {
                 <!-- Cancellation Policy -->
                 <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 12px; padding: 25px; margin: 30px 0;">
                   <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
-                    📌 Cancellation Policy
+                    Cancellation Policy
                   </h3>
                   <p style="color: #92400e; margin: 0; line-height: 1.6;">
-                    ❄️ After confirmation, if cancellation is requested up to 31st October 2025 ➡️ 100% REFUNDABLE.<br>
-                    ❄️ After confirmation, if cancellation is requested between 1st November 2025 to 5th January 2026 ➡️ 50% REFUNDABLE.<br>
-                    ❄️ After confirmation, if cancellation is requested from 6th January 2026 ➡️ NOT REFUNDABLE.
+                    After confirmation, if cancellation is requested up to 31st October 2025 → 100% REFUNDABLE.<br>
+                    After confirmation, if cancellation is requested between 1st November 2025 to 5th January 2026 → 50% REFUNDABLE.<br>
+                    After confirmation, if cancellation is requested from 6th January 2026 → NOT REFUNDABLE.
                   </p>
                 </div>
 
                 <!-- Service Guidelines -->
                 <div style="margin: 20px 0; padding: 15px; font-size: 11px; color: #64748b; line-height: 1.6; border-top: 1px solid #e2e8f0;">
-                  <p style="margin: 0 0 10px 0; font-weight: 600; font-size: 12px; color: #475569;">⚠️ Service Guidelines:</p>
+                  <p style="margin: 0 0 10px 0; font-weight: 600; font-size: 12px; color: #475569;">Service Guidelines:</p>
                   <p style="margin: 5px 0;"><strong>Airport Arrivals:</strong> 45 minutes of waiting time included from estimated landing time. After this, extra charges apply: Sedan 94€ + 10% VAT/hour, Minivan 108€ + 10% VAT/hour, Minibus/Luxury Sedan 135€ + 10% VAT/hour. If delay exceeds 3 hours, service must be rescheduled.</p>
                   <p style="margin: 5px 0;"><strong>Train Station Arrivals:</strong> 20 minutes of waiting time included from estimated arrival time. After this, extra charges apply: Sedan 94€ + 10% VAT/hour, Minivan 108€ + 10% VAT/hour, Minibus/Luxury Sedan 135€ + 10% VAT/hour. If delay exceeds 2 hours, service must be rescheduled.</p>
                   <p style="margin: 5px 0;"><strong>Departures (Airport & Train Station):</strong> 20 minutes of waiting time included. After this, extra charges apply. Maximum 1 hour waiting guaranteed - service must be rescheduled after that.</p>
@@ -1229,7 +1252,7 @@ export async function POST(req: NextRequest) {
                 <!-- Customer Support -->
                 <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 25px; margin: 30px 0;">
                   <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
-                    📬 Customer Support
+                    Customer Support
                   </h3>
                   <p style="color: #1e40af; margin: 0; line-height: 1.6;">
                     Should you require any assistance, wish to make changes, or cancel your reservation, please do not hesitate to contact us at:<br>
@@ -1496,7 +1519,7 @@ export async function POST(req: NextRequest) {
                       nightSurcharge && parseFloat(nightSurcharge) > 0
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🌙 Night Surcharge:</strong> <span style="color: #f59e0b; font-weight: 600;">€${nightSurcharge}</span>
+                      <strong>Night Surcharge:</strong> <span style="color: #f59e0b; font-weight: 600;">€${nightSurcharge}</span>
                     </p>
                     `
                         : ""
@@ -1505,16 +1528,16 @@ export async function POST(req: NextRequest) {
                       meetAndGreet === "true"
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🤝 Meet & Greet:</strong> <span style="color: #16a34a; font-weight: 600;">SÌ</span>
+                      <strong>Meet & Greet:</strong> <span style="color: #16a34a; font-weight: 600;">SÌ</span>
                       ${parsedMeetGreetConfig ? ` <span style="font-size: 11px;">(Configurazione dettagliata)</span>` : ""}
                     </p>
                     ${parsedMeetGreetConfig ? `
                     <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px; padding: 12px; margin: 8px 0; font-size: 12px; line-height: 1.4;">
-                      ${parsedMeetGreetConfig.serviceId ? `<div style="margin-bottom: 6px;"><strong>🏢 Location ID:</strong> ${parsedMeetGreetConfig.serviceId}</div>` : ""}
-                      ${parsedMeetGreetConfig.selectedService ? `<div style="margin-bottom: 6px;"><strong>📋 Tipo servizio:</strong> ${parsedMeetGreetConfig.selectedService}</div>` : ""}
+                      ${parsedMeetGreetConfig.serviceId ? `<div style="margin-bottom: 6px;"><strong>Location ID:</strong> ${parsedMeetGreetConfig.serviceId}</div>` : ""}
+                      ${parsedMeetGreetConfig.selectedService ? `<div style="margin-bottom: 6px;"><strong>Tipo servizio:</strong> ${parsedMeetGreetConfig.selectedService}</div>` : ""}
                       
                       ${(parsedMeetGreetConfig.passengers > 0 || parsedMeetGreetConfig.children > 0 || parsedMeetGreetConfig.infants > 0) ? `
-                      <div style="margin-bottom: 6px;"><strong>👥 Passeggeri dettaglio:</strong></div>
+                      <div style="margin-bottom: 6px;"><strong>Passeggeri dettaglio:</strong></div>
                       <div style="margin-left: 12px; margin-bottom: 6px;">
                         ${parsedMeetGreetConfig.passengers > 0 ? `• Adulti: ${parsedMeetGreetConfig.passengers}<br>` : ""}
                         ${parsedMeetGreetConfig.children > 0 ? `• Bambini: ${parsedMeetGreetConfig.children}<br>` : ""}
@@ -1522,11 +1545,11 @@ export async function POST(req: NextRequest) {
                       </div>
                       ` : ""}
                       
-                      ${parsedMeetGreetConfig.extraLuggage > 0 ? `<div style="margin-bottom: 6px;"><strong>🧳 Bagagli extra:</strong> ${parsedMeetGreetConfig.extraLuggage} pezzi</div>` : ""}
-                      ${parsedMeetGreetConfig.extraHours > 0 ? `<div style="margin-bottom: 6px;"><strong>⏱️ Ore extra:</strong> ${parsedMeetGreetConfig.extraHours} ore</div>` : ""}
+                      ${parsedMeetGreetConfig.extraLuggage > 0 ? `<div style="margin-bottom: 6px;"><strong>Bagagli extra:</strong> ${parsedMeetGreetConfig.extraLuggage} pezzi</div>` : ""}
+                      ${parsedMeetGreetConfig.extraHours > 0 ? `<div style="margin-bottom: 6px;"><strong>Ore extra:</strong> ${parsedMeetGreetConfig.extraHours} ore</div>` : ""}
                       
                       ${parsedMeetGreetConfig.specialServices && (parsedMeetGreetConfig.specialServices.tarmac || parsedMeetGreetConfig.specialServices.fastTrack || parsedMeetGreetConfig.specialServices.vipLounge || parsedMeetGreetConfig.specialServices.veniceCombo || parsedMeetGreetConfig.specialServices.greeterOnly) ? `
-                      <div style="margin-bottom: 6px;"><strong>⭐ Servizi speciali:</strong></div>
+                      <div style="margin-bottom: 6px;"><strong>Servizi speciali:</strong></div>
                       <div style="margin-left: 12px;">
                         ${parsedMeetGreetConfig.specialServices.tarmac ? `• TARMAC service<br>` : ""}
                         ${parsedMeetGreetConfig.specialServices.fastTrack ? `• Fast Track<br>` : ""}
@@ -1541,10 +1564,23 @@ export async function POST(req: NextRequest) {
                         : ""
                     }
                     ${
+                      waterTaxi === "true"
+                        ? `
+                    <p style="margin: 0; color: #1e40af;">
+                      <strong>Water Taxi:</strong> <span style="color: #2563eb; font-weight: 600;">SÌ (+€200)</span>
+                    </p>
+                    <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 6px; padding: 12px; margin: 8px 0; font-size: 12px; line-height: 1.4;">
+                      <div style="margin-bottom: 6px;"><strong>Servizio:</strong> Water taxi transport service for Venice</div>
+                      <div style="margin-bottom: 6px;"><strong>Costo:</strong> €200 (esclusa IVA)</div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    ${
                       flight
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>✈️ Volo/Treno:</strong> <span style="color: #3730a3; font-weight: 600;">${flight}</span>
+                      <strong>Volo/Treno:</strong> <span style="color: #3730a3; font-weight: 600;">${flight}</span>
                     </p>
                     `
                         : ""
@@ -1553,7 +1589,7 @@ export async function POST(req: NextRequest) {
                       departureCity
                         ? `
                     <p style="margin: 0; color: #1e40af;">
-                      <strong>🏙️ Città Provenienza:</strong> <span style="color: #3730a3; font-weight: 600;">${departureCity}</span>
+                      <strong>Città Provenienza:</strong> <span style="color: #3730a3; font-weight: 600;">${departureCity}</span>
                     </p>
                     `
                         : ""
@@ -1578,13 +1614,13 @@ export async function POST(req: NextRequest) {
                 <!-- Billing Information -->
                 <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 10px; padding: 25px; margin: 25px 0;">
                   <h2 style="color: #92400e; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; border-bottom: 2px solid #fbbf24; padding-bottom: 8px;">
-                    ${actualBillingType === "company" ? "🏢 Dati di Fatturazione AZIENDA" : "🧾 Dati di Fatturazione PRIVATO"}
+                    ${actualBillingType === "company" ? "Dati di Fatturazione AZIENDA" : "Dati di Fatturazione PRIVATO"}
                   </h2>
                   
                   <!-- Billing Details -->
                   <div style="background: #fff8dc; border: 1px solid #d97706; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
                     <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">
-                      ${actualBillingType === "company" ? "📋 DETTAGLI AZIENDA" : "👤 DETTAGLI PRIVATO"}
+                      ${actualBillingType === "company" ? "DETTAGLI AZIENDA" : "DETTAGLI PRIVATO"}
                     </h3>
                     <div style="background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b;">
                       <strong style="color: #92400e;">${actualBillingType === "company" ? "Dati Azienda:" : "Indirizzo di Fatturazione:"}</strong><br>
@@ -1594,7 +1630,7 @@ export async function POST(req: NextRequest) {
                   
                   <!-- Invoice Preview -->
                   <div style="background: #f3f4f6; border: 2px dashed #9ca3af; border-radius: 8px; padding: 15px;">
-                    <h4 style="color: #374151; margin: 0 0 10px 0; font-size: 14px; font-weight: 600;">📄 ANTEPRIMA FATTURA:</h4>
+                    <h4 style="color: #374151; margin: 0 0 10px 0; font-size: 14px; font-weight: 600;">ANTEPRIMA FATTURA:</h4>
                     <div style="color: #6b7280; font-size: 13px; line-height: 1.5;">
                       <strong>Intestazione fattura:</strong><br>
                       ${billingInfo ? billingInfo.replace(/\n/g, '<br>') : ""}

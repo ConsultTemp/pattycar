@@ -291,7 +291,9 @@
         "exampleNumber": "E.g. 2",
         "passengers": "pax",
         "luggageLarge": "large luggage",
-        "luggageSmall": "small luggage"
+        "luggageSmall": "small luggage",
+        "waterTaxiLabel": "Water Taxi Service (+€200)",
+        "waterTaxiDescription": "Add water taxi transport service for Venice"
       },
       "pricing": {
         "error": "Price Calculation Error",
@@ -393,7 +395,9 @@
           "vehicle": "vehicle",
           "km": "km",
           "hours": "h",
-          "hourlyRate": "/h"
+          "hourlyRate": "/h",
+          "waterTaxiService": "Water Taxi Service",
+          "waterTaxiDescription": "Water taxi transport service for Venice"
         }
       },
       "meetGreet": {

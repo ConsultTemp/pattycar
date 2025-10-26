@@ -471,6 +471,12 @@ export default function AdminDashboard({ bookings, lang, dictionary }: AdminDash
                             )}
                           </div>
                         )}
+                        {booking.water_taxi && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                            Water Taxi
+                          </Badge>
+                        )}
                         {booking.notes && (
                           <div className="flex items-center text-xs text-gray-500">
                             <Info className="mr-1 h-3 w-3 flex-shrink-0" />

@@ -23,6 +23,12 @@ interface VehicleConfigSectionProps {
   isInterCluster?: boolean // Add flag to determine if route is Inter-Cluster
   pickupLocationId?: string // NEW: Pickup location ID for inter-cluster filtering
   destinationLocationId?: string // NEW: Destination location ID for inter-cluster filtering
+  pickupAddress?: string // NEW: Pickup address for Venice detection
+  destinationAddress?: string // NEW: Destination address for Venice detection
+  pickupCoordinates?: { lat: number; lng: number } // NEW: Pickup coordinates for Venice detection
+  destinationCoordinates?: { lat: number; lng: number } // NEW: Destination coordinates for Venice detection
+  waterTaxi: boolean // NEW: Water taxi service flag
+  onWaterTaxiChange: (enabled: boolean) => void // NEW: Water taxi change handler
   onCountChange: (count: number) => void
   onToggleSameType: () => void
   onSingleConfigChange: (config: Partial<VehicleConfig>) => void
@@ -52,6 +58,12 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     isEastCluster,
     pickupLocationId,
     destinationLocationId,
+    pickupAddress,
+    destinationAddress,
+    pickupCoordinates,
+    destinationCoordinates,
+    waterTaxi,
+    onWaterTaxiChange,
     onCountChange,
     onToggleSameType,
     onSingleConfigChange,
@@ -186,6 +198,91 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
       return vehicleTypes.find(v => v.value === vehicleType)
     }
 
+    // Helper function to check if location is in Venice (excluding airport and station)
+    const isVeniceLocation = (address?: string, locationId?: string, coordinates?: { lat: number; lng: number }): boolean => {
+      if (!address && !locationId && !coordinates) return false
+      
+      // STEP 1: Exclude Venice Marco Polo airport and Venice Santa Lucia station by locationId
+      const excludedLocationIds = ['venezia-marco-polo', 'venezia-santa-lucia']
+      if (locationId && excludedLocationIds.includes(locationId)) {
+        console.log('🚫 WATER TAXI: Excluded by locationId:', locationId)
+        return false
+      }
+      
+      // STEP 2: Check if address contains "Venezia" or "Venice" (but not the excluded locations)
+      if (address) {
+        const lowerAddress = address.toLowerCase()
+        const isVenice = lowerAddress.includes('venezia') || lowerAddress.includes('venice')
+        
+        // Comprehensive exclusion keywords for airport and station
+        const isExcludedLocation = 
+          lowerAddress.includes('marco polo') || 
+          lowerAddress.includes('santa lucia') ||
+          lowerAddress.includes('aeroporto') ||
+          lowerAddress.includes('airport') ||
+          lowerAddress.includes('stazione') ||
+          lowerAddress.includes('station') ||
+          lowerAddress.includes('train station') ||
+          lowerAddress.includes('railway station')
+        
+        if (isVenice && !isExcludedLocation) {
+          console.log('✅ WATER TAXI: Venice location detected by address:', address)
+          return true
+        }
+        
+        if (isVenice && isExcludedLocation) {
+          console.log('🚫 WATER TAXI: Venice airport/station excluded by address keywords:', address)
+          return false
+        }
+      }
+      
+      // STEP 3: Check coordinates - Venice city center is approximately 45.4408° N, 12.3155° E
+      // Exclude both airport AND Santa Lucia station coordinates
+      if (coordinates) {
+        const veniceCenter = { lat: 45.4408, lng: 12.3155 } // San Marco/Rialto area
+        const airportCoords = { lat: 45.5053, lng: 12.3519 } // Marco Polo Airport
+        const stationCoords = { lat: 45.4415, lng: 12.3208 } // Santa Lucia Station
+        
+        // Calculate distances using simple Pythagorean (good enough for small areas)
+        const distanceFromCenter = Math.sqrt(
+          Math.pow(coordinates.lat - veniceCenter.lat, 2) + 
+          Math.pow(coordinates.lng - veniceCenter.lng, 2)
+        )
+        const distanceFromAirport = Math.sqrt(
+          Math.pow(coordinates.lat - airportCoords.lat, 2) + 
+          Math.pow(coordinates.lng - airportCoords.lng, 2)
+        )
+        const distanceFromStation = Math.sqrt(
+          Math.pow(coordinates.lat - stationCoords.lat, 2) + 
+          Math.pow(coordinates.lng - stationCoords.lng, 2)
+        )
+        
+        // Check if we're AT the station (within ~200m = 0.002 degrees)
+        if (distanceFromStation < 0.002) {
+          console.log('🚫 WATER TAXI: Too close to Santa Lucia Station, excluded by coordinates')
+          return false
+        }
+        
+        // Check if we're AT the airport (within ~300m = 0.003 degrees)
+        if (distanceFromAirport < 0.003) {
+          console.log('🚫 WATER TAXI: Too close to Marco Polo Airport, excluded by coordinates')
+          return false
+        }
+        
+        // If within ~5km from Venice center and NOT near airport/station
+        if (distanceFromCenter < 0.05) {
+          console.log('✅ WATER TAXI: Venice location detected by coordinates:', coordinates)
+          return true
+        }
+      }
+      
+      return false
+    }
+
+    // Check if water taxi should be available (at least one location is Venice, excluding airport/station)
+    const showWaterTaxi = isVeniceLocation(pickupAddress, pickupLocationId, pickupCoordinates) || 
+                          isVeniceLocation(destinationAddress, destinationLocationId, destinationCoordinates)
+
     // Helper function to get luggage message (supports both standard and Olympic vehicles)
     const getLuggageMessage = (vehicleType: string, isShort = false) => {
       const vehicle = getVehicle(vehicleType)
@@ -214,6 +311,30 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     return (
       <div className="space-y-6">
         <h3 className="text-lg font-semibold">{dictionary.title}</h3>
+
+        {/* Water Taxi Service - Only for Venice locations (excluding airport/station) */}
+        {showWaterTaxi && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <Checkbox 
+                id="waterTaxi" 
+                checked={waterTaxi} 
+                onCheckedChange={onWaterTaxiChange}
+              />
+              <div className="flex-1">
+                <label 
+                  htmlFor="waterTaxi" 
+                  className="text-sm font-medium text-blue-900 cursor-pointer"
+                >
+                  {dictionary.waterTaxiLabel || "Water Taxi Service (+€200)"}
+                </label>
+                <p className="text-xs text-blue-700 mt-1">
+                  {dictionary.waterTaxiDescription || "Add water taxi transport service for Venice"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Vehicle Count */}
         <div>

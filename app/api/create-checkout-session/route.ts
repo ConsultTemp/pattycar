@@ -152,6 +152,9 @@ export async function POST(req: NextRequest) {
       }
       extras.push(meetGreetInfo)
     }
+    if (bookingData.waterTaxi) {
+      extras.push("• Water Taxi service for Venice")
+    }
     if (bookingData.flight) extras.push(`• Flight/Train: ${bookingData.flight}`)
     if (bookingData.departureCity) extras.push(`• Departure city: ${bookingData.departureCity}`)
     if (bookingData.luggage && bookingData.luggage > 0) extras.push(`• Luggage: ${bookingData.luggage} pieces`)
@@ -188,6 +191,7 @@ export async function POST(req: NextRequest) {
       notes: bookingData.notes || "",
       meetAndGreet: bookingData.meetAndGreet ? "true" : "false",
       meetGreetConfig: bookingData.meetGreetConfig ? JSON.stringify(bookingData.meetGreetConfig) : "",
+      waterTaxi: bookingData.waterTaxi ? "true" : "false",
       sameVehicleType: bookingData.sameVehicleType ? "true" : "false",
       customerName: customerName,
       customerEmail: customerEmail,
@@ -205,24 +209,63 @@ export async function POST(req: NextRequest) {
       metadata.individualVehicles = JSON.stringify(cleanedIndividualVehicles)
     }
 
+    // Calculate line items
+    const WATER_TAXI_COST = 200 // Base cost
+    const WATER_TAXI_WITH_VAT = 220 // 200 + 10% VAT
+    
+    const lineItems = []
+    
+    // Main service line item
+    if (bookingData.waterTaxi) {
+      // If water taxi is present, subtract it from total to show separately
+      const mainServiceAmount = amount - WATER_TAXI_WITH_VAT
+      lineItems.push({
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: serviceDescription,
+            description: detailedDescription,
+            images: [],
+          },
+          unit_amount: Math.round(mainServiceAmount * 100),
+        },
+        quantity: 1,
+      })
+      
+      // Water Taxi as separate line item
+      lineItems.push({
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: "Water Taxi Service",
+            description: "Water taxi transport service for Venice\n• €200 + 10% VAT = €220",
+            images: [],
+          },
+          unit_amount: Math.round(WATER_TAXI_WITH_VAT * 100),
+        },
+        quantity: 1,
+      })
+    } else {
+      // Standard single line item
+      lineItems.push({
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: serviceDescription,
+            description: detailedDescription,
+            images: [],
+          },
+          unit_amount: Math.round(amount * 100),
+        },
+        quantity: 1,
+      })
+    }
+    
     // Crea la sessione di checkout con descrizione dettagliata
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: serviceDescription,
-              description: detailedDescription,
-              images: [], // Puoi aggiungere immagini del servizio qui
-            },
-            unit_amount: Math.round(amount * 100),
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       mode: "payment",
 
       // Invoice configuration with details

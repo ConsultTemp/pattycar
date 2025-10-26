@@ -106,6 +106,7 @@ export interface PricingResult {
     subtotal: number
     vatAmount: number
     vatRate: number
+    waterTaxi?: number // Water taxi service cost
   }
   vehicleBreakdowns?: any[]
   meetGreetPrice?: number
@@ -369,6 +370,7 @@ export interface BookingState {
     sameType: boolean
     singleConfig: VehicleConfig
     multipleConfigs: VehicleConfig[]
+    waterTaxi: boolean // Water taxi service for Venice locations (excluding airport/station)
   }
   options: BookingOptions
   ui: {
@@ -395,6 +397,7 @@ export type BookingAction =
   | { type: "RESET_VEHICLE_CONFIG" }
   | { type: "SET_OPTIONS"; payload: Partial<BookingOptions> }
   | { type: "UPDATE_MEET_GREET_CONFIG"; payload: Partial<MeetGreetConfig> }
+  | { type: "SET_WATER_TAXI"; payload: boolean }
   | { type: "SET_PRICING"; payload: PricingResult | null }
   | { type: "SET_CALCULATING_PRICE"; payload: boolean }
   | { type: "SET_VALIDATION_ERRORS"; payload: ValidationError[] }
