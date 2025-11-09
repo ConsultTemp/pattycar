@@ -1263,10 +1263,52 @@ export function usePriceCalculation(state: BookingState, dispatch: (action: any)
                 console.log("🏔️ OLYMPIC TRANSFER ROUTE FOUND - Using calculateOlympicPrice")
                 return await calculateOlympicPrice(state, olympicRoute)
               } else {
-                console.log("❌ NO OLYMPIC ROUTE FOUND - Will fallback to standard pricing")
+                console.log("❌ NO OLYMPIC ROUTE FOUND - BLOCKING: Route not available")
+                // BLOCK: Return routeNotFound instead of fallback to distance pricing
+                return {
+                  basePrice: 0,
+                  totalPrice: 0,
+                  routeNotFound: true,
+                  routeNotFoundDetails: {
+                    attemptedPickup: resolvedPickup.resolvedLocationId || journey.pickup.address,
+                    attemptedDestination: resolvedDestination.resolvedLocationId || journey.destination.address
+                  },
+                  breakdown: {
+                    basePrice: 0,
+                    vehicleMultiplier: 0,
+                    passengerMultiplier: 0,
+                    luggageMultiplier: 0,
+                    vehicleCount: vehicles.count,
+                    pricePerVehicle: 0,
+                    subtotal: 0,
+                    vatAmount: 0,
+                    vatRate: 0
+                  }
+                }
               }
             } else {
-              console.log("❌ MISSING RESOLVED LOCATION IDs - Cannot search Olympic routes")
+              console.log("❌ MISSING RESOLVED LOCATION IDs - BLOCKING: Cannot verify Olympic route")
+              // BLOCK: Return routeNotFound if we can't even resolve locations
+              return {
+                basePrice: 0,
+                totalPrice: 0,
+                routeNotFound: true,
+                routeNotFoundDetails: {
+                  attemptedPickup: journey.pickup.locationId || journey.pickup.address,
+                  attemptedDestination: journey.destination.locationId || journey.destination.address
+                },
+                breakdown: {
+                  basePrice: 0,
+                  vehicleMultiplier: 0,
+                  passengerMultiplier: 0,
+                  luggageMultiplier: 0,
+                  vehicleCount: vehicles.count,
+                  pricePerVehicle: 0,
+                  subtotal: 0,
+                  vatAmount: 0,
+                  vatRate: 0
+                }
+              }
             }
           } else {
             console.log("⏰ OLYMPIC DISPOSITION - Skipping Olympic route search, will use event pricing")

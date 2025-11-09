@@ -259,7 +259,9 @@
         "startTypingToSearch": "Inizia a digitare per cercare una posizione...",
         "listinoResults": "Destinazioni del listino (prezzi fissi)",
         "googleResults": "Altri indirizzi",
-        "noResultsFound": "Nessun risultato trovato"
+        "noResultsFound": "Nessun risultato trovato",
+        "routeNotAvailable": "Tratta non disponibile",
+        "routeNotAvailableDetail": "Questa tratta non è disponibile nel nostro listino per il periodo Olimpico. Seleziona una destinazione del nostro listino per procedere."
       },
       "vehicles": {
         "title": "Configurazione Veicoli",

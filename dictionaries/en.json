@@ -259,7 +259,9 @@
         "startTypingToSearch": "Start typing to search for a location...",
         "listinoResults": "Fixed price destinations",
         "googleResults": "Other addresses",
-        "noResultsFound": "No results found"
+        "noResultsFound": "No results found",
+        "routeNotAvailable": "Route not available",
+        "routeNotAvailableDetail": "This route is not available in our price list for the Olympic period. Please select a destination from our price list to proceed."
       },
       "vehicles": {
         "title": "Vehicle Configuration",

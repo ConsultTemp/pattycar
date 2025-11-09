@@ -129,6 +129,11 @@ export interface PricingResult {
   }
   isEventPricing?: boolean
   isOlympicPricing?: boolean
+  routeNotFound?: boolean
+  routeNotFoundDetails?: {
+    attemptedPickup: string
+    attemptedDestination: string
+  }
 }
 
 // Validation schemas

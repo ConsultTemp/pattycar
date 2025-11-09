@@ -799,16 +799,16 @@ export interface MeetGreetService {
 
 // Updated MEET_GREET_SERVICES with correct Olympic Period pricing
 export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
-  // AIRPORT ARRIVALS - Olympic Period rates
+  // AIRPORT ARRIVALS - Olympic Period rates (January-March 2026)
   "malpensa-arrivals": {
     type: "airport-arrivals",
     location: "Aeroporto di Milano Malpensa",
     coordinates: { lat: 45.6306, lng: 8.7281 },
-    basePrice: 350, // Greeter + Porter + 2 luggages incl. for 1 PASSENGER
-    extraPassengerPrice: 90, // Each extra PASSENGER
-    extraLuggagePrice: 20, // Each extra LUGGAGE
-    nightSurchargePrice: 90, // Night surcharge porter (20:00 / 8:00) | max 10 pcs of luggages per operator
-    extraHourPrice: 90, // Each extra HOUR for delay or disruption (AFTER 3 HOURS INCLUDED)
+    basePrice: 420, // Greeter + Porter + 2 luggages incl. for 1 PASSENGER
+    extraPassengerPrice: 110, // Each extra PASSENGER
+    extraLuggagePrice: 25, // Each extra LUGGAGE
+    nightSurchargePrice: 110, // Night surcharge porter (20:00 / 8:00) | max 10 pcs of luggages per operator
+    extraHourPrice: 110, // Each extra HOUR for delay or disruption (AFTER 3 HOURS INCLUDED)
     includedHours: 3,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -838,11 +838,11 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "airport-arrivals",
     location: "Aeroporto di Milano Linate",
     coordinates: { lat: 45.4451, lng: 9.2767 },
-    basePrice: 350,
-    extraPassengerPrice: 90,
-    extraLuggagePrice: 20,
-    nightSurchargePrice: 90,
-    extraHourPrice: 90,
+    basePrice: 420,
+    extraPassengerPrice: 110,
+    extraLuggagePrice: 25,
+    nightSurchargePrice: 110,
+    extraHourPrice: 110,
     includedHours: 3,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -872,11 +872,11 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "airport-arrivals",
     location: "Aeroporto di Venezia Marco Polo",
     coordinates: { lat: 45.5053, lng: 12.3519 },
-    basePrice: 390, // For arrivals extra-schengen flights, our greeter can meet pax soon after passport control
-    extraPassengerPrice: 105,
-    extraLuggagePrice: 25,
-    nightSurchargePrice: 90,
-    extraHourPrice: 90,
+    basePrice: 470, // For arrivals extra-schengen flights, our greeter can meet pax soon after passport control
+    extraPassengerPrice: 130,
+    extraLuggagePrice: 30,
+    nightSurchargePrice: 110,
+    extraHourPrice: 110,
     includedHours: 3,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -902,24 +902,24 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     ]
   },
 
-  // AIRPORT DEPARTURES - Olympic Period rates
+  // AIRPORT DEPARTURES - Olympic Period rates (January-March 2026)
   "malpensa-departures": {
     type: "airport-departures",
     location: "Aeroporto di Milano Malpensa",
     coordinates: { lat: 45.6306, lng: 8.7281 },
-    basePrice: 370,
-    extraPassengerPrice: 90,
-    extraLuggagePrice: 20,
-    nightSurchargePrice: 90,
-    extraHourPrice: 90,
+    basePrice: 450,
+    extraPassengerPrice: 110,
+    extraLuggagePrice: 25,
+    nightSurchargePrice: 110,
+    extraHourPrice: 110,
     includedHours: 3,
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 10,
     nightSurchargeHours: { start: "20:00", end: "08:00" },
     specialServices: {
-      fastTrack: { price: 30 }, // Fast track
-      vipLounge: { price: 100 } // Vip lounge
+      fastTrack: { price: 40 }, // Fast track
+      vipLounge: { price: 120 } // Vip lounge
     },
     details: [
       "The greeter and porter await for the client/s directly at the entrance door, upon arrival of the booked PATTY CAR vehicle",
@@ -938,19 +938,19 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "airport-departures", 
     location: "Aeroporto di Milano Linate",
     coordinates: { lat: 45.4451, lng: 9.2767 },
-    basePrice: 370,
-    extraPassengerPrice: 90,
-    extraLuggagePrice: 20,
-    nightSurchargePrice: 90,
-    extraHourPrice: 90,
+    basePrice: 450,
+    extraPassengerPrice: 110,
+    extraLuggagePrice: 25,
+    nightSurchargePrice: 110,
+    extraHourPrice: 110,
     includedHours: 3,
     includedLuggage: 2,
     maxPassengers: 8,
     maxLuggageForNightSurcharge: 10,
     nightSurchargeHours: { start: "20:00", end: "08:00" },
     specialServices: {
-      fastTrack: { price: 30 },
-      vipLounge: { price: 100 }
+      fastTrack: { price: 40 },
+      vipLounge: { price: 120 }
     },
     details: [
       "The greeter and porter await for the client/s directly at the entrance door, upon arrival of the booked PATTY CAR vehicle",
@@ -969,11 +969,11 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "airport-departures",
     location: "Aeroporto di Venezia Marco Polo", 
     coordinates: { lat: 45.5053, lng: 12.3519 },
-    basePrice: 410,
-    extraPassengerPrice: 105,
-    extraLuggagePrice: 25,
-    nightSurchargePrice: 90,
-    extraHourPrice: 90,
+    basePrice: 500,
+    extraPassengerPrice: 130,
+    extraLuggagePrice: 30,
+    nightSurchargePrice: 110,
+    extraHourPrice: 110,
     includedHours: 3,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -1000,16 +1000,16 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     ]
   },
 
-  // RAILWAY ARRIVALS - Olympic Period rates (according to official listino)
+  // RAILWAY ARRIVALS - Olympic Period rates (January-March 2026)
   "milano-centrale-arrivals": {
     type: "railway-arrivals",
     location: "Milano Centrale",
     coordinates: { lat: 45.4868, lng: 9.2037 },
-    basePrice: 250, // Greeter + Porter + 2 luggages incl. for 1 PASSENGER
-    extraPassengerPrice: 70, // Each extra PASSENGER
-    extraLuggagePrice: 25, // Each extra LUGGAGE
-    nightSurchargePrice: 175, // Night surcharge porter (20:00 / 08:00) | max 5 pcs of luggages per operator
-    extraHourPrice: 90, // Each extra HOUR for delay or disruption (AFTER 2 HOURS INCLUDED)
+    basePrice: 320, // Greeter + Porter + 2 luggages incl. for 1 PASSENGER
+    extraPassengerPrice: 90, // Each extra PASSENGER
+    extraLuggagePrice: 35, // Each extra LUGGAGE
+    nightSurchargePrice: 220, // Night surcharge porter (20:00 / 08:00) | max 5 pcs of luggages per operator
+    extraHourPrice: 115, // Each extra HOUR for delay or disruption (AFTER 2 HOURS INCLUDED)
     includedHours: 2,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -1030,11 +1030,11 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "railway-arrivals",
     location: "Verona Porta Nuova",
     coordinates: { lat: 45.4280, lng: 10.9823 },
-    basePrice: 250,
-    extraPassengerPrice: 70,
-    extraLuggagePrice: 25,
-    nightSurchargePrice: 175,
-    extraHourPrice: 90,
+    basePrice: 320,
+    extraPassengerPrice: 90,
+    extraLuggagePrice: 35,
+    nightSurchargePrice: 220,
+    extraHourPrice: 115,
     includedHours: 2,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -1055,11 +1055,11 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "railway-arrivals",
     location: "Venezia Santa Lucia",
     coordinates: { lat: 45.4410697, lng: 12.3210436 },
-    basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
-    extraPassengerPrice: 70,
-    extraLuggagePrice: 25,
+    basePrice: 320, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
+    extraPassengerPrice: 90,
+    extraLuggagePrice: 35,
     nightSurchargePrice: 0, // Porter ON DEMAND nel listino
-    extraHourPrice: 90,
+    extraHourPrice: 115,
     includedHours: 2,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -1080,16 +1080,16 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     ]
   },
 
-  // RAILWAY DEPARTURES - Olympic Period rates
+  // RAILWAY DEPARTURES - Olympic Period rates (January-March 2026)
   "milano-centrale-departures": {
     type: "railway-departures",
     location: "Milano Centrale",
     coordinates: { lat: 45.4868, lng: 9.2037 },
-    basePrice: 250,
-    extraPassengerPrice: 70,
-    extraLuggagePrice: 25,
-    nightSurchargePrice: 175,
-    extraHourPrice: 90,
+    basePrice: 320,
+    extraPassengerPrice: 90,
+    extraLuggagePrice: 35,
+    nightSurchargePrice: 220,
+    extraHourPrice: 115,
     includedHours: 2,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -1110,11 +1110,11 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "railway-departures",
     location: "Verona Porta Nuova", 
     coordinates: { lat: 45.4280, lng: 10.9823 },
-    basePrice: 250,
-    extraPassengerPrice: 70,
-    extraLuggagePrice: 25,
-    nightSurchargePrice: 175,
-    extraHourPrice: 90,
+    basePrice: 320,
+    extraPassengerPrice: 90,
+    extraLuggagePrice: 35,
+    nightSurchargePrice: 220,
+    extraHourPrice: 115,
     includedHours: 2,
     includedLuggage: 2,
     maxPassengers: 8,
@@ -1135,11 +1135,11 @@ export const MEET_GREET_SERVICES: Record<string, MeetGreetService> = {
     type: "railway-departures",
     location: "Venezia Santa Lucia",
     coordinates: { lat: 45.4410697, lng: 12.3210436 },
-    basePrice: 250, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
-    extraPassengerPrice: 70,
-    extraLuggagePrice: 25,
+    basePrice: 320, // Greeter for 1 PASSENGER - porter ON DEMAND secondo listino
+    extraPassengerPrice: 90,
+    extraLuggagePrice: 35,
     nightSurchargePrice: 0, // Porter ON DEMAND nel listino
-    extraHourPrice: 90,
+    extraHourPrice: 115,
     includedHours: 2,
     includedLuggage: 2,
     maxPassengers: 8,

@@ -100,20 +100,20 @@ const calculateDistanceKm = (coord1: { lat: number; lng: number }, coord2: { lat
 // Milano center coordinates (Duomo area)
 const MILANO_CENTER_COORDINATES = { lat: 45.4642, lng: 9.1900 }
 const MILANO_RADIUS_KM = 10 // 10km radius from Milano center
-
+// € 165,00 € 185,00 € 415,00 € 350,00
 // Fixed prices for Milano internal transfers by vehicle type
 const MILANO_INTERNAL_TRANSFER_PRICES: Record<string, number> = {
-  sedan: 125,
-  berlina: 125,
-  minivan: 150,
-  van: 320,
-  minibus: 320, // Legacy - mapped to van
-  "luxury-sedan": 270,
-  'olympic-sedan': 125,
-  'olympic-minivan': 150,
-  'olympic-van': 320,
-  'olympic-minibus': 320,
-  'olympic-luxury': 270,
+  sedan: 165,
+  berlina: 165,
+  minivan: 185,
+  van: 415,
+  minibus: 415, // Legacy - mapped to van
+  "luxury-sedan": 350,
+  'olympic-sedan': 165,
+  'olympic-minivan': 185,
+  'olympic-van': 415,
+  'olympic-minibus': 415,
+  'olympic-luxury': 350,
 }
 
 // Function to check if both pickup and destination are within Milano metropolitan area

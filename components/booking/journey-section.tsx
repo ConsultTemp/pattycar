@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
-import { CalendarIcon, MapPin, Clock, Route } from "lucide-react"
+import { CalendarIcon, MapPin, Clock, Route, AlertCircle } from "lucide-react"
 import { format } from "date-fns"
 import { it } from "date-fns/locale"
 import { PlacesAutocomplete } from "@/components/places-autocomplete"
 import { LocationSelector } from "@/components/location-selector"
 import { timeUtils } from "@/lib/time-utils"
-import type { Journey, ValidationError, BookingOptions, ServiceType } from "@/lib/booking-types"
+import type { Journey, ValidationError, BookingOptions, ServiceType, PricingResult } from "@/lib/booking-types"
 import { useEffect, useState } from "react"
 import { isOlympicPeriod } from "@/lib/olympic-pricing"
 
@@ -30,9 +30,10 @@ interface JourneySectionProps {
   onOptionsChange: (options: Partial<BookingOptions>) => void
   dictionary: any
   isDestinationDisabled?: () => boolean
+  pricing?: PricingResult | null
 }
 
-export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled }: JourneySectionProps) {
+export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled, pricing }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [is24HourFormat, setIs24HourFormat] = useState(false)
 
@@ -521,6 +522,21 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                 </div>
               )
             )}
+          </div>
+        )}
+
+        {/* Route Not Available Error - Olympic Period */}
+        {pricing?.routeNotFound && (
+          <div className="p-4 bg-red-50 border border-red-500 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <span className="font-bold text-red-900">
+                {dictionary.routeNotAvailable || "Route not available"}
+              </span>
+            </div>
+            <p className="text-sm text-red-700">
+              {dictionary.routeNotAvailableDetail || "This route is not available in our Olympic price list"}
+            </p>
           </div>
         )}
 

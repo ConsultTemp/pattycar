@@ -258,7 +258,9 @@
         "startTypingToSearch": "ابدأ بالكتابة للبحث عن موقع...",
         "listinoResults": "وجهات بأسعار ثابتة",
         "googleResults": "عناوين أخرى",
-        "noResultsFound": "لم يتم العثور على نتائج"
+        "noResultsFound": "لم يتم العثور على نتائج",
+        "routeNotAvailable": "المسار غير متاح",
+        "routeNotAvailableDetail": "هذا المسار غير متاح في قائمة أسعارنا لفترة الألعاب الأولمبية. يرجى اختيار وجهة من قائمة أسعارنا للمتابعة."
       },
       "vehicles": {
         "title": "تكوين المركبات",
