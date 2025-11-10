@@ -123,6 +123,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   const { lang } = useLanguage()
   const [state, dispatch] = useReducer(bookingReducer, initialBookingState)
   const [cancellationAccepted, setCancellationAccepted] = useState(false)
+  const [isRouteAvailable, setIsRouteAvailable] = useState(true)
 
   const { validateAll, isValid, getFieldErrors } = useFormValidation(state, {
     cancellationAccepted,
@@ -555,6 +556,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             dictionary={{...dictionary.journey, validationErrors: dictionary.submit?.validationErrors}}
             isDestinationDisabled={isDestinationDisabledForCeremony}
             pricing={pricing}
+            onRouteAvailabilityChange={setIsRouteAvailable}
           />
         </div>
 
@@ -571,7 +573,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         )}
 
         {/* Vehicle Configuration - Only enabled when date is selected and route is valid */}
-        <div className={!state.journey.date || pricing?.routeNotFound ? "opacity-50 pointer-events-none" : ""}>
+        <div className={!state.journey.date || !isRouteAvailable ? "opacity-50 pointer-events-none" : ""}>
           {(() => {
             // Determine if current route is East Cluster or Inter-Cluster
             let isEastCluster = false
@@ -664,7 +666,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         </div>
 
         {/* Pricing Display - Only shown when date is selected and route is valid */}
-        {state.journey.date && !pricing?.routeNotFound && (
+        {state.journey.date && isRouteAvailable && (
           <PricingDisplay
             pricing={pricing}
             isCalculating={isCalculating}
@@ -674,7 +676,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         )}
 
         {/* Additional Options - Only enabled when date is selected and route is valid */}
-        <div className={!state.journey.date || pricing?.routeNotFound ? "opacity-50 pointer-events-none" : ""}>
+        <div className={!state.journey.date || !isRouteAvailable ? "opacity-50 pointer-events-none" : ""}>
           <AdditionalOptionsSection
             options={state.options}
             errors={getFieldErrors("options")}
@@ -685,7 +687,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
         </div>
 
         {/* Submit Section - Only enabled when date is selected and route is valid */}
-        <div className={!state.journey.date || pricing?.routeNotFound ? "opacity-50 pointer-events-none" : ""}>
+        <div className={!state.journey.date || !isRouteAvailable ? "opacity-50 pointer-events-none" : ""}>
           <SubmitSection
             isValid={isValid}
             isSubmitting={state.ui.isSubmitting}

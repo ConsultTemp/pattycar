@@ -17,7 +17,8 @@ import { LocationSelector } from "@/components/location-selector"
 import { timeUtils } from "@/lib/time-utils"
 import type { Journey, ValidationError, BookingOptions, ServiceType, PricingResult } from "@/lib/booking-types"
 import { useEffect, useState } from "react"
-import { isOlympicPeriod } from "@/lib/olympic-pricing"
+import { isOlympicPeriod, findOlympicRoute } from "@/lib/olympic-pricing"
+import { resolveLocationForPricing } from "@/lib/event-pricing"
 
 interface JourneySectionProps {
   journey: Journey
@@ -31,21 +32,118 @@ interface JourneySectionProps {
   dictionary: any
   isDestinationDisabled?: () => boolean
   pricing?: PricingResult | null
+  onRouteAvailabilityChange?: (isAvailable: boolean) => void
 }
 
-export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled, pricing }: JourneySectionProps) {
+export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled, pricing, onRouteAvailabilityChange }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [is24HourFormat, setIs24HourFormat] = useState(false)
+  const [routeNotAvailable, setRouteNotAvailable] = useState(false)
 
   // Check if we're in Olympic period for special disposition logic
   const isOlympicPeriod_local = journey.date ? isOlympicPeriod(journey.date) : false
   const isDispositionService = serviceType === "disposizione" || serviceType === "ceremony-disposition"
   const useOlympicDurationLogic = isOlympicPeriod_local && isDispositionService
 
-  
+  // Check Olympic route availability IMMEDIATELY when pickup/destination change
+  useEffect(() => {
+    // Only check for transfers during Olympic period
+    if (!isOlympicPeriod_local || serviceType === "disposizione" || serviceType === "ceremony-disposition") {
+      setRouteNotAvailable(false)
+      onRouteAvailabilityChange?.(true)
+      return
+    }
 
-  // Set default minutes to "00" if not already set
-  
+    // Need both pickup and destination to check
+    if (!journey.pickup?.address || !journey.destination?.address) {
+      setRouteNotAvailable(false)
+      onRouteAvailabilityChange?.(true)
+      return
+    }
+
+    // Same address check
+    if (journey.pickup.address === journey.destination.address) {
+      setRouteNotAvailable(false)
+      onRouteAvailabilityChange?.(true)
+      return
+    }
+
+    console.log("🔍 JOURNEY SECTION - Checking Olympic route availability:", {
+      pickup: journey.pickup.address,
+      destination: journey.destination.address,
+      pickupLocationId: journey.pickup.locationId,
+      destinationLocationId: journey.destination.locationId
+    })
+
+    // Resolve locations
+    const resolvedPickup = resolveLocationForPricing(
+      journey.pickup.locationId,
+      journey.pickup.coordinates
+    )
+    const resolvedDestination = resolveLocationForPricing(
+      journey.destination.locationId,
+      journey.destination.coordinates
+    )
+
+    console.log("✅ JOURNEY SECTION - Resolved locations:", {
+      pickup: resolvedPickup.resolvedLocationId || "NOT RESOLVED",
+      destination: resolvedDestination.resolvedLocationId || "NOT RESOLVED"
+    })
+
+    // Try to find Olympic route
+    if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+      let olympicRoute = findOlympicRoute(
+        resolvedPickup.resolvedLocationId,
+        resolvedDestination.resolvedLocationId
+      )
+
+      // Fallback for Meet & Greet locations
+      if (!olympicRoute) {
+        const meetGreetToGenericMap: Record<string, string> = {
+          'venezia-santa-lucia': 'venezia',
+          'venezia-marco-polo': 'venezia',
+          'milano-centrale': 'milano',
+          'milano-malpensa': 'malpensa',
+          'milano-linate': 'linate',
+          'verona-porta-nuova': 'verona'
+        }
+
+        const fallbackPickupId = meetGreetToGenericMap[resolvedPickup.resolvedLocationId] || resolvedPickup.resolvedLocationId
+        const fallbackDestinationId = meetGreetToGenericMap[resolvedDestination.resolvedLocationId] || resolvedDestination.resolvedLocationId
+
+        if (fallbackPickupId !== resolvedPickup.resolvedLocationId || fallbackDestinationId !== resolvedDestination.resolvedLocationId) {
+          olympicRoute = findOlympicRoute(fallbackPickupId, fallbackDestinationId)
+        }
+      }
+
+      if (olympicRoute) {
+        console.log("✅ JOURNEY SECTION - Olympic route found:", olympicRoute)
+        setRouteNotAvailable(false)
+        onRouteAvailabilityChange?.(true)
+      } else {
+        console.log("❌ JOURNEY SECTION - Olympic route NOT found - BLOCKING")
+        setRouteNotAvailable(true)
+        onRouteAvailabilityChange?.(false)
+      }
+    } else {
+      console.log("❌ JOURNEY SECTION - Could not resolve locations - BLOCKING")
+      setRouteNotAvailable(true)
+      onRouteAvailabilityChange?.(false)
+    }
+  }, [
+    journey.pickup?.address,
+    journey.destination?.address,
+    journey.pickup?.locationId,
+    journey.destination?.locationId,
+    journey.pickup?.coordinates?.lat,
+    journey.pickup?.coordinates?.lng,
+    journey.destination?.coordinates?.lat,
+    journey.destination?.coordinates?.lng,
+    isOlympicPeriod_local,
+    serviceType,
+    onRouteAvailabilityChange
+  ])
+
   // Auto-calculate end time when start time or duration changes (Olympic logic)
   useEffect(() => {
     if (useOlympicDurationLogic && journey.time && journey.minutes && journey.serviceDuration) {
@@ -526,7 +624,7 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
         )}
 
         {/* Route Not Available Error - Olympic Period */}
-        {pricing?.routeNotFound && (
+        {routeNotAvailable && (
           <div className="p-4 bg-red-50 border border-red-500 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="h-5 w-5 text-red-600" />
