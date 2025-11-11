@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
-import { CalendarIcon, MapPin, Clock, Route, AlertCircle } from "lucide-react"
+import { CalendarIcon, MapPin, Clock, Route } from "lucide-react"
 import { format } from "date-fns"
 import { it } from "date-fns/locale"
 import { PlacesAutocomplete } from "@/components/places-autocomplete"
@@ -17,7 +17,7 @@ import { LocationSelector } from "@/components/location-selector"
 import { timeUtils } from "@/lib/time-utils"
 import type { Journey, ValidationError, BookingOptions, ServiceType, PricingResult } from "@/lib/booking-types"
 import { useEffect, useState } from "react"
-import { isOlympicPeriod, findOlympicRoute } from "@/lib/olympic-pricing"
+import { isOlympicPeriod, isRouteBookable } from "@/lib/olympic-pricing"
 import { resolveLocationForPricing } from "@/lib/event-pricing"
 
 interface JourneySectionProps {
@@ -32,117 +32,37 @@ interface JourneySectionProps {
   dictionary: any
   isDestinationDisabled?: () => boolean
   pricing?: PricingResult | null
-  onRouteAvailabilityChange?: (isAvailable: boolean) => void
 }
 
-export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled, pricing, onRouteAvailabilityChange }: JourneySectionProps) {
+export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled, pricing }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [is24HourFormat, setIs24HourFormat] = useState(false)
-  const [routeNotAvailable, setRouteNotAvailable] = useState(false)
 
   // Check if we're in Olympic period for special disposition logic
   const isOlympicPeriod_local = journey.date ? isOlympicPeriod(journey.date) : false
   const isDispositionService = serviceType === "disposizione" || serviceType === "ceremony-disposition"
   const useOlympicDurationLogic = isOlympicPeriod_local && isDispositionService
 
-  // Check Olympic route availability IMMEDIATELY when pickup/destination change
-  useEffect(() => {
-    // Only check for transfers during Olympic period
-    if (!isOlympicPeriod_local || serviceType === "disposizione" || serviceType === "ceremony-disposition") {
-      setRouteNotAvailable(false)
-      onRouteAvailabilityChange?.(true)
-      return
-    }
-
-    // Need both pickup and destination to check
-    if (!journey.pickup?.address || !journey.destination?.address) {
-      setRouteNotAvailable(false)
-      onRouteAvailabilityChange?.(true)
-      return
-    }
-
-    // Same address check
-    if (journey.pickup.address === journey.destination.address) {
-      setRouteNotAvailable(false)
-      onRouteAvailabilityChange?.(true)
-      return
-    }
-
-    console.log("🔍 JOURNEY SECTION - Checking Olympic route availability:", {
-      pickup: journey.pickup.address,
-      destination: journey.destination.address,
-      pickupLocationId: journey.pickup.locationId,
-      destinationLocationId: journey.destination.locationId
-    })
-
-    // Resolve locations
-    const resolvedPickup = resolveLocationForPricing(
-      journey.pickup.locationId,
-      journey.pickup.coordinates
-    )
-    const resolvedDestination = resolveLocationForPricing(
-      journey.destination.locationId,
-      journey.destination.coordinates
-    )
-
-    console.log("✅ JOURNEY SECTION - Resolved locations:", {
-      pickup: resolvedPickup.resolvedLocationId || "NOT RESOLVED",
-      destination: resolvedDestination.resolvedLocationId || "NOT RESOLVED"
-    })
-
-    // Try to find Olympic route
-    if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
-      let olympicRoute = findOlympicRoute(
-        resolvedPickup.resolvedLocationId,
-        resolvedDestination.resolvedLocationId
+  // Check if route is bookable (during Olympic period only)
+  const routeIsNotBookable = isOlympicPeriod_local && 
+    journey.pickup?.address && 
+    journey.destination?.address && 
+    (() => {
+      // Use same location resolution logic as pricing calculation
+      const resolvedPickup = resolveLocationForPricing(
+        journey.pickup.locationId,
+        journey.pickup.coordinates
+      )
+      const resolvedDestination = resolveLocationForPricing(
+        journey.destination.locationId,
+        journey.destination.coordinates
       )
 
-      // Fallback for Meet & Greet locations
-      if (!olympicRoute) {
-        const meetGreetToGenericMap: Record<string, string> = {
-          'venezia-santa-lucia': 'venezia',
-          'venezia-marco-polo': 'venezia',
-          'milano-centrale': 'milano',
-          'milano-malpensa': 'malpensa',
-          'milano-linate': 'linate',
-          'verona-porta-nuova': 'verona'
-        }
-
-        const fallbackPickupId = meetGreetToGenericMap[resolvedPickup.resolvedLocationId] || resolvedPickup.resolvedLocationId
-        const fallbackDestinationId = meetGreetToGenericMap[resolvedDestination.resolvedLocationId] || resolvedDestination.resolvedLocationId
-
-        if (fallbackPickupId !== resolvedPickup.resolvedLocationId || fallbackDestinationId !== resolvedDestination.resolvedLocationId) {
-          olympicRoute = findOlympicRoute(fallbackPickupId, fallbackDestinationId)
-        }
+      if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+        return !isRouteBookable(resolvedPickup.resolvedLocationId, resolvedDestination.resolvedLocationId)
       }
-
-      if (olympicRoute) {
-        console.log("✅ JOURNEY SECTION - Olympic route found:", olympicRoute)
-        setRouteNotAvailable(false)
-        onRouteAvailabilityChange?.(true)
-      } else {
-        console.log("❌ JOURNEY SECTION - Olympic route NOT found - BLOCKING")
-        setRouteNotAvailable(true)
-        onRouteAvailabilityChange?.(false)
-      }
-    } else {
-      console.log("❌ JOURNEY SECTION - Could not resolve locations - BLOCKING")
-      setRouteNotAvailable(true)
-      onRouteAvailabilityChange?.(false)
-    }
-  }, [
-    journey.pickup?.address,
-    journey.destination?.address,
-    journey.pickup?.locationId,
-    journey.destination?.locationId,
-    journey.pickup?.coordinates?.lat,
-    journey.pickup?.coordinates?.lng,
-    journey.destination?.coordinates?.lat,
-    journey.destination?.coordinates?.lng,
-    isOlympicPeriod_local,
-    serviceType,
-    onRouteAvailabilityChange
-  ])
+      return false
+    })()
 
   // Auto-calculate end time when start time or duration changes (Olympic logic)
   useEffect(() => {
@@ -623,21 +543,6 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
           </div>
         )}
 
-        {/* Route Not Available Error - Olympic Period */}
-        {routeNotAvailable && (
-          <div className="p-4 bg-red-50 border border-red-500 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              <span className="font-bold text-red-900">
-                {dictionary.routeNotAvailable || "Route not available"}
-              </span>
-            </div>
-            <p className="text-sm text-red-700">
-              {dictionary.routeNotAvailableDetail || "This route is not available in our Olympic price list"}
-            </p>
-          </div>
-        )}
-
         {/* Route Info - Only for Disposition types */}
         {(serviceType === "disposizione" || serviceType === "ceremony-disposition") && journey.pickup?.address && journey.destination?.address && (
           <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
@@ -656,6 +561,21 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                 {dictionary.priceNote}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Non-Bookable Route Info */}
+        {routeIsNotBookable && (
+          <div className="p-4 bg-gray-50 border border-gray-300 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium text-gray-900">{dictionary.routeNotBookable || "Tratta non disponibile online"}</span>
+            </div>
+            <p className="text-sm text-gray-700">
+              {dictionary.routeNotBookableMessage || "Questa tratta non è al momento disponibile per la prenotazione online. Ti preghiamo di contattarci direttamente per assistenza."}
+            </p>
           </div>
         )}
 

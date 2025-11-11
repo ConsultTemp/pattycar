@@ -258,6 +258,8 @@
         "selectDropoffPoint": "Seleziona punto di rientro",
         "startTypingToSearch": "Inizia a digitare per cercare una posizione...",
         "listinoResults": "Destinazioni del listino (prezzi fissi)",
+        "routeNotBookable": "Tratta non disponibile online",
+        "routeNotBookableMessage": "Questa tratta non è al momento disponibile per la prenotazione online. Ti preghiamo di contattarci direttamente per ricevere assistenza.",
         "googleResults": "Altri indirizzi",
         "noResultsFound": "Nessun risultato trovato",
         "routeNotAvailable": "Tratta non disponibile",

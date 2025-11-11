@@ -258,6 +258,8 @@
         "selectDropoffPoint": "Select drop-off point",
         "startTypingToSearch": "Start typing to search for a location...",
         "listinoResults": "Fixed price destinations",
+        "routeNotBookable": "Route not available online",
+        "routeNotBookableMessage": "This route is currently not available for online booking. Please contact us directly for assistance.",
         "googleResults": "Other addresses",
         "noResultsFound": "No results found",
         "routeNotAvailable": "Route not available",

@@ -257,6 +257,8 @@
         "selectDropoffPoint": "اختر نقطة الإنزال",
         "startTypingToSearch": "ابدأ بالكتابة للبحث عن موقع...",
         "listinoResults": "وجهات بأسعار ثابتة",
+        "routeNotBookable": "المسار غير متاح عبر الإنترنت",
+        "routeNotBookableMessage": "هذا المسار غير متاح حالياً للحجز عبر الإنترنت. يرجى الاتصال بنا مباشرة للمساعدة.",
         "googleResults": "عناوين أخرى",
         "noResultsFound": "لم يتم العثور على نتائج",
         "routeNotAvailable": "المسار غير متاح",

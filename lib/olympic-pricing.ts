@@ -224,6 +224,7 @@ export interface OlympicRoute {
   }
   isEastCluster?: boolean
   isInterCluster?: boolean // Flag to identify inter-cluster routes
+  isBookable?: boolean // Flag to mark if route can be booked (default: true)
 }
 
 // Olympic Transfer Routes - Based on the pricing tables provided
@@ -833,7 +834,7 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     },
     isEastCluster: true
   },
-  /* {
+  {
     from: 'Cortina Center',
     to: 'Anterselva',
     fromLocationId: 'cortina',
@@ -843,7 +844,6 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 530,
       'olympic-van': 810,       // 460 * 1.77 = 814 → 810
       'olympic-luxury': 750     // 460 * 1.63 = 750 → 750
-      //toremove
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -851,9 +851,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-van': 170,
       'olympic-luxury': 170
     },
-    isEastCluster: true
-  }, */
-  /* {
+    isEastCluster: true,
+    isBookable: false // Tratta non prenotabile
+  },  {
     from: 'Cortina Center',
     to: 'Val di Fiemme',
     fromLocationId: 'cortina',
@@ -863,7 +863,6 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 640,
       'olympic-van': 1040,      // 590 * 1.77 = 1044 → 1040
       'olympic-luxury': 960     // 590 * 1.63 = 962 → 960
-      //toremove
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -871,8 +870,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-van': 170,
       'olympic-luxury': 170
     },
-    isEastCluster: true
-  }, */
+    isEastCluster: true,
+    isBookable: false // Tratta non prenotabile
+  }, 
   {
     from: 'Cortina Center',
     to: 'Venezia',
@@ -1037,7 +1037,7 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     },
     isInterCluster: true
   },
-  /* {
+  {
     from: 'Livigno',
     to: 'Bormio',
     fromLocationId: 'livigno',
@@ -1054,8 +1054,9 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-van': 170,
       'olympic-luxury': 170
     },
-    isInterCluster: true
-  }, */
+    isInterCluster: true,
+    isBookable: false // Tratta non prenotabile
+  },
   
   // Additional Milano Center routes from official table
   {
@@ -1326,6 +1327,20 @@ export function findOlympicRoute(fromLocationId: string, toLocationId: string): 
   }
   
   return null
+}
+
+/**
+ * Check if a route is bookable
+ * @param fromLocationId - Starting location ID
+ * @param toLocationId - Destination location ID
+ * @returns true if route can be booked, false otherwise
+ */
+export function isRouteBookable(fromLocationId: string, toLocationId: string): boolean {
+  const route = findOlympicRoute(fromLocationId, toLocationId)
+  if (!route) {
+    return true // If no Olympic route found, assume it's bookable (will use standard pricing)
+  }
+  return route.isBookable !== false // Default to true if not explicitly set to false
 }
 
 export function findOlympicCeremony(date: Date): OlympicCeremony | null {

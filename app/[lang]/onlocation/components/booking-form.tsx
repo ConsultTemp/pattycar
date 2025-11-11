@@ -19,7 +19,7 @@ import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MeetGreetConfig, ServiceType } from "@/lib/booking-types"
 import { resolveLocationForPricing, getLocationById } from "@/lib/event-pricing"
-import { isOlympicPeriod, isCeremonyDate, getCeremonyName, findOlympicRoute, findOlympicCeremony } from "@/lib/olympic-pricing"
+import { isOlympicPeriod, isCeremonyDate, getCeremonyName, findOlympicRoute, findOlympicCeremony, isRouteBookable } from "@/lib/olympic-pricing"
 
 // Helper function to convert to 24h format string (for form submission)
 const formatTime24Hour = (hour: string, minutes: string, ampm: string): string => {
@@ -123,7 +123,6 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
   const { lang } = useLanguage()
   const [state, dispatch] = useReducer(bookingReducer, initialBookingState)
   const [cancellationAccepted, setCancellationAccepted] = useState(false)
-  const [isRouteAvailable, setIsRouteAvailable] = useState(true)
 
   const { validateAll, isValid, getFieldErrors } = useFormValidation(state, {
     cancellationAccepted,
@@ -148,6 +147,36 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     state.serviceType === "inter-cluster"
   )
   const isCeremonyDate_local = state.journey.date ? isCeremonyDate(state.journey.date) : false
+
+  // Check if route is bookable (during Olympic period only)
+  const routeIsNotBookable = useMemo(() => {
+    if (!isOlympicPeriod_local || !state.journey.pickup?.address || !state.journey.destination?.address) {
+      return false
+    }
+
+    // Use same location resolution logic as pricing calculation
+    const resolvedPickup = resolveLocationForPricing(
+      state.journey.pickup.locationId,
+      state.journey.pickup.coordinates
+    )
+    const resolvedDestination = resolveLocationForPricing(
+      state.journey.destination.locationId,
+      state.journey.destination.coordinates
+    )
+
+    if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+      return !isRouteBookable(resolvedPickup.resolvedLocationId, resolvedDestination.resolvedLocationId)
+    }
+    return false
+  }, [
+    isOlympicPeriod_local, 
+    state.journey.pickup?.address, 
+    state.journey.pickup?.locationId,
+    state.journey.pickup?.coordinates,
+    state.journey.destination?.address,
+    state.journey.destination?.locationId,
+    state.journey.destination?.coordinates
+  ])
 
   // Memoized handlers
   const handleCustomerChange = useCallback((customer: any) => {
@@ -262,6 +291,13 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
     // Clear previous errors
     dispatch({ type: "CLEAR_ERRORS" })
+
+    // CRITICAL: Block submission if route is not bookable
+    if (routeIsNotBookable) {
+      dispatch({ type: "SET_SUBMIT_STATUS", payload: "error" })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
 
     // Validate form (now includes cancellation policy and distance validation)
     const errors = validateAll()
@@ -397,7 +433,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
       const bookingError = handleError(error)
       dispatch({ type: "SET_SUBMIT_STATUS", payload: "error" })
     }
-  }, [state, validateAll, handleError, getErrorMessage, pricing, cancellationAccepted])
+  }, [state, validateAll, handleError, getErrorMessage, pricing, cancellationAccepted, routeIsNotBookable])
 
   // Success state
   if (state.ui.submitStatus === "success") {
@@ -556,12 +592,11 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             dictionary={{...dictionary.journey, validationErrors: dictionary.submit?.validationErrors}}
             isDestinationDisabled={isDestinationDisabledForCeremony}
             pricing={pricing}
-            onRouteAvailabilityChange={setIsRouteAvailable}
           />
         </div>
 
-        {/* Meet & Greet Section - Available when service is detected */}
-        {state.journey.date && (
+        {/* Meet & Greet Section - Available when service is detected and route is bookable */}
+        {state.journey.date && !routeIsNotBookable && (
           <MeetGreetSection
             config={state.options.meetGreetConfig}
             journey={state.journey}
@@ -572,8 +607,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           />
         )}
 
-        {/* Vehicle Configuration - Only enabled when date is selected and route is valid */}
-        <div className={!state.journey.date || !isRouteAvailable ? "opacity-50 pointer-events-none" : ""}>
+        {/* Vehicle Configuration - Only enabled when date is selected and route is bookable */}
+        <div className={!state.journey.date || routeIsNotBookable ? "opacity-50 pointer-events-none" : ""}>
           {(() => {
             // Determine if current route is East Cluster or Inter-Cluster
             let isEastCluster = false
@@ -665,8 +700,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           })()}
         </div>
 
-        {/* Pricing Display - Only shown when date is selected and route is valid */}
-        {state.journey.date && isRouteAvailable && (
+        {/* Pricing Display - Only shown when date is selected and route is bookable */}
+        {state.journey.date && !routeIsNotBookable && (
           <PricingDisplay
             pricing={pricing}
             isCalculating={isCalculating}
@@ -675,8 +710,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           />
         )}
 
-        {/* Additional Options - Only enabled when date is selected and route is valid */}
-        <div className={!state.journey.date || !isRouteAvailable ? "opacity-50 pointer-events-none" : ""}>
+        {/* Additional Options - Only enabled when date is selected and route is bookable */}
+        <div className={!state.journey.date || routeIsNotBookable ? "opacity-50 pointer-events-none" : ""}>
           <AdditionalOptionsSection
             options={state.options}
             errors={getFieldErrors("options")}
@@ -686,8 +721,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           />
         </div>
 
-        {/* Submit Section - Only enabled when date is selected and route is valid */}
-        <div className={!state.journey.date || !isRouteAvailable ? "opacity-50 pointer-events-none" : ""}>
+        {/* Submit Section - Only enabled when date is selected and route is bookable */}
+        <div className={!state.journey.date || routeIsNotBookable ? "opacity-50 pointer-events-none" : ""}>
           <SubmitSection
             isValid={isValid}
             isSubmitting={state.ui.isSubmitting}
