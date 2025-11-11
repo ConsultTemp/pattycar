@@ -988,17 +988,17 @@
     "title": "Service Guidelines",
     "subtitle": "Operating rules and conditions for transfer services",
     "arrivals": {
-      "title": "ARRIVALS - GUIDELINES",
+      "title": "ARRIVALS - GUIDE LINES",
       "airport": {
         "title": "For AIRPORT ARRIVALS",
         "waitingTime": "45 minutes of waiting time are included for any possible flight delays and/or baggage claim. The 45 minutes starts from the estimated booked landing time.",
         "ratesTitle": "After the included 45 minutes, the following rates will be applied:",
         "rates": [
-          "Sedan: 94 € + 10% VAT per hour or fraction of it",
-          "Minivan: 108 € + 10% VAT per hour or fraction of it",
-          "Minibus or Luxury Sedan: 135 € + 10% VAT per hour or fraction of it"
+          "Sedan: 105 € + 10% VAT per hour or fraction of it",
+          "Minivan: 120 € + 10% VAT per hour or fraction of it",
+          "Van or Luxury Sedan: 150 € + 10% VAT per hour or fraction of it"
         ],
-        "maxDelay": "If the delay exceeds 3 hours, the service must be rescheduled, and a new charge will be applied.",
+        "maxDelay": "If the delay exceeds 3 hours from the estimated booked landing time, the service must be rescheduled, and a new charge will be applied.",
         "payment": "The extra charges will be paid via secure virtual link before the end of the service."
       },
       "trainStation": {
@@ -1006,22 +1006,22 @@
         "waitingTime": "20 minutes of waiting time are included for any delays. The 20 minutes starts from the estimated booked arriving time.",
         "ratesTitle": "After the included 20 minutes, the following rates will be applied:",
         "rates": [
-          "Sedan: 94 € + 10% VAT per hour or fraction of it",
-          "Minivan: 108 € + 10% VAT per hour or fraction of it",
-          "Minibus or Luxury Sedan: 135 € + 10% VAT per hour or fraction of it"
+          "Sedan: 105 € + 10% VAT per hour or fraction of it",
+          "Minivan: 120 € + 10% VAT per hour or fraction of it",
+          "Van or Luxury Sedan: 150 € + 10% VAT per hour or fraction of it"
         ],
-        "maxDelay": "If the delay exceeds 2 hours, the service must be rescheduled, and a new charge will be applied.",
+        "maxDelay": "If the delay exceeds 2 hours from the estimated booked landing time the service must be rescheduled, and a new charge will be applied.",
         "payment": "The extra charges will be paid via secure virtual link before the end of the service."
       }
     },
     "departures": {
-      "title": "DEPARTURES - GUIDELINES",
+      "title": "DEPARTURES - GUIDE LINES",
       "waitingTime": "For AIRPORT AND TRAIN STATION DEPARTURES, 20 minutes of waiting are included.",
       "ratesTitle": "After the included 20 minutes, the following rates will be applied:",
       "rates": [
-        "Sedan: 94 € + 10% VAT per hour or fraction of it",
-        "Minivan: 108 € + 10% VAT per hour or fraction of it",
-        "Minibus or Luxury Sedan: 135 € + 10% VAT per hour or fraction of it"
+        "Sedan: 105 € + 10% VAT per hour or fraction of it",
+        "Minivan: 120 € + 10% VAT per hour or fraction of it",
+        "Van or Luxury Sedan: 150 € + 10% VAT per hour or fraction of it"
       ],
       "maxWaiting": "A maximum waiting time of 1 hour is guaranteed. After that, the service must be rescheduled, and a new charge will be applied. If the wait is not notified, the transfer will not be guaranteed."
     },
@@ -1033,9 +1033,9 @@
     },
     "cancellationPolicy": {
       "title": "CANCELLATION POLICY",
-      "fullRefund": "100% refund: If, after the confirmation and the payment, the service is cancelled by October 31st, 2025",
-      "halfRefund": "50% refund: If, after the confirmation and the payment, the service is cancelled between November 1st, 2025, and January 5th, 2026",
-      "noRefund": "Non-refundable: If, after the confirmation and the payment, the service is cancelled from January 6th, 2026, onwards"
+      "fullRefund": "If, after the confirmation and the payment, the service is cancelled by October 31st, 2025 ➡ 100% refund",
+      "halfRefund": "If, after the confirmation and the payment, the service is cancelled between November 1st, 2025, and January 5th, 2026 ➡ 50% refund",
+      "noRefund": "If, after the confirmation and the payment, the service is cancelled from January 6th, 2026, onwards ➡ Non-refundable"
     }
   },
   "common": {
