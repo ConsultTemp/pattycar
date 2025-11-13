@@ -56,6 +56,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     journeyDate,
     serviceType,
     isEastCluster,
+    isInterCluster,
     pickupLocationId,
     destinationLocationId,
     pickupAddress,
@@ -76,7 +77,6 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     const isOlympic = journeyDate ? isOlympicPeriod(journeyDate) : false
     const isCeremony = journeyDate ? isCeremonyDate(journeyDate) : false
     const isCeremonyService = serviceType === "ceremony-disposition"
-    const isInterCluster = serviceType === "inter-cluster"
     
     let vehicleTypes: any[]
     
@@ -93,6 +93,26 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
       }))
     } else if (isEastCluster && isOlympic) {
       // EAST CLUSTER: Only Sedan and Minivan as per eastern cluster pricing
+      vehicleTypes = [
+        {
+          value: 'olympic-sedan',
+          label: 'Sedan',
+          maxPassengers: 2,
+          maxLuggage: 2,
+          description: '2 passengers max',
+          category: 'standard'
+        },
+        {
+          value: 'olympic-minivan',
+          label: 'Mini Van',
+          maxPassengers: 6,
+          maxLuggage: 6,
+          description: '6 passengers (4 with luggage)',
+          category: 'standard'
+        }
+      ]
+    } else if (isInterCluster && isOlympic) {
+      // INTER-CLUSTER: Only Sedan and Minivan as per inter-cluster pricing
       vehicleTypes = [
         {
           value: 'olympic-sedan',

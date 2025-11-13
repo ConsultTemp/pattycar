@@ -651,8 +651,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                   }
                 }
 
-                // IMPORTANT: Only East Cluster routes should limit vehicles to sedan/minivan
-                // Inter-Cluster routes should show all 4 vehicle types (sedan, minivan, van, luxury)
+                // IMPORTANT: Both East Cluster and Inter-Cluster routes limit vehicles to sedan/minivan
                 isEastCluster = olympicRoute?.isEastCluster === true
                 isInterCluster = olympicRoute?.isInterCluster === true
 
@@ -663,7 +662,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                   isEastCluster: olympicRoute?.isEastCluster,
                   isInterCluster: olympicRoute?.isInterCluster,
                   limitVehiclesForEastCluster: isEastCluster,
-                  showAllVehiclesForInterCluster: isInterCluster
+                  limitVehiclesForInterCluster: isInterCluster
                 })
               }
             }
