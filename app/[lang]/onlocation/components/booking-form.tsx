@@ -50,13 +50,13 @@ const getAvailableServiceTypes = (date?: Date, dictionary?: any): ServiceTypeOpt
         label: dictionary?.serviceType?.transfer?.label || "Transfer",
         description: dictionary?.serviceType?.transfer?.description || "Point-to-point transfer",
         icon: ""
-      },
+      }/* ,
       {
         value: "disposizione",
         label: dictionary?.serviceType?.disposition?.label || "Disposition",
         description: dictionary?.serviceType?.disposition?.description || "Time-based service with driver",
         icon: ""
-      }
+      } */
     ]
   }
 
@@ -499,7 +499,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label className="flex items-start cursor-pointer p-4 border rounded-lg hover:border-blue-300 transition-colors">
+                 {/*  <label className="flex items-start cursor-pointer p-4 border rounded-lg hover:border-blue-300 transition-colors">
                     <input
                       type="radio"
                       name="subServiceType"
@@ -516,7 +516,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                       </div>
                       <p className="text-sm text-gray-500">{dictionary?.serviceType?.disposition?.olympicDescription || "Time-based service with Olympic rates"}</p>
                     </div>
-                  </label>
+                  </label> */}
 
                   <label className="flex items-start cursor-pointer p-4 border rounded-lg hover:border-blue-300 transition-colors">
                     <input
