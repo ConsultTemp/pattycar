@@ -258,8 +258,12 @@
         "selectDropoffPoint": "Seleziona punto di rientro",
         "startTypingToSearch": "Inizia a digitare per cercare una posizione...",
         "listinoResults": "Destinazioni del listino (prezzi fissi)",
+        "routeNotBookable": "Tratta non disponibile online",
+        "routeNotBookableMessage": "Questa tratta non è al momento disponibile per la prenotazione online. Ti preghiamo di contattarci direttamente per ricevere assistenza.",
         "googleResults": "Altri indirizzi",
-        "noResultsFound": "Nessun risultato trovato"
+        "noResultsFound": "Nessun risultato trovato",
+        "routeNotAvailable": "Tratta non disponibile",
+        "routeNotAvailableDetail": "Questa tratta non è disponibile nel nostro listino per il periodo Olimpico. Seleziona una destinazione del nostro listino per procedere."
       },
       "vehicles": {
         "title": "Configurazione Veicoli",
@@ -988,11 +992,11 @@
         "waitingTime": "45 minuti di attesa sono inclusi per eventuali ritardi del volo e/o ritiro bagagli. I 45 minuti iniziano dall'orario di atterraggio prenotato stimato.",
         "ratesTitle": "Dopo i 45 minuti inclusi, verranno applicate le seguenti tariffe:",
         "rates": [
-          "Sedan: 94 € + 10% IVA per ora o frazione",
-          "Minivan: 108 € + 10% IVA per ora o frazione",
-          "Minibus o Sedan di Lusso: 135 € + 10% IVA per ora o frazione"
+          "Sedan: 105 € + 10% IVA per ora o frazione",
+          "Minivan: 120 € + 10% IVA per ora o frazione",
+          "Van o Sedan di Lusso: 150 € + 10% IVA per ora o frazione"
         ],
-        "maxDelay": "Se il ritardo supera le 3 ore, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito.",
+        "maxDelay": "Se il ritardo supera le 3 ore dall'orario di atterraggio prenotato stimato, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito.",
         "payment": "Gli addebiti extra saranno pagati tramite link virtuale sicuro prima della fine del servizio."
       },
       "trainStation": {
@@ -1000,11 +1004,11 @@
         "waitingTime": "20 minuti di attesa sono inclusi per eventuali ritardi. I 20 minuti iniziano dall'orario di arrivo prenotato stimato.",
         "ratesTitle": "Dopo i 20 minuti inclusi, verranno applicate le seguenti tariffe:",
         "rates": [
-          "Sedan: 94 € + 10% IVA per ora o frazione",
-          "Minivan: 108 € + 10% IVA per ora o frazione",
-          "Minibus o Sedan di Lusso: 135 € + 10% IVA per ora o frazione"
+          "Sedan: 105 € + 10% IVA per ora o frazione",
+          "Minivan: 120 € + 10% IVA per ora o frazione",
+          "Van o Sedan di Lusso: 150 € + 10% IVA per ora o frazione"
         ],
-        "maxDelay": "Se il ritardo supera le 2 ore, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito.",
+        "maxDelay": "Se il ritardo supera le 2 ore dall'orario di atterraggio prenotato stimato, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito.",
         "payment": "Gli addebiti extra saranno pagati tramite link virtuale sicuro prima della fine del servizio."
       }
     },
@@ -1013,9 +1017,9 @@
       "waitingTime": "Per le PARTENZE DA AEROPORTO E STAZIONE FERROVIARIA, 20 minuti di attesa sono inclusi.",
       "ratesTitle": "Dopo i 20 minuti inclusi, verranno applicate le seguenti tariffe:",
       "rates": [
-        "Sedan: 94 € + 10% IVA per ora o frazione",
-        "Minivan: 108 € + 10% IVA per ora o frazione",
-        "Minibus o Sedan di Lusso: 135 € + 10% IVA per ora o frazione"
+        "Sedan: 105 € + 10% IVA per ora o frazione",
+        "Minivan: 120 € + 10% IVA per ora o frazione",
+        "Van o Sedan di Lusso: 150 € + 10% IVA per ora o frazione"
       ],
       "maxWaiting": "È garantito un tempo di attesa massimo di 1 ora. Dopo tale periodo, il servizio deve essere riprogrammato e verrà applicato un nuovo addebito. Se l'attesa non viene notificata, il trasferimento non sarà garantito."
     },
@@ -1027,9 +1031,9 @@
     },
     "cancellationPolicy": {
       "title": "POLITICA DI CANCELLAZIONE",
-      "fullRefund": "Rimborso del 100%: Se, dopo la conferma e il pagamento, il servizio viene cancellato entro il 31 ottobre 2025",
-      "halfRefund": "Rimborso del 50%: Se, dopo la conferma e il pagamento, il servizio viene cancellato tra il 1° novembre 2025 e il 5 gennaio 2026",
-      "noRefund": "Non rimborsabile: Se, dopo la conferma e il pagamento, il servizio viene cancellato dal 6 gennaio 2026 in poi"
+      "fullRefund": "Se, dopo la conferma e il pagamento, il servizio viene cancellato entro il 31 ottobre 2025 ➡ Rimborso del 100%",
+      "halfRefund": "Se, dopo la conferma e il pagamento, il servizio viene cancellato tra il 1° novembre 2025 e il 5 gennaio 2026 ➡ Rimborso del 50%",
+      "noRefund": "Se, dopo la conferma e il pagamento, il servizio viene cancellato dal 6 gennaio 2026 in poi ➡ Non rimborsabile"
     }
   },
   "common": {

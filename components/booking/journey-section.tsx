@@ -15,9 +15,10 @@ import { it } from "date-fns/locale"
 import { PlacesAutocomplete } from "@/components/places-autocomplete"
 import { LocationSelector } from "@/components/location-selector"
 import { timeUtils } from "@/lib/time-utils"
-import type { Journey, ValidationError, BookingOptions, ServiceType } from "@/lib/booking-types"
+import type { Journey, ValidationError, BookingOptions, ServiceType, PricingResult } from "@/lib/booking-types"
 import { useEffect, useState } from "react"
-import { isOlympicPeriod } from "@/lib/olympic-pricing"
+import { isOlympicPeriod, isRouteBookable } from "@/lib/olympic-pricing"
+import { resolveLocationForPricing } from "@/lib/event-pricing"
 
 interface JourneySectionProps {
   journey: Journey
@@ -30,9 +31,10 @@ interface JourneySectionProps {
   onOptionsChange: (options: Partial<BookingOptions>) => void
   dictionary: any
   isDestinationDisabled?: () => boolean
+  pricing?: PricingResult | null
 }
 
-export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled }: JourneySectionProps) {
+export function JourneySection({ journey, errors, optionsErrors = [], hasAttemptedSubmit, onChange, serviceType, options, onOptionsChange, dictionary, isDestinationDisabled, pricing }: JourneySectionProps) {
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [is24HourFormat, setIs24HourFormat] = useState(false)
 
@@ -41,10 +43,27 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
   const isDispositionService = serviceType === "disposizione" || serviceType === "ceremony-disposition"
   const useOlympicDurationLogic = isOlympicPeriod_local && isDispositionService
 
-  
+  // Check if route is bookable (during Olympic period only)
+  const routeIsNotBookable = isOlympicPeriod_local && 
+    journey.pickup?.address && 
+    journey.destination?.address && 
+    (() => {
+      // Use same location resolution logic as pricing calculation
+      const resolvedPickup = resolveLocationForPricing(
+        journey.pickup.locationId,
+        journey.pickup.coordinates
+      )
+      const resolvedDestination = resolveLocationForPricing(
+        journey.destination.locationId,
+        journey.destination.coordinates
+      )
 
-  // Set default minutes to "00" if not already set
-  
+      if (resolvedPickup.resolvedLocationId && resolvedDestination.resolvedLocationId) {
+        return !isRouteBookable(resolvedPickup.resolvedLocationId, resolvedDestination.resolvedLocationId)
+      }
+      return false
+    })()
+
   // Auto-calculate end time when start time or duration changes (Olympic logic)
   useEffect(() => {
     if (useOlympicDurationLogic && journey.time && journey.minutes && journey.serviceDuration) {
@@ -542,6 +561,21 @@ export function JourneySection({ journey, errors, optionsErrors = [], hasAttempt
                 {dictionary.priceNote}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Non-Bookable Route Info */}
+        {routeIsNotBookable && (
+          <div className="p-4 bg-gray-50 border border-gray-300 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium text-gray-900">{dictionary.routeNotBookable || "Tratta non disponibile online"}</span>
+            </div>
+            <p className="text-sm text-gray-700">
+              {dictionary.routeNotBookableMessage || "Questa tratta non è al momento disponibile per la prenotazione online. Ti preghiamo di contattarci direttamente per assistenza."}
+            </p>
           </div>
         )}
 

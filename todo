@@ -333,3 +333,14 @@ sia partenza che ritorno a venezia, sotto alla scelta voicoli aggiungi un flag p
 
 
 stripe listen --forward-to localhost:3000/api/stripe-webhook
+
+
+
+cortina anterselva  e cortina valdifiemme e livigno bormio non opzionabili
+cortina venezia senza water taxi dove
+cambiare costo orario dispo con nuove??? (piu basse)
+route cerimonia avanti e indietro
+
+
+
+tratte non opzionabili in listino non possono esserw cewlte, tratte custom si. 

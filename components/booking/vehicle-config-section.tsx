@@ -56,6 +56,7 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     journeyDate,
     serviceType,
     isEastCluster,
+    isInterCluster,
     pickupLocationId,
     destinationLocationId,
     pickupAddress,
@@ -76,7 +77,6 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
     const isOlympic = journeyDate ? isOlympicPeriod(journeyDate) : false
     const isCeremony = journeyDate ? isCeremonyDate(journeyDate) : false
     const isCeremonyService = serviceType === "ceremony-disposition"
-    const isInterCluster = serviceType === "inter-cluster"
     
     let vehicleTypes: any[]
     
@@ -93,6 +93,26 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
       }))
     } else if (isEastCluster && isOlympic) {
       // EAST CLUSTER: Only Sedan and Minivan as per eastern cluster pricing
+      vehicleTypes = [
+        {
+          value: 'olympic-sedan',
+          label: 'Sedan',
+          maxPassengers: 2,
+          maxLuggage: 2,
+          description: '2 passengers max',
+          category: 'standard'
+        },
+        {
+          value: 'olympic-minivan',
+          label: 'Mini Van',
+          maxPassengers: 6,
+          maxLuggage: 6,
+          description: '6 passengers (4 with luggage)',
+          category: 'standard'
+        }
+      ]
+    } else if (isInterCluster && isOlympic) {
+      // INTER-CLUSTER: Only Sedan and Minivan as per inter-cluster pricing
       vehicleTypes = [
         {
           value: 'olympic-sedan',
@@ -200,44 +220,37 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
 
     // Helper function to check if location is in Venice (excluding airport and station)
     const isVeniceLocation = (address?: string, locationId?: string, coordinates?: { lat: number; lng: number }): boolean => {
-      if (!address && !locationId && !coordinates) return false
-      
-      // STEP 1: Exclude Venice Marco Polo airport and Venice Santa Lucia station by locationId
-      const excludedLocationIds = ['venezia-marco-polo', 'venezia-santa-lucia']
-      if (locationId && excludedLocationIds.includes(locationId)) {
-        console.log('🚫 WATER TAXI: Excluded by locationId:', locationId)
+      if (!address && !locationId && !coordinates) {
         return false
       }
       
-      // STEP 2: Check if address contains "Venezia" or "Venice" (but not the excluded locations)
-      if (address) {
-        const lowerAddress = address.toLowerCase()
-        const isVenice = lowerAddress.includes('venezia') || lowerAddress.includes('venice')
-        
-        // Comprehensive exclusion keywords for airport and station
-        const isExcludedLocation = 
-          lowerAddress.includes('marco polo') || 
-          lowerAddress.includes('santa lucia') ||
-          lowerAddress.includes('aeroporto') ||
-          lowerAddress.includes('airport') ||
-          lowerAddress.includes('stazione') ||
-          lowerAddress.includes('station') ||
-          lowerAddress.includes('train station') ||
-          lowerAddress.includes('railway station')
-        
-        if (isVenice && !isExcludedLocation) {
-          console.log('✅ WATER TAXI: Venice location detected by address:', address)
-          return true
-        }
-        
-        if (isVenice && isExcludedLocation) {
-          console.log('🚫 WATER TAXI: Venice airport/station excluded by address keywords:', address)
+      // STEP 1: Exclude Venice Marco Polo airport and Venice Santa Lucia station by locationId
+      // BUT: Only if the address actually mentions these places (not just auto-mapped by proximity)
+      const excludedLocationIds = ['venezia-marco-polo', 'venezia-santa-lucia']
+      if (locationId && excludedLocationIds.includes(locationId)) {
+        // Double-check: If address doesn't mention the station/airport, it's just a proximity mapping
+        // In that case, ignore the exclusion and treat it as generic Venice
+        if (address) {
+          const lowerAddress = address.toLowerCase()
+          const actuallyMentionsExcludedPlace = 
+            lowerAddress.includes('santa lucia') ||
+            lowerAddress.includes('marco polo') ||
+            lowerAddress.includes('aeroporto') ||
+            lowerAddress.includes('airport') ||
+            (lowerAddress.includes('stazione') && locationId === 'venezia-santa-lucia') ||
+            (lowerAddress.includes('station') && locationId === 'venezia-santa-lucia')
+          
+          if (actuallyMentionsExcludedPlace) {
+            return false
+          }
+          // Continue to other checks - don't exclude
+        } else {
+          // No address to verify, trust the locationId
           return false
         }
       }
       
-      // STEP 3: Check coordinates - Venice city center is approximately 45.4408° N, 12.3155° E
-      // Exclude both airport AND Santa Lucia station coordinates
+      // STEP 2: PRIORITY - Check coordinates (most reliable method)
       if (coordinates) {
         const veniceCenter = { lat: 45.4408, lng: 12.3155 } // San Marco/Rialto area
         const airportCoords = { lat: 45.5053, lng: 12.3519 } // Marco Polo Airport
@@ -259,20 +272,75 @@ export const VehicleConfigSection = memo<VehicleConfigSectionProps>(
         
         // Check if we're AT the station (within ~200m = 0.002 degrees)
         if (distanceFromStation < 0.002) {
-          console.log('🚫 WATER TAXI: Too close to Santa Lucia Station, excluded by coordinates')
           return false
         }
         
         // Check if we're AT the airport (within ~300m = 0.003 degrees)
         if (distanceFromAirport < 0.003) {
-          console.log('🚫 WATER TAXI: Too close to Marco Polo Airport, excluded by coordinates')
           return false
         }
         
-        // If within ~5km from Venice center and NOT near airport/station
-        if (distanceFromCenter < 0.05) {
-          console.log('✅ WATER TAXI: Venice location detected by coordinates:', coordinates)
+        // If within ~15km from Venice center (0.15 degrees ≈ 15km) and NOT near airport/station
+        // This covers the entire Venice metropolitan area including islands
+        if (distanceFromCenter < 0.15) {
           return true
+        } else {
+          return false
+        }
+      }
+      
+      // STEP 3: FALLBACK - Check address only if NO coordinates (rare case)
+      // Only consider it Venice if "Venezia" or "Venice" is the CITY, not just a street name
+      if (address) {
+        const lowerAddress = address.toLowerCase().trim()
+        
+        // First, exclude if it contains airport/station keywords
+        const isExcludedLocation = 
+          lowerAddress.includes('marco polo') || 
+          lowerAddress.includes('santa lucia') ||
+          lowerAddress.includes('aeroporto') ||
+          lowerAddress.includes('airport') ||
+          lowerAddress.includes('stazione') ||
+          lowerAddress.includes('station')
+        
+        if (isExcludedLocation) {
+          return false
+        }
+        
+        // Check if "Venezia" or "Venice" is the CITY (not just in a street name like "Porta Venezia")
+        // Valid patterns: "Venezia", "Venice", ", Venezia", ", Venice", "Venezia, VE", "Venice, VE", etc.
+        const isVeniceCity = 
+          lowerAddress === 'venezia' ||
+          lowerAddress === 'venice' ||
+          lowerAddress === 'venezia, ve' ||
+          lowerAddress === 'venice, ve' ||
+          lowerAddress === 'venezia,ve' ||
+          lowerAddress === 'venice,ve' ||
+          lowerAddress === 'venezia ve' ||
+          lowerAddress === 'venice ve' ||
+          lowerAddress.endsWith(', venezia') ||
+          lowerAddress.endsWith(', venice') ||
+          lowerAddress.endsWith(',venezia') ||
+          lowerAddress.endsWith(',venice') ||
+          lowerAddress.endsWith(', venezia, ve') ||
+          lowerAddress.endsWith(', venice, ve') ||
+          lowerAddress.endsWith(',venezia,ve') ||
+          lowerAddress.endsWith(',venice,ve') ||
+          lowerAddress.endsWith(', venezia ve') ||
+          lowerAddress.endsWith(', venice ve') ||
+          lowerAddress.endsWith(' venezia, ve') ||
+          lowerAddress.endsWith(' venice, ve') ||
+          lowerAddress.includes(', venezia,') ||
+          lowerAddress.includes(', venice,') ||
+          lowerAddress.includes(',venezia,') ||
+          lowerAddress.includes(',venice,') ||
+          lowerAddress.includes(', venezia, ve') ||
+          lowerAddress.includes(', venice, ve')
+        
+        if (isVeniceCity) {
+          return true
+        } else {
+          return false
         }
       }
       

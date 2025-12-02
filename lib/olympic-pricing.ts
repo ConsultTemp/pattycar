@@ -224,6 +224,7 @@ export interface OlympicRoute {
   }
   isEastCluster?: boolean
   isInterCluster?: boolean // Flag to identify inter-cluster routes
+  isBookable?: boolean // Flag to mark if route can be booked (default: true)
 }
 
 // Olympic Transfer Routes - Based on the pricing tables provided
@@ -235,10 +236,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'malpensa',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 220,
-      'olympic-minivan': 255,
-      'olympic-van': 490,
-      'olympic-luxury': 470
+      'olympic-sedan': 290,
+      'olympic-minivan': 330,
+      'olympic-van': 630,
+      'olympic-luxury': 610
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -253,10 +254,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'malpensa',
     toLocationId: 'livigno',
     prices: {
-      'olympic-sedan': 1100,
-      'olympic-minivan': 1270,
-      'olympic-van': 1780,
-      'olympic-luxury': 1630
+      'olympic-sedan': 1460,
+      'olympic-minivan': 1650,
+      'olympic-van': 2315,
+      'olympic-luxury': 2120
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -271,10 +272,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'malpensa',
     toLocationId: 'bormio',
     prices: {
-      'olympic-sedan': 990,
-      'olympic-minivan': 1150,
-      'olympic-van': 1540,
-      'olympic-luxury': 1430
+      'olympic-sedan': 1290,
+      'olympic-minivan': 1495,
+      'olympic-van': 2000,
+      'olympic-luxury': 1860
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -289,10 +290,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'malpensa',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 710,
-      'olympic-minivan': 830,
-      'olympic-van': 1250,
-      'olympic-luxury': 1130
+      'olympic-sedan': 930,
+      'olympic-minivan': 1080,
+      'olympic-van': 1625,
+      'olympic-luxury': 1470
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -309,10 +310,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'linate',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 135,
-      'olympic-minivan': 150,
-      'olympic-van': 330,
-      'olympic-luxury': 285
+      'olympic-sedan': 185,
+      'olympic-minivan': 200,
+      'olympic-van': 440,
+      'olympic-luxury': 380
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -327,10 +328,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'linate',
     toLocationId: 'livigno',
     prices: {
-      'olympic-sedan': 1070,
-      'olympic-minivan': 1230,
-      'olympic-van': 1590,
-      'olympic-luxury': 1470
+      'olympic-sedan': 1390,
+      'olympic-minivan': 1600,
+      'olympic-van': 2070,
+      'olympic-luxury': 1910
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -345,10 +346,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'linate',
     toLocationId: 'bormio',
     prices: {
-      'olympic-sedan': 920,
-      'olympic-minivan': 1170,
-      'olympic-van': 1390,
-      'olympic-luxury': 1290
+      'olympic-sedan': 1195,
+      'olympic-minivan': 1520,
+      'olympic-van': 1810,
+      'olympic-luxury': 1680
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -363,10 +364,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'linate',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 620,
-      'olympic-minivan': 730,
-      'olympic-van': 990,
-      'olympic-luxury': 920
+      'olympic-sedan': 810,
+      'olympic-minivan': 950,
+      'olympic-van': 1290,
+      'olympic-luxury': 1680
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -383,10 +384,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'bergamo',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 240,
-      'olympic-minivan': 270,
-      'olympic-van': 520,
-      'olympic-luxury': 515
+      'olympic-sedan': 315,
+      'olympic-minivan': 350,
+      'olympic-van': 675,
+      'olympic-luxury': 670
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -401,10 +402,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'bergamo',
     toLocationId: 'livigno',
     prices: {
-      'olympic-sedan': 950,
-      'olympic-minivan': 1100,
-      'olympic-van': 1590,
-      'olympic-luxury': 1470
+      'olympic-sedan': 1235,
+      'olympic-minivan': 1430,
+      'olympic-van': 2090,
+      'olympic-luxury': 1910
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -419,10 +420,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'bergamo',
     toLocationId: 'bormio',
     prices: {
-      'olympic-sedan': 830,
-      'olympic-minivan': 960,
-      'olympic-van': 1390,
-      'olympic-luxury': 1290
+      'olympic-sedan': 1080,
+      'olympic-minivan': 1250,
+      'olympic-van': 1830,
+      'olympic-luxury': 1680
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -437,10 +438,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'bergamo',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 430,
-      'olympic-minivan': 500,
-      'olympic-van': 990,
-      'olympic-luxury': 920
+      'olympic-sedan': 560,
+      'olympic-minivan': 650,
+      'olympic-van': 1310,
+      'olympic-luxury': 1200
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -457,10 +458,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano-centrale',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 125,
-      'olympic-minivan': 150,
-      'olympic-van': 320,
-      'olympic-luxury': 270
+      'olympic-sedan': 165,
+      'olympic-minivan': 185,
+      'olympic-van': 415,
+      'olympic-luxury': 350
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -475,10 +476,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano-centrale',
     toLocationId: 'livigno',
     prices: {
-      'olympic-sedan': 1070,
-      'olympic-minivan': 1230,
-      'olympic-van': 1590,
-      'olympic-luxury': 1470
+      'olympic-sedan': 1390,
+      'olympic-minivan': 1590,
+      'olympic-van': 2060,
+      'olympic-luxury': 1910
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -493,10 +494,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano-centrale',
     toLocationId: 'bormio',
     prices: {
-      'olympic-sedan': 920,
-      'olympic-minivan': 1170,
-      'olympic-van': 1390,
-      'olympic-luxury': 1290
+      'olympic-sedan': 1200,
+      'olympic-minivan': 1510,
+      'olympic-van': 1800,
+      'olympic-luxury': 1680
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -511,10 +512,10 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano-centrale',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 620,
-      'olympic-minivan': 730,
-      'olympic-van': 990,
-      'olympic-luxury': 920
+      'olympic-sedan': 810,
+      'olympic-minivan': 940,
+      'olympic-van': 1280,
+      'olympic-luxury': 1200
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -531,8 +532,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia-marco-polo',
     toLocationId: 'cortina',
     prices: {
-      'olympic-sedan': 590,
-      'olympic-minivan': 640,
+      'olympic-sedan': 1800,
+      'olympic-minivan': 2060,
       'olympic-van': 896,
       'olympic-luxury': 768
     },
@@ -550,8 +551,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia-marco-polo',
     toLocationId: 'anterselva',
     prices: {
-      'olympic-sedan': 760,
-      'olympic-minivan': 825,
+      'olympic-sedan': 1980,
+      'olympic-minivan': 2130,
       'olympic-van': 1155,
       'olympic-luxury': 990
     },
@@ -569,8 +570,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia-marco-polo',
     toLocationId: 'anterselva',
     prices: {
-      'olympic-sedan': 1370,
-      'olympic-minivan': 1470,
+      'olympic-sedan': 1980,
+      'olympic-minivan': 2130,
       'olympic-van': 2058,
       'olympic-luxury': 1764
     },
@@ -588,8 +589,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia-marco-polo',
     toLocationId: 'val-di-fiemme',
     prices: {
-      'olympic-sedan': 730,
-      'olympic-minivan': 780,
+      'olympic-sedan': 1060,
+      'olympic-minivan': 1130,
       'olympic-van': 1092,
       'olympic-luxury': 936
     },
@@ -607,8 +608,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia-marco-polo',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 510,
-      'olympic-minivan': 550,
+      'olympic-sedan': 750,
+      'olympic-minivan': 800,
       'olympic-van': 770,
       'olympic-luxury': 660
     },
@@ -628,8 +629,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'treviso',
     toLocationId: 'cortina',
     prices: {
-      'olympic-sedan': 570,
-      'olympic-minivan': 620,
+      'olympic-sedan': 1800,
+      'olympic-minivan': 2060,
       'olympic-van': 868,
       'olympic-luxury': 744
     },
@@ -647,8 +648,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'treviso',
     toLocationId: 'anterselva',
     prices: {
-      'olympic-sedan': 760,
-      'olympic-minivan': 830,
+      'olympic-sedan': 1980,
+      'olympic-minivan': 2130,
       'olympic-van': 1162,
       'olympic-luxury': 996
     },
@@ -666,8 +667,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'treviso',
     toLocationId: 'anterselva',
     prices: {
-      'olympic-sedan': 1360,
-      'olympic-minivan': 1470,
+      'olympic-sedan': 1980,
+      'olympic-minivan': 2130,
       'olympic-van': 2058,
       'olympic-luxury': 1764
     },
@@ -685,8 +686,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'treviso',
     toLocationId: 'val-di-fiemme',
     prices: {
-      'olympic-sedan': 670,
-      'olympic-minivan': 710,
+      'olympic-sedan': 1060,
+      'olympic-minivan': 1130,
       'olympic-van': 994,
       'olympic-luxury': 852
     },
@@ -704,8 +705,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'treviso',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 510,
-      'olympic-minivan': 550,
+      'olympic-sedan': 750,
+      'olympic-minivan': 800,
       'olympic-van': 770,
       'olympic-luxury': 660
     },
@@ -725,8 +726,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia',
     toLocationId: 'cortina',
     prices: {
-      'olympic-sedan': 590,
-      'olympic-minivan': 650,
+      'olympic-sedan': 1800,
+      'olympic-minivan': 2060,
       'olympic-van': 910,
       'olympic-luxury': 780
     },
@@ -744,8 +745,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia',
     toLocationId: 'anterselva',
     prices: {
-      'olympic-sedan': 790,
-      'olympic-minivan': 860,
+      'olympic-sedan': 1980,
+      'olympic-minivan': 2130,
       'olympic-van': 1204,
       'olympic-luxury': 1032
     },
@@ -763,8 +764,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia',
     toLocationId: 'anterselva',
     prices: {
-      'olympic-sedan': 1460,
-      'olympic-minivan': 1470,
+      'olympic-sedan': 1980,
+      'olympic-minivan': 2130,
       'olympic-van': 2058,
       'olympic-luxury': 1764
     },
@@ -782,8 +783,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia',
     toLocationId: 'val-di-fiemme',
     prices: {
-      'olympic-sedan': 750,
-      'olympic-minivan': 740,
+      'olympic-sedan': 1060,
+      'olympic-minivan': 1130,
       'olympic-van': 1036,
       'olympic-luxury': 888
     },
@@ -801,8 +802,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 540,
-      'olympic-minivan': 590,
+      'olympic-sedan': 750,
+      'olympic-minivan': 800,
       'olympic-van': 826,
       'olympic-luxury': 708
     },
@@ -820,8 +821,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'cortina',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 950,
-      'olympic-minivan': 1070,
+      'olympic-sedan': 1800,
+      'olympic-minivan': 2100,
       'olympic-van': 1680,      // 950 * 1.77 = 1682 → 1680
       'olympic-luxury': 1550    // 950 * 1.63 = 1549 → 1550
     },
@@ -843,7 +844,6 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 530,
       'olympic-van': 810,       // 460 * 1.77 = 814 → 810
       'olympic-luxury': 750     // 460 * 1.63 = 750 → 750
-      //toremove
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -851,9 +851,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-van': 170,
       'olympic-luxury': 170
     },
-    isEastCluster: true
-  },
-  {
+    isEastCluster: true,
+    isBookable: false // Tratta non prenotabile
+  },  {
     from: 'Cortina Center',
     to: 'Val di Fiemme',
     fromLocationId: 'cortina',
@@ -863,7 +863,6 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-minivan': 640,
       'olympic-van': 1040,      // 590 * 1.77 = 1044 → 1040
       'olympic-luxury': 960     // 590 * 1.63 = 962 → 960
-      //toremove
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -871,16 +870,17 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
       'olympic-van': 170,
       'olympic-luxury': 170
     },
-    isEastCluster: true
-  },
+    isEastCluster: true,
+    isBookable: false // Tratta non prenotabile
+  }, 
   {
     from: 'Cortina Center',
     to: 'Venezia',
     fromLocationId: 'cortina',
     toLocationId: 'venezia',
     prices: {
-      'olympic-sedan': 800,
-      'olympic-minivan': 860,
+      'olympic-sedan': 1800,
+      'olympic-minivan': 2060,
       'olympic-van': 1420,      // 800 * 1.77 = 1416 → 1420
       'olympic-luxury': 1300    // 800 * 1.63 = 1304 → 1300
 
@@ -902,8 +902,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'cortina',
     toLocationId: 'venezia',
     prices: {
-      'olympic-sedan': 800,
-      'olympic-minivan': 860,
+      'olympic-sedan': 2100,
+      'olympic-minivan': 2190,
       'olympic-van': 1420,      // 800 * 1.77 = 1416 → 1420
       'olympic-luxury': 1300    // 800 * 1.63 = 1304 → 1300
       //toremove
@@ -927,8 +927,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'bormio',
     prices: {
-      'olympic-sedan': 920,
-      'olympic-minivan': 1170,
+      'olympic-sedan': 1195,
+      'olympic-minivan': 1520,
       'olympic-van': 1630,      // 920 * 1.77 = 1628 → 1630
       'olympic-luxury': 1500    // 920 * 1.63 = 1500 → 1500
     },
@@ -946,8 +946,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'livigno',
     prices: {
-      'olympic-sedan': 1070,
-      'olympic-minivan': 1230,
+      'olympic-sedan': 1390,
+      'olympic-minivan': 1600,
       'olympic-van': 1890,      // 1070 * 1.77 = 1894 → 1890
       'olympic-luxury': 1740    // 1070 * 1.63 = 1744 → 1740
     },
@@ -965,8 +965,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'cortina',
     prices: {
-      'olympic-sedan': 1380,
-      'olympic-minivan': 1620,
+      'olympic-sedan': 1800,
+      'olympic-minivan': 2100,
       'olympic-van': 2440,      // 1380 * 1.77 = 2443 → 2440
       'olympic-luxury': 2250    // 1380 * 1.63 = 2249 → 2250
     },
@@ -984,8 +984,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 620,
-      'olympic-minivan': 730,
+      'olympic-sedan': 810,
+      'olympic-minivan': 950,
       'olympic-van': 1100,      // 620 * 1.77 = 1097 → 1100
       'olympic-luxury': 1010    // 620 * 1.63 = 1011 → 1010
     },
@@ -1005,8 +1005,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'cortina',
     toLocationId: 'bormio',
     prices: {
-      'olympic-sedan': 1600,
-      'olympic-minivan': 1840,
+      'olympic-sedan': 2080,
+      'olympic-minivan': 2390,
       'olympic-van': 2830,      // 1600 * 1.77 = 2832 → 2830
       'olympic-luxury': 2610    // 1600 * 1.63 = 2608 → 2610
     },
@@ -1024,8 +1024,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'cortina',
     toLocationId: 'livigno',
     prices: {
-      'olympic-sedan': 1340,
-      'olympic-minivan': 1550,
+      'olympic-sedan': 1740,
+      'olympic-minivan': 2390,
       'olympic-van': 2370,      // 1340 * 1.77 = 2372 → 2370
       'olympic-luxury': 2180    // 1340 * 1.63 = 2184 → 2180
     },
@@ -1054,7 +1054,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
       'olympic-van': 170,
       'olympic-luxury': 170
     },
-    isInterCluster: true
+    isInterCluster: true,
+    isBookable: false // Tratta non prenotabile
   },
   
   // Additional Milano Center routes from official table
@@ -1064,8 +1065,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'tirano',
     prices: {
-      'olympic-sedan': 870,
-      'olympic-minivan': 1100,
+      'olympic-sedan': 1139,
+      'olympic-minivan': 1430,
       'olympic-van': 1540,      // 870 * 1.77 = 1540 → 1540
       'olympic-luxury': 1420    // 870 * 1.63 = 1418 → 1420
     },
@@ -1083,8 +1084,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'anterselva',
     prices: {
-      'olympic-sedan': 1380,
-      'olympic-minivan': 1620,
+      'olympic-sedan': 1795,
+      'olympic-minivan': 2105,
       'olympic-van': 2440,      // 1380 * 1.77 = 2443 → 2440
       'olympic-luxury': 2250    // 1380 * 1.63 = 2249 → 2250
     },
@@ -1102,8 +1103,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'val-di-fiemme',
     prices: {
-      'olympic-sedan': 1290,
-      'olympic-minivan': 1520,
+      'olympic-sedan': 1680,
+      'olympic-minivan': 1980,
       'olympic-van': 2280,      // 1290 * 1.77 = 2283 → 2280
       'olympic-luxury': 2100    // 1290 * 1.63 = 2103 → 2100
     },
@@ -1121,8 +1122,8 @@ export const OLYMPIC_INTER_CLUSTER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano',
     toLocationId: 'venezia',
     prices: {
-      'olympic-sedan': 1020,
-      'olympic-minivan': 1200,
+      'olympic-sedan': 1325,
+      'olympic-minivan': 1560,
       'olympic-van': 1800,      // 1020 * 1.77 = 1805 → 1800
       'olympic-luxury': 1660    // 1020 * 1.63 = 1663 → 1660
     },
@@ -1326,6 +1327,20 @@ export function findOlympicRoute(fromLocationId: string, toLocationId: string): 
   }
   
   return null
+}
+
+/**
+ * Check if a route is bookable
+ * @param fromLocationId - Starting location ID
+ * @param toLocationId - Destination location ID
+ * @returns true if route can be booked, false otherwise
+ */
+export function isRouteBookable(fromLocationId: string, toLocationId: string): boolean {
+  const route = findOlympicRoute(fromLocationId, toLocationId)
+  if (!route) {
+    return true // If no Olympic route found, assume it's bookable (will use standard pricing)
+  }
+  return route.isBookable !== false // Default to true if not explicitly set to false
 }
 
 export function findOlympicCeremony(date: Date): OlympicCeremony | null {
