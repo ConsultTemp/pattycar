@@ -1958,10 +1958,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     fromLocationId: 'orio-al-serio',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 240,
-      'olympic-minivan': 270,
-      'olympic-van': 520,
-      'olympic-luxury': 515
+      'olympic-sedan': 315,
+      'olympic-minivan': 250,
+      'olympic-van': 675,
+      'olympic-luxury': 670
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -1976,10 +1976,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     fromLocationId: 'orio-al-serio',
     toLocationId: 'livigno',
     prices: {
-      'olympic-sedan': 950,
-      'olympic-minivan': 1100,
-      'olympic-van': 1590,
-      'olympic-luxury': 1470
+      'olympic-sedan': 1235,
+      'olympic-minivan': 1430,
+      'olympic-van': 2090,
+      'olympic-luxury': 1910
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -1994,10 +1994,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     fromLocationId: 'orio-al-serio',
     toLocationId: 'bormio',
     prices: {
-      'olympic-sedan': 830,
-      'olympic-minivan': 960,
-      'olympic-van': 1390,
-      'olympic-luxury': 1290
+      'olympic-sedan': 1080,
+      'olympic-minivan': 1250,
+      'olympic-van': 1830,
+      'olympic-luxury': 1680
     },
     extraHourRates: {
       'olympic-sedan': 130,
@@ -2012,10 +2012,10 @@ export const OLYMPIC_AIRPORT_STATION_ROUTES: OlympicRoute[] = [
     fromLocationId: 'orio-al-serio',
     toLocationId: 'verona',
     prices: {
-      'olympic-sedan': 430,
+      'olympic-sedan': 560,
       'olympic-minivan': 500,
-      'olympic-van': 990,
-      'olympic-luxury': 920
+      'olympic-van': 1310,
+      'olympic-luxury': 1200
     },
     extraHourRates: {
       'olympic-sedan': 130,
