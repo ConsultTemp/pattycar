@@ -879,8 +879,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'cortina',
     toLocationId: 'venezia',
     prices: {
-      'olympic-sedan': 1800,
-      'olympic-minivan': 2060,
+      'olympic-sedan': 1900,
+      'olympic-minivan': 1990,
       'olympic-van': 1420,      // 800 * 1.77 = 1416 → 1420
       'olympic-luxury': 1300    // 800 * 1.63 = 1304 → 1300
 
