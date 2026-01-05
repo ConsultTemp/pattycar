@@ -169,8 +169,8 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
     }
     return false
   }, [
-    isOlympicPeriod_local, 
-    state.journey.pickup?.address, 
+    isOlympicPeriod_local,
+    state.journey.pickup?.address,
     state.journey.pickup?.locationId,
     state.journey.pickup?.coordinates,
     state.journey.destination?.address,
@@ -348,9 +348,9 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           ? formatTime24Hour(state.journey.time, state.journey.minutes, state.journey.timeAmPm)
           : "",
         departureTime: state.journey.departureTime && state.journey.departureMinutes
-          ? (state.journey.departureTimeAmPm 
-              ? formatTime24Hour(state.journey.departureTime, state.journey.departureMinutes, state.journey.departureTimeAmPm)
-              : `${state.journey.departureTime}:${state.journey.departureMinutes}`)
+          ? (state.journey.departureTimeAmPm
+            ? formatTime24Hour(state.journey.departureTime, state.journey.departureMinutes, state.journey.departureTimeAmPm)
+            : `${state.journey.departureTime}:${state.journey.departureMinutes}`)
           : "",
         departureMinutes: state.journey.departureMinutes || "",
         departureTimeAmPm: state.journey.departureTimeAmPm || "",
@@ -469,13 +469,13 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
 
       <div className="space-y-6">
         {/* Customer Information */}
-        <CustomerInfoSection
+        {/* <CustomerInfoSection
           customer={state.customer}
           errors={getFieldErrors("customer")}
           hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
           onChange={handleCustomerChange}
-          dictionary={{...dictionary.customer, validationErrors: dictionary.submit?.validationErrors}}
-        />
+          dictionary={{ ...dictionary.customer, validationErrors: dictionary.submit?.validationErrors }}
+        /> */}
 
         {/* Date Selection - Critical first step */}
         <DateSection
@@ -483,7 +483,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           errors={getFieldErrors("journey")}
           hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
           onChange={(date) => handleJourneyChange({ date })}
-          dictionary={{...dictionary.date, validationErrors: dictionary.submit?.validationErrors}}
+          dictionary={{ ...dictionary.date, validationErrors: dictionary.submit?.validationErrors }}
         />
 
         {/* Service Type Selection - Only enabled when date is selected */}
@@ -536,7 +536,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 {/*  <label className="flex items-start cursor-pointer p-4 border rounded-lg hover:border-blue-300 transition-colors">
+                  {/*  <label className="flex items-start cursor-pointer p-4 border rounded-lg hover:border-blue-300 transition-colors">
                     <input
                       type="radio"
                       name="subServiceType"
@@ -589,7 +589,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             serviceType={state.serviceType}
             options={state.options}
             onOptionsChange={handleOptionsChange}
-            dictionary={{...dictionary.journey, validationErrors: dictionary.submit?.validationErrors}}
+            dictionary={{ ...dictionary.journey, validationErrors: dictionary.submit?.validationErrors }}
             isDestinationDisabled={isDestinationDisabledForCeremony}
             pricing={pricing}
           />
@@ -693,7 +693,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
                 onMultipleConfigChange={handleMultipleConfigChange}
                 onAddVehicle={handleAddVehicle}
                 onRemoveVehicle={handleRemoveVehicle}
-                dictionary={{...dictionary.vehicles, validationErrors: dictionary.submit?.validationErrors}}
+                dictionary={{ ...dictionary.vehicles, validationErrors: dictionary.submit?.validationErrors }}
               />
             )
           })()}
@@ -709,6 +709,14 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
           />
         )}
 
+        <CustomerInfoSection
+          customer={state.customer}
+          errors={getFieldErrors("customer")}
+          hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
+          onChange={handleCustomerChange}
+          dictionary={{ ...dictionary.customer, validationErrors: dictionary.submit?.validationErrors }}
+        />
+
         {/* Additional Options - Only enabled when date is selected and route is bookable */}
         <div className={!state.journey.date || routeIsNotBookable ? "opacity-50 pointer-events-none" : ""}>
           <AdditionalOptionsSection
@@ -716,7 +724,7 @@ export default function BookingForm({ dictionary }: { dictionary: any }) {
             errors={getFieldErrors("options")}
             hasAttemptedSubmit={state.ui.hasAttemptedSubmit}
             onChange={handleOptionsChange}
-            dictionary={{...dictionary.options, validationErrors: dictionary.submit?.validationErrors}}
+            dictionary={{ ...dictionary.options, validationErrors: dictionary.submit?.validationErrors }}
           />
         </div>
 
