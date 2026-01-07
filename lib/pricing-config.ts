@@ -103,16 +103,16 @@ const MILANO_RADIUS_KM = 10 // 10km radius from Milano center
 // € 165,00 € 185,00 € 415,00 € 350,00
 // Fixed prices for Milano internal transfers by vehicle type
 const MILANO_INTERNAL_TRANSFER_PRICES: Record<string, number> = {
-  sedan: 165,
-  berlina: 165,
-  minivan: 185,
-  van: 415,
-  minibus: 415, // Legacy - mapped to van
+  sedan: 175,
+  berlina: 175,
+  minivan: 195,
+  van: 425,
+  minibus: 425, // Legacy - mapped to van
   "luxury-sedan": 350,
-  'olympic-sedan': 165,
-  'olympic-minivan': 185,
-  'olympic-van': 415,
-  'olympic-minibus': 415,
+  'olympic-sedan': 175,
+  'olympic-minivan': 195,
+  'olympic-van': 425,
+  'olympic-minibus': 425,
   'olympic-luxury': 350,
 }
 

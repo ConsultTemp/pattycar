@@ -56,14 +56,16 @@ const LOCALITY_MAPPINGS: LocalityMapping[] = [
     googleNames: [
       'Anterselva', 'Antholz',
       'Anterselva di Mezzo', 'Anterselva di Sopra', 'Anterselva di Sotto', "Rasun Anterselva", "Rasun Antholz",
-      'Rasun', 'Antholz Mittertal', 'Antholz Obertal', 'Antholz Niedertal'
+      'Rasun', 'Antholz Mittertal', 'Antholz Obertal', 'Antholz Niedertal',
+      'Casteldarne', 'Karneid'
     ],
     locationId: 'anterselva',
     priority: 80,
     aliases: [
       'Anterselva BZ', 'Antholz BZ',
       'Anterselva di Mezzo BZ', 'Anterselva di Sopra BZ', 'Anterselva di Sotto BZ',
-      'Antholz Mittertal BZ', 'Antholz Obertal BZ', 'Antholz Niedertal BZ'
+      'Antholz Mittertal BZ', 'Antholz Obertal BZ', 'Antholz Niedertal BZ',
+      'Casteldarne BZ', 'Karneid BZ', 'Casteldarne, BZ', 'Karneid, BZ'
     ]
   },
   {

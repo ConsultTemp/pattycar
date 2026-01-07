@@ -236,8 +236,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'malpensa',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 290,
-      'olympic-minivan': 330,
+      'olympic-sedan': 310,
+      'olympic-minivan': 340,
       'olympic-van': 630,
       'olympic-luxury': 610
     },
@@ -310,8 +310,8 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'linate',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 185,
-      'olympic-minivan': 200,
+      'olympic-sedan': 195,
+      'olympic-minivan': 210,
       'olympic-van': 440,
       'olympic-luxury': 380
     },
@@ -458,9 +458,9 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'milano-centrale',
     toLocationId: 'milano',
     prices: {
-      'olympic-sedan': 165,
-      'olympic-minivan': 185,
-      'olympic-van': 415,
+      'olympic-sedan': 175,
+      'olympic-minivan': 195,
+      'olympic-van': 425,
       'olympic-luxury': 350
     },
     extraHourRates: {
@@ -532,7 +532,7 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia-marco-polo',
     toLocationId: 'cortina',
     prices: {
-      'olympic-sedan': 1800,
+      'olympic-sedan': 1790,
       'olympic-minivan': 2060,
       'olympic-van': 896,
       'olympic-luxury': 768
@@ -629,7 +629,7 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'treviso',
     toLocationId: 'cortina',
     prices: {
-      'olympic-sedan': 1800,
+      'olympic-sedan': 1790,
       'olympic-minivan': 2060,
       'olympic-van': 868,
       'olympic-luxury': 744
@@ -726,7 +726,7 @@ export const OLYMPIC_TRANSFER_ROUTES: OlympicRoute[] = [
     fromLocationId: 'venezia',
     toLocationId: 'cortina',
     prices: {
-      'olympic-sedan': 1800,
+      'olympic-sedan': 1790,
       'olympic-minivan': 2060,
       'olympic-van': 910,
       'olympic-luxury': 780
