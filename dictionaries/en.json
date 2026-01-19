@@ -1028,7 +1028,9 @@
     "modifications": {
       "title": "BOOKING MODIFICATIONS",
       "content": "For any booking changes in the reservation the guest must contact us at our e-mail address: gamestime@pattycar.com",
+      "noShowLabel": "NO-SHOW:",
       "noShow": "In case of NO-SHOW, the service will be fully charged.",
+      "airportChangeLabel": "Airport Change:",
       "airportChange": "In case of landing in a different airport instead of the booked one, the quotation will be recalculated."
     },
     "cancellationPolicy": {

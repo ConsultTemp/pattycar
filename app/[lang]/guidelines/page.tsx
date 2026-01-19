@@ -3,10 +3,11 @@ import { getDictionary } from '@/lib/dictionary'
 type SupportedLocale = "en" | "it" | "ar"
 
 export default async function GuidelinesPage({
-  params: { lang },
+  params,
 }: {
-  params: { lang: SupportedLocale }
+  params: Promise<{ lang: SupportedLocale }>
 }) {
+  const { lang } = await params
   const dictionary = await getDictionary(lang)
 
   return (
@@ -72,10 +73,10 @@ export default async function GuidelinesPage({
           <h2 className="text-2xl font-bold mb-6 text-primary">{dictionary.guidelines.modifications.title}</h2>
           <p className="text-gray-700 mb-4">{dictionary.guidelines.modifications.content}</p>
           <p className="text-gray-700 mb-2">
-            <span className="font-semibold">NO-SHOW:</span> {dictionary.guidelines.modifications.noShow}
+            <span className="font-semibold">{dictionary.guidelines.modifications.noShowLabel}</span> {dictionary.guidelines.modifications.noShow}
           </p>
           <p className="text-gray-700">
-            <span className="font-semibold">{lang === 'en' ? 'Airport Change:' : lang === 'it' ? 'Cambio Aeroporto:' : 'تغيير المطار:'}</span> {dictionary.guidelines.modifications.airportChange}
+            <span className="font-semibold">{dictionary.guidelines.modifications.airportChangeLabel}</span> {dictionary.guidelines.modifications.airportChange}
           </p>
         </div>
 
