@@ -14,7 +14,7 @@ export default function Footer() {
   const mainNavLinks = [
     { key: "home", href: "/", label: dictionary.navigation[0].label },
     { key: "fleet", href: "/fleet", label: dictionary.navigation[2].label },
-    { key: "book", href: "/book", label: dictionary.navigation[3]?.label || "About Us" },
+    { key: "book", href: "/booking", label: dictionary.navigation[3]?.label || "About Us" },
     { key: "contact", href: "/contact", label: dictionary.navigation[4]?.label || "Contact" },
   ]
 

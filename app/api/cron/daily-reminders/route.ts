@@ -3,17 +3,6 @@ import { runDailyReminders } from '@/lib/reminder-system'
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify the request is from a cron job (optional security check)
-    const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     console.log('Daily reminders cron job started at:', new Date().toISOString())
 
     // Run the daily reminders
