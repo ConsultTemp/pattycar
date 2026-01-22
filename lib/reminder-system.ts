@@ -230,9 +230,13 @@ async function sendReminderEmail(booking: BookingRow): Promise<{ success: boolea
               Dear ${customerName},
             </p>
             
-            <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 35px 0;">
+            <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 20px 0;">
               We hope this message finds you well.<br><br>
               This is a kind reminder that the service you have booked with us is scheduled to take place in <strong>7 days</strong>, on <strong>${formattedDate}</strong>.
+            </p>
+            
+            <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 35px 0;">
+              Please find below a recap of your reservation:
             </p>
             
             <!-- Service Type Badge -->
@@ -536,17 +540,7 @@ async function sendReminderEmail(booking: BookingRow): Promise<{ success: boolea
               </div>
             </div>
             
-            <!-- Important Reminder -->
-            <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 25px; margin: 30px 0;">
-              <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
-                📱 What to Expect
-              </h3>
-              <ul style="color: #1e40af; line-height: 1.8; margin: 0; padding-left: 20px;">
-                <li>You will receive another reminder <strong>1 day before</strong> the service</li>
-                <li>Our driver will contact you <strong>30 minutes before</strong> the agreed time</li>
-                <li>We will monitor any flight/train delays if applicable</li>
-              </ul>
-            </div>
+           
             
             <!-- Contact Information -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0;">

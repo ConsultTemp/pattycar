@@ -74,17 +74,7 @@ export async function POST(req: NextRequest) {
                 </p>
               </div>
               
-              <!-- Additional Information -->
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0;">
-                <h3 style="color: #1e3c72; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
-                  📋 Important Information
-                </h3>
-                <ul style="color: #475569; line-height: 1.8; margin: 0; padding-left: 20px;">
-                  <li style="margin-bottom: 8px;">Your driver will be available to assist you with any questions or concerns</li>
-                  <li style="margin-bottom: 8px;">Please save this phone number for easy access on the day of your service</li>
-                  <li style="margin-bottom: 8px;">If you need to make any changes to your booking, please contact us at <strong>gamestime@pattycar.com</strong></li>
-                </ul>
-              </div>
+           
               
               <!-- Customer Support -->
               <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 25px; margin: 30px 0;">
@@ -94,6 +84,8 @@ export async function POST(req: NextRequest) {
                 <p style="color: #1e40af; margin: 0; line-height: 1.6;">
                   Should you require any assistance, please do not hesitate to contact us at:<br>
                   <strong>gamestime@pattycar.com</strong>
+                  or
+                  <strong>+39 393 104 9505</strong>
                 </p>
               </div>
               
